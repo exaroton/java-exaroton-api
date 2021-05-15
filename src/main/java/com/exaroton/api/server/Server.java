@@ -258,6 +258,7 @@ public class Server {
 
     /**
      * Execute a server command
+     * @param command command that will be sent to the console
      * @throws APIException connection or API errors
      */
     public void executeCommand(String command) throws APIException {
