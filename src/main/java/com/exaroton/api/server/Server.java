@@ -47,7 +47,7 @@ public class Server {
      * Server port
      * Only available if the server is online
      */
-    private String port;
+    private int port;
 
     /**
      * Information about the installed server software
@@ -154,7 +154,7 @@ public class Server {
      * (Only available if the server is online)
      * @return server port
      */
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 

@@ -4,7 +4,6 @@ import com.exaroton.api.account.Account;
 import com.exaroton.api.request.account.GetAccountRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.server.Server;
-import com.exaroton.api.server.ServerSoftware;
 
 import java.io.BufferedReader;
 import java.io.IOException;
