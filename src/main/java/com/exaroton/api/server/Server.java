@@ -2,7 +2,14 @@ package com.exaroton.api.server;
 
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.ws.stream.ConsoleStream;
+import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
+import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
+import com.exaroton.api.ws.WSClient;
 import com.exaroton.api.request.server.*;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class Server {
 
@@ -63,6 +70,11 @@ public class Server {
      * the client used to create this server
      */
     private ExarotonClient client;
+
+    /**
+     * web socket client
+     */
+    private WSClient webSocketClient;
 
     public Server(ExarotonClient client, String id) {
         this.client = client;
@@ -288,8 +300,9 @@ public class Server {
     /**
      * update properties from fetched object
      * @param server server fetched from the API
+     * @return updated server object
      */
-    private void setFromObject(Server server) {
+    public Server setFromObject(Server server) {
         this.id = server.getId();
         this.name = server.getName();
         this.address = server.getAddress();
@@ -300,6 +313,7 @@ public class Server {
         this.port = server.getPort();
         this.software = server.getSoftware();
         this.shared = server.isShared();
+        return this;
     }
 
     /**
@@ -309,5 +323,31 @@ public class Server {
     public void setClient(ExarotonClient client) {
         if (client == null) throw new IllegalArgumentException("No client provided");
         this.client = client;
+    }
+
+    public void subscribe() throws URISyntaxException, InterruptedException {
+        String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
+        String s = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
+        URI u = new URI(s);
+        webSocketClient = new WSClient(u, this);
+        webSocketClient.addHeader("Authorization", "Bearer " + this.client.getApiToken());
+        webSocketClient.connectBlocking();
+    }
+
+    public void addStatusSubscriber(ServerStatusSubscriber subscriber) {
+        webSocketClient.addServerStatusSubscriber(subscriber);
+    }
+
+    public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
+        webSocketClient.addConsoleSubscriber(subscriber);
+    }
+
+    public ExarotonClient getClient() {
+        return client;
+    }
+
+    public void test() throws Exception {
+        this.subscribe();
+        new ConsoleStream(this.webSocketClient);
     }
 }

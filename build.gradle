@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.exaroton.api'
-version '1.0.1'
+version '1.1.0'
 
 repositories {
     mavenCentral()
@@ -14,6 +14,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.2'
 }
 
 test {
@@ -26,4 +27,10 @@ test {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+jar {
+    from {
+        //configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }

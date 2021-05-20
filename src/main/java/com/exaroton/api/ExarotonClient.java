@@ -19,22 +19,22 @@ public class ExarotonClient {
     /**
      * Request protocol
      */
-    private static String protocol = "https";
+    private String protocol = "https";
 
     /**
      * API host
      */
-    private static final String host = "api.exaroton.com";
+    private final String host = "api.exaroton.com";
 
     /**
      * API base path
      */
-    private static final String basePath = "/v1/";
+    private final String basePath = "/v1/";
 
     /**
      * API user agent
      */
-    private static String userAgent = "java-exaroton-api@1.0.0";
+    private String userAgent = "java-exaroton-api@1.0.0";
 
     /**
      * exaroton API token
@@ -73,7 +73,7 @@ public class ExarotonClient {
             throw new IllegalArgumentException("No user agent specified");
         }
 
-        ExarotonClient.userAgent = userAgent;
+        this.userAgent = userAgent;
         return this;
     }
 
@@ -83,6 +83,22 @@ public class ExarotonClient {
      */
     private String baseURL(){
         return protocol + "://" + host + basePath;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public String getBasePath() {
+        return basePath;
+    }
+
+    public String getApiToken() {
+        return apiToken;
     }
 
     /**
@@ -97,10 +113,10 @@ public class ExarotonClient {
 
         switch (protocol.toLowerCase(Locale.ROOT)) {
             case "http":
-                ExarotonClient.protocol = "http";
+                this.protocol = "http";
                 break;
             case "https":
-                ExarotonClient.protocol = "https";
+                this.protocol = "https";
                 break;
             default:
                 throw new UnsupportedProtocolException(protocol + " is not a supported protocol");
