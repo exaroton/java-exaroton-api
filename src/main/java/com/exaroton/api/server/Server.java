@@ -69,12 +69,12 @@ public class Server {
     /**
      * the client used to create this server
      */
-    private ExarotonClient client;
+    private transient ExarotonClient client;
 
     /**
      * web socket client
      */
-    private WSClient webSocketClient;
+    private transient WSClient webSocketClient;
 
     public Server(ExarotonClient client, String id) {
         this.client = client;
