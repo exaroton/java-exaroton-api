@@ -337,15 +337,21 @@ public class Server {
     /**
      * subscribe to websocket events
      * @throws URISyntaxException
-     * @throws InterruptedException
      */
-    public void subscribe() throws URISyntaxException, InterruptedException {
+    public void subscribe() throws URISyntaxException {
         String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
         String s = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
         URI u = new URI(s);
         this.webSocketClient = new WSClient(u, this);
         this.webSocketClient.addHeader("Authorization", "Bearer " + this.client.getApiToken());
         this.webSocketClient.connect();
+    }
+
+    /**
+     * unsubscribe from websocket events
+     */
+    public void unsubscribe() {
+        this.webSocketClient.close();
     }
 
     /**
