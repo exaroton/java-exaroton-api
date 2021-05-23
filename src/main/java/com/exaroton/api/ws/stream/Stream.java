@@ -27,12 +27,20 @@ public abstract class Stream<SubscriberType> {
      * @param type message type
      */
     public void send(String type) {
-        this.client.send((new Gson()).toJson(new StreamData(this.getName(), type) {
-        }));
+        client.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type)));
     }
 
     /**
      * @return stream name
      */
-    abstract String getName();
+    protected abstract String getName();
+
+    /**
+     * send stream data through the websocket
+     * @param type message type
+     * @param data message data
+     */
+    public void send(String type, String data) {
+        client.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type, data)));
+    }
 }

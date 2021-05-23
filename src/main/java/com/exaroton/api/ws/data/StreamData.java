@@ -22,6 +22,12 @@ public class StreamData<Datatype> {
         this.type = type;
     }
 
+    public StreamData(String stream, String type, Datatype data) {
+        this.stream = stream;
+        this.type = type;
+        this.data = data;
+    }
+
     /**
      * @return message type
      */

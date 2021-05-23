@@ -11,7 +11,7 @@ public class ServerStatusStream extends Stream<ServerStatusSubscriber> {
     }
 
     @Override
-    String getName() {
+    protected String getName() {
         return "status";
     }
 }

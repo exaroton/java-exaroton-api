@@ -2,7 +2,6 @@ package com.exaroton.api.server;
 
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.ws.stream.ConsoleStream;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import com.exaroton.api.ws.WSClient;
@@ -188,6 +187,14 @@ public class Server {
         return shared;
     }
 
+    /**
+     * get the exaroton client used to create this server
+     * @return exaroton client used to create this server
+     */
+    public ExarotonClient getClient() {
+        return client;
+    }
+
 
     /**
      * Fetch the server from the API
@@ -274,8 +281,10 @@ public class Server {
      * @throws APIException connection or API errors
      */
     public void executeCommand(String command) throws APIException {
-        ExecuteCommandRequest request = new ExecuteCommandRequest(this.client, this.id, command);
-        request.request();
+        if (this.webSocketClient == null || !this.webSocketClient.executeCommand(command)) {
+            ExecuteCommandRequest request = new ExecuteCommandRequest(this.client, this.id, command);
+            request.request();
+        }
     }
 
     /**
@@ -325,29 +334,36 @@ public class Server {
         this.client = client;
     }
 
+    /**
+     * subscribe to websocket events
+     * @throws URISyntaxException
+     * @throws InterruptedException
+     */
     public void subscribe() throws URISyntaxException, InterruptedException {
         String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
         String s = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
         URI u = new URI(s);
-        webSocketClient = new WSClient(u, this);
-        webSocketClient.addHeader("Authorization", "Bearer " + this.client.getApiToken());
-        webSocketClient.connectBlocking();
+        this.webSocketClient = new WSClient(u, this);
+        this.webSocketClient.addHeader("Authorization", "Bearer " + this.client.getApiToken());
+        this.webSocketClient.connect();
     }
 
+    /**
+     * subscribe to server status changes
+     * @param subscriber status change handler
+     */
     public void addStatusSubscriber(ServerStatusSubscriber subscriber) {
-        webSocketClient.addServerStatusSubscriber(subscriber);
+        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocketClient.addServerStatusSubscriber(subscriber);
     }
 
+    /**
+     * subscribe to console messages
+     * @param subscriber console message handler
+     */
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        webSocketClient.addConsoleSubscriber(subscriber);
+        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocketClient.addConsoleSubscriber(subscriber);
     }
 
-    public ExarotonClient getClient() {
-        return client;
-    }
-
-    public void test() throws Exception {
-        this.subscribe();
-        new ConsoleStream(this.webSocketClient);
-    }
 }

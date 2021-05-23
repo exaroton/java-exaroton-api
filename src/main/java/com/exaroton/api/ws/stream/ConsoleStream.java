@@ -12,7 +12,15 @@ public class ConsoleStream extends Stream<ConsoleSubscriber> {
     }
 
     @Override
-    String getName() {
+    protected String getName() {
         return "console";
+    }
+
+    /**
+     * execute a command using the websocket
+     * @param command minecraft command
+     */
+    public void executeCommand(String command) {
+        this.send("command", command);
     }
 }

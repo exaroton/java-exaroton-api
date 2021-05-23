@@ -3,7 +3,10 @@ package com.exaroton.api;
 
 import com.google.gson.Gson;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,9 +58,13 @@ public abstract class APIRequest<Datatype> {
             else {
                 endpoint.append("&");
             }
-            endpoint.append(parameter.getName())
-                    .append("=")
-                    .append(parameter.getValue());
+            try {
+                endpoint.append(parameter.getName())
+                        .append("=")
+                        .append(URLEncoder.encode(parameter.getValue(), StandardCharsets.UTF_8.toString()));
+            } catch (UnsupportedEncodingException e) {
+                throw new APIException("Error encoding URL parameters", e);
+            }
         }
 
         String json = client.request(endpoint.toString(), this.getMethod());

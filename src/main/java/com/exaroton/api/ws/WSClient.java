@@ -1,10 +1,10 @@
 package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
-import com.exaroton.api.ws.stream.ConsoleStream;
-import com.exaroton.api.ws.stream.ServerStatusStream;
 import com.exaroton.api.ws.data.ConsoleStreamData;
 import com.exaroton.api.ws.data.ServerStatusStreamData;
+import com.exaroton.api.ws.stream.ConsoleStream;
+import com.exaroton.api.ws.stream.ServerStatusStream;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import com.google.gson.Gson;
@@ -12,6 +12,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 public class WSClient extends WebSocketClient {
 
@@ -36,6 +37,16 @@ public class WSClient extends WebSocketClient {
     private final Server server;
 
     /**
+     * is the connection ready
+     */
+    private boolean ready = false;
+
+    /**
+     * messages to send once the connection becomes ready
+     */
+    private final ArrayList<String> messages = new ArrayList<>();
+
+    /**
      *
      * @param uri websocket uri
      * @param server exaroton server
@@ -46,17 +57,25 @@ public class WSClient extends WebSocketClient {
     }
 
     @Override
-    public void onOpen(ServerHandshake handshakedata) {}
+    public void onOpen(ServerHandshake handshakedata) {
+
+    }
 
     @Override
     public void onMessage(String message) {
-        System.out.println(message);
         WSMessage m = (new Gson()).fromJson(message, WSMessage.class);
         switch (m.getType()) {
             case "keep-alive":
-            case "ready":
             case "connected":
             case "disconnected":
+                break;
+
+            case "ready":
+                ready = true;
+                for (String data : this.messages) {
+                    this.send(data);
+                }
+                this.messages.clear();
                 break;
 
             case "status":
@@ -91,6 +110,8 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         if (this.autoReconnect && remote) {
+            ready = false;
+            System.out.println("Websocket disconnected with code " + code + ": " + reason);
             this.reconnect();
         }
     }
@@ -124,5 +145,31 @@ public class WSClient extends WebSocketClient {
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
         if (this.consoleStream == null) this.consoleStream = new ConsoleStream(this);
         this.consoleStream.subscribers.add(subscriber);
+    }
+
+    /**
+     * execute a command using the console stream if it is active
+     * @param command minecraft command
+     * @return was the command executed
+     */
+    public boolean executeCommand(String command) {
+        if (this.consoleStream == null) {
+            return false;
+        }
+        else {
+            this.consoleStream.executeCommand(command);
+            return true;
+        }
+    }
+
+    /**
+     * send data once connection is ready
+     * @param data web socket message
+     */
+    public void sendWhenReady(String data) {
+        if (this.ready)
+            this.send(data);
+        else
+            this.messages.add(data);
     }
 }
