@@ -2,10 +2,14 @@ package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
 import com.exaroton.api.ws.data.ConsoleStreamData;
+import com.exaroton.api.ws.data.HeapStreamData;
+import com.exaroton.api.ws.data.HeapUsage;
 import com.exaroton.api.ws.data.ServerStatusStreamData;
 import com.exaroton.api.ws.stream.ConsoleStream;
+import com.exaroton.api.ws.stream.HeapStream;
 import com.exaroton.api.ws.stream.ServerStatusStream;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
+import com.exaroton.api.ws.subscriber.HeapSubscriber;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import com.google.gson.Gson;
 import org.java_websocket.client.WebSocketClient;
@@ -30,6 +34,11 @@ public class WSClient extends WebSocketClient {
      * active console stream
      */
     private ConsoleStream consoleStream;
+
+    /**
+     * active heap stream
+     */
+    private HeapStream heapStream;
 
     /**
      * exaroton server
@@ -90,13 +99,17 @@ public class WSClient extends WebSocketClient {
 
             case "line":
                 if (this.consoleStream == null) return;
-                String line = ((new Gson()).fromJson(message, ConsoleStreamData.class)).getData();
+                String line = (new Gson()).fromJson(message, ConsoleStreamData.class).getData();
                 for (ConsoleSubscriber subscriber: consoleStream.subscribers) {
                     subscriber.line(line);
                 }
                 break;
             case "heap":
-                //heap
+                if (this.heapStream == null) return;
+                HeapUsage usage = (new Gson()).fromJson(message, HeapStreamData.class).getData();
+                for (HeapSubscriber subscriber : heapStream.subscribers) {
+                    subscriber.heap(usage);
+                }
                 break;
             case "tick":
                 //tick
@@ -146,14 +159,17 @@ public class WSClient extends WebSocketClient {
     public void subscribe(String stream) {
         switch (stream) {
             case "console":
-                    if (consoleStream == null) {
-                        consoleStream = new ConsoleStream(this);
-                        consoleStream.start();
-                    }
+                if (consoleStream == null) {
+                    consoleStream = new ConsoleStream(this);
+                    consoleStream.start();
+                }
                 break;
 
             case "heap":
-
+                if (heapStream == null) {
+                    heapStream = new HeapStream(this);
+                    heapStream.start();
+                }
                 break;
 
             case "stats":
@@ -185,6 +201,15 @@ public class WSClient extends WebSocketClient {
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
         if (this.consoleStream == null) throw new RuntimeException("There is no active console stream");
         this.consoleStream.subscribers.add(subscriber);
+    }
+
+    /**
+     * subscribe to heap data
+     * @param subscriber instance of class handling heap data
+     */
+    public void addHeapSubscriber(HeapSubscriber subscriber) {
+        if (this.heapStream == null) throw new RuntimeException("There is no active heap stream");
+        this.heapStream.subscribers.add(subscriber);
     }
 
     /**
