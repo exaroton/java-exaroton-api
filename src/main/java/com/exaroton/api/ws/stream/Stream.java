@@ -43,4 +43,11 @@ public abstract class Stream<SubscriberType> {
     public void send(String type, String data) {
         client.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type, data)));
     }
+
+    /**
+     * start stream
+     */
+    public void start() {
+        this.send("start");
+    }
 }

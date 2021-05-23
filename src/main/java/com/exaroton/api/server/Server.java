@@ -348,6 +348,30 @@ public class Server {
     }
 
     /**
+     * subscribe to a single stream
+     * @param stream stream name
+     * @throws URISyntaxException
+     */
+    public void subscribe(String stream) throws URISyntaxException {
+        this.subscribe(new String[]{stream});
+    }
+
+    /**
+     * subscribe to multiple streams at once
+     * @param streams stream names
+     * @throws URISyntaxException
+     */
+    public void subscribe(String[] streams) throws URISyntaxException {
+        if (this.webSocketClient == null) {
+            this.subscribe();
+        }
+
+        for (String stream: streams) {
+            this.webSocketClient.subscribe(stream);
+        }
+    }
+
+    /**
      * unsubscribe from websocket events
      */
     public void unsubscribe() {

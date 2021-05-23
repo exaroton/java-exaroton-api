@@ -7,8 +7,6 @@ public class ConsoleStream extends Stream<ConsoleSubscriber> {
 
     public ConsoleStream(WSClient client) {
         super(client);
-        //subscribe to new console lines
-        this.send("start");
     }
 
     @Override

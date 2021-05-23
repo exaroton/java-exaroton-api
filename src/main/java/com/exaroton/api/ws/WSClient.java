@@ -130,6 +130,46 @@ public class WSClient extends WebSocketClient {
     }
 
     /**
+     * send data once connection is ready
+     * @param data web socket message
+     */
+    public void sendWhenReady(String data) {
+        if (this.ready)
+            this.send(data);
+        else
+            this.messages.add(data);
+    }
+
+    /**
+     * subscribe to a stream if it is not already active
+     */
+    public void subscribe(String stream) {
+        switch (stream) {
+            case "console":
+                    if (consoleStream == null) {
+                        consoleStream = new ConsoleStream(this);
+                        consoleStream.start();
+                    }
+                break;
+
+            case "heap":
+
+                break;
+
+            case "stats":
+
+                break;
+
+            case "tick":
+
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown stream");
+        }
+    }
+
+    /**
      * subscribe to server status changes
      * @param subscriber instance of class handling server status changes
      */
@@ -143,7 +183,7 @@ public class WSClient extends WebSocketClient {
      * @param subscriber instance of class handling new console lines
      */
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        if (this.consoleStream == null) this.consoleStream = new ConsoleStream(this);
+        if (this.consoleStream == null) throw new RuntimeException("There is no active console stream");
         this.consoleStream.subscribers.add(subscriber);
     }
 
@@ -160,16 +200,5 @@ public class WSClient extends WebSocketClient {
             this.consoleStream.executeCommand(command);
             return true;
         }
-    }
-
-    /**
-     * send data once connection is ready
-     * @param data web socket message
-     */
-    public void sendWhenReady(String data) {
-        if (this.ready)
-            this.send(data);
-        else
-            this.messages.add(data);
     }
 }
