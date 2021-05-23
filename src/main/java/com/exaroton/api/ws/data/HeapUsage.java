@@ -17,10 +17,4 @@ public class HeapUsage {
     public int getUsage() {
         return usage;
     }
-
-
-    public double inGiB() {
-        double usage = this.usage;
-        return usage / (Math.pow(1024, 3));
-    }
 }

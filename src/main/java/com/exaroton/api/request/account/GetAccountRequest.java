@@ -3,8 +3,8 @@ package com.exaroton.api.request.account;
 
 import com.exaroton.api.APIRequest;
 import com.exaroton.api.APIResponse;
-import com.exaroton.api.account.Account;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.account.Account;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;

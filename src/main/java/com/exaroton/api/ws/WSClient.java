@@ -1,22 +1,22 @@
 package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
-import com.exaroton.api.ws.data.ConsoleStreamData;
-import com.exaroton.api.ws.data.HeapStreamData;
-import com.exaroton.api.ws.data.HeapUsage;
-import com.exaroton.api.ws.data.ServerStatusStreamData;
+import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.ConsoleStream;
 import com.exaroton.api.ws.stream.HeapStream;
 import com.exaroton.api.ws.stream.ServerStatusStream;
+import com.exaroton.api.ws.stream.StatsStream;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import com.exaroton.api.ws.subscriber.HeapSubscriber;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
+import com.exaroton.api.ws.subscriber.StatsSubscriber;
 import com.google.gson.Gson;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class WSClient extends WebSocketClient {
 
@@ -39,6 +39,11 @@ public class WSClient extends WebSocketClient {
      * active heap stream
      */
     private HeapStream heapStream;
+
+    /**
+     * active stats stream
+     */
+    private StatsStream statsStream;
 
     /**
      * exaroton server
@@ -111,8 +116,17 @@ public class WSClient extends WebSocketClient {
                     subscriber.heap(usage);
                 }
                 break;
+
+            case "stats":
+                if (this.statsStream == null) return;
+                StatsData stats = (new Gson()).fromJson(message, StatsStreamData.class).getData();
+                for (StatsSubscriber subscriber : statsStream.subscribers) {
+                    subscriber.stats(stats);
+                }
+                break;
+
             case "tick":
-                //tick
+                System.out.println(message);
                 break;
 
             default:
@@ -157,7 +171,9 @@ public class WSClient extends WebSocketClient {
      * subscribe to a stream if it is not already active
      */
     public void subscribe(String stream) {
-        switch (stream) {
+        if (stream == null) throw new IllegalArgumentException("No stream specified");
+
+        switch (stream.toLowerCase(Locale.ROOT)) {
             case "console":
                 if (consoleStream == null) {
                     consoleStream = new ConsoleStream(this);
@@ -173,7 +189,10 @@ public class WSClient extends WebSocketClient {
                 break;
 
             case "stats":
-
+                if (statsStream == null) {
+                    statsStream = new StatsStream(this);
+                    statsStream.start();
+                }
                 break;
 
             case "tick":
@@ -210,6 +229,15 @@ public class WSClient extends WebSocketClient {
     public void addHeapSubscriber(HeapSubscriber subscriber) {
         if (this.heapStream == null) throw new RuntimeException("There is no active heap stream");
         this.heapStream.subscribers.add(subscriber);
+    }
+
+    /**
+     * subscribe to stats
+     * @param subscriber instance of class handling stats
+     */
+    public void addStatsSubscriber(StatsSubscriber subscriber) {
+        if (this.statsStream == null) throw new RuntimeException("There is no active stats stream");
+        this.statsStream.subscribers.add(subscriber);
     }
 
     /**

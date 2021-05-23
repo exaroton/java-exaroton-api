@@ -2,11 +2,12 @@ package com.exaroton.api.server;
 
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.request.server.*;
+import com.exaroton.api.ws.WSClient;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import com.exaroton.api.ws.subscriber.HeapSubscriber;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
-import com.exaroton.api.ws.WSClient;
-import com.exaroton.api.request.server.*;
+import com.exaroton.api.ws.subscriber.StatsSubscriber;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -404,6 +405,15 @@ public class Server {
     public void addHeapSubscriber(HeapSubscriber subscriber) {
         if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
         this.webSocketClient.addHeapSubscriber(subscriber);
+    }
+
+    /**
+     * subscribe to stats
+     * @param subscriber stats handler
+     */
+    public void addStatsSubscriber(StatsSubscriber subscriber) {
+        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocketClient.addStatsSubscriber(subscriber);
     }
 
 }
