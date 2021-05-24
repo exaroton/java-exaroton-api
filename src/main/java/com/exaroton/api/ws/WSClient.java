@@ -131,9 +131,6 @@ public class WSClient extends WebSocketClient {
                     subscriber.tick(tick);
                 }
                 break;
-
-            default:
-                System.out.println(m.getType());
         }
     }
 
