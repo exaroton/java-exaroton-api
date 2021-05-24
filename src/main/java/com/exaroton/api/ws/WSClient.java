@@ -169,6 +169,7 @@ public class WSClient extends WebSocketClient {
 
     /**
      * subscribe to a stream if it is not already active
+     * @param stream stream name
      */
     public void subscribe(String stream) {
         if (stream == null) throw new IllegalArgumentException("No stream specified");
