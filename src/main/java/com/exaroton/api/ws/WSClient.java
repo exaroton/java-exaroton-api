@@ -2,14 +2,8 @@ package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
 import com.exaroton.api.ws.data.*;
-import com.exaroton.api.ws.stream.ConsoleStream;
-import com.exaroton.api.ws.stream.HeapStream;
-import com.exaroton.api.ws.stream.ServerStatusStream;
-import com.exaroton.api.ws.stream.StatsStream;
-import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
-import com.exaroton.api.ws.subscriber.HeapSubscriber;
-import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
-import com.exaroton.api.ws.subscriber.StatsSubscriber;
+import com.exaroton.api.ws.stream.*;
+import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -44,6 +38,11 @@ public class WSClient extends WebSocketClient {
      * active stats stream
      */
     private StatsStream statsStream;
+
+    /**
+     * active tick stream
+     */
+    private TickStream tickStream;
 
     /**
      * exaroton server
@@ -126,7 +125,11 @@ public class WSClient extends WebSocketClient {
                 break;
 
             case "tick":
-                System.out.println(message);
+                if (this.tickStream == null) return;
+                TickData tick = (new Gson()).fromJson(message, TickStreamData.class).getData();
+                for (TickSubscriber subscriber: tickStream.subscribers) {
+                    subscriber.tick(tick);
+                }
                 break;
 
             default:
@@ -197,7 +200,10 @@ public class WSClient extends WebSocketClient {
                 break;
 
             case "tick":
-
+                if (tickStream == null) {
+                    tickStream = new TickStream(this);
+                    tickStream.start();
+                }
                 break;
 
             default:
@@ -239,6 +245,15 @@ public class WSClient extends WebSocketClient {
     public void addStatsSubscriber(StatsSubscriber subscriber) {
         if (this.statsStream == null) throw new RuntimeException("There is no active stats stream");
         this.statsStream.subscribers.add(subscriber);
+    }
+
+    /**
+     * subscribe to stats
+     * @param subscriber instance of class handling stats
+     */
+    public void addTickSubscriber(TickSubscriber subscriber) {
+        if (this.tickStream == null) throw new RuntimeException("There is no active tick stream");
+        this.tickStream.subscribers.add(subscriber);
     }
 
     /**

@@ -4,10 +4,7 @@ import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WSClient;
-import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
-import com.exaroton.api.ws.subscriber.HeapSubscriber;
-import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
-import com.exaroton.api.ws.subscriber.StatsSubscriber;
+import com.exaroton.api.ws.subscriber.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -414,6 +411,15 @@ public class Server {
     public void addStatsSubscriber(StatsSubscriber subscriber) {
         if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
         this.webSocketClient.addStatsSubscriber(subscriber);
+    }
+
+    /**
+     * subscribe to ticks
+     * @param subscriber tick data handler
+     */
+    public void addTickSubscriber(TickSubscriber subscriber) {
+        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocketClient.addTickSubscriber(subscriber);
     }
 
 }
