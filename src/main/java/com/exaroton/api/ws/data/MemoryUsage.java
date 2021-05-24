@@ -2,7 +2,7 @@ package com.exaroton.api.ws.data;
 
 public class MemoryUsage {
     private double percent;
-    private int usage;
+    private long usage;
 
     /**
      * percent of assigned RAM that are used
@@ -16,7 +16,7 @@ public class MemoryUsage {
      * total used RAM (in bytes)
      * @return ram usage
      */
-    public int getUsage() {
+    public long getUsage() {
         return usage;
     }
 }

@@ -4,9 +4,9 @@ public class HeapUsage {
     /**
      * heap usage in bytes
      */
-    private final int usage;
+    private final long usage;
 
-    public HeapUsage(int usage) {
+    public HeapUsage(long usage) {
         this.usage = usage;
     }
 
@@ -14,7 +14,7 @@ public class HeapUsage {
      * get heap usage
      * @return used heap in bytes
      */
-    public int getUsage() {
+    public long getUsage() {
         return usage;
     }
 }
