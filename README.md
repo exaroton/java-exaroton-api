@@ -3,11 +3,9 @@
 ---
 ### About
 The official java library for the [exaroton API](https://support.exaroton.com/hc/en-us/articles/360019857878-API-documentation) 
-that can be used to automatically manage minecraft servers (e.g. starting or stopping it).
+that can be used to automatically manage Minecraft servers (e.g. starting or stopping them).
 
-While exaroton also offers a web-socket API, this library currently only supports the REST API.
-
-Minimum Java Version: 8
+Required Java Version: 8+
 
 ### Usage 
 You need an API key to use the API. You can generate an api key in the [account options](https://exaroton.com/account/).
@@ -53,7 +51,7 @@ import com.exaroton.api.server.Server;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         try {
             Server[] servers = client.getServers();
@@ -77,7 +75,7 @@ import com.exaroton.api.server.Server;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         try {
@@ -103,7 +101,7 @@ import com.exaroton.api.server.ServerStatus;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         try {
@@ -138,7 +136,7 @@ import com.exaroton.api.server.ServerLog;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         try {
@@ -167,7 +165,7 @@ import com.exaroton.api.server.ServerRAMInfo;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         try {
@@ -200,7 +198,7 @@ import com.exaroton.api.server.Server;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         PlayerList whitelist = server.getPlayerList("whitelist");
@@ -234,7 +232,7 @@ import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         server.subscribe();
@@ -260,7 +258,7 @@ import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         server.subscribe("console");
@@ -291,7 +289,7 @@ import com.exaroton.api.ws.subscriber.TickSubscriber;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         server.subscribe("tick");
@@ -324,7 +322,7 @@ import com.exaroton.api.ws.subscriber.StatsSubscriber;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         server.subscribe(new String[]{"stats", "heap"});
@@ -353,7 +351,7 @@ import com.exaroton.api.server.Server;
 
 public class Example {
     public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("asd");
+        ExarotonClient client = new ExarotonClient("example-api-token");
 
         Server server = client.getServer("tgkm731xO7GiHt76");
         server.subscribe(new String[]{"console", "stats", "heap"});
