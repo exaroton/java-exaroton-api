@@ -354,7 +354,11 @@ public class Server {
      * @param stream stream name
      */
     public void subscribe(String stream) {
-        this.subscribe(new String[]{stream});
+        if (this.webSocketClient == null) {
+            this.subscribe();
+        }
+
+        this.webSocketClient.subscribe(stream);
     }
 
     /**
@@ -362,12 +366,8 @@ public class Server {
      * @param streams stream names
      */
     public void subscribe(String[] streams) {
-        if (this.webSocketClient == null) {
-            this.subscribe();
-        }
-
         for (String stream: streams) {
-            this.webSocketClient.subscribe(stream);
+            this.subscribe(stream);
         }
     }
 
