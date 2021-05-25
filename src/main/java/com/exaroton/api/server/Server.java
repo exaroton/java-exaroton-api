@@ -353,7 +353,7 @@ public class Server {
      * subscribe to a single stream
      * @param stream stream name
      */
-    public void subscribe(String stream) throws URISyntaxException {
+    public void subscribe(String stream) {
         this.subscribe(new String[]{stream});
     }
 
@@ -361,7 +361,7 @@ public class Server {
      * subscribe to multiple streams at once
      * @param streams stream names
      */
-    public void subscribe(String[] streams) throws URISyntaxException {
+    public void subscribe(String[] streams) {
         if (this.webSocketClient == null) {
             this.subscribe();
         }
