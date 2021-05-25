@@ -335,13 +335,16 @@ public class Server {
 
     /**
      * subscribe to websocket events
-     * @throws URISyntaxException
      */
-    public void subscribe() throws URISyntaxException {
+    public void subscribe() {
         String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
         String s = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
-        URI u = new URI(s);
-        this.webSocketClient = new WSClient(u, this);
+        try {
+            URI u = new URI(s);
+            this.webSocketClient = new WSClient(u, this);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to connect to websocket", e);
+        }
         this.webSocketClient.addHeader("Authorization", "Bearer " + this.client.getApiToken());
         this.webSocketClient.connect();
     }
@@ -349,7 +352,6 @@ public class Server {
     /**
      * subscribe to a single stream
      * @param stream stream name
-     * @throws URISyntaxException
      */
     public void subscribe(String stream) throws URISyntaxException {
         this.subscribe(new String[]{stream});
@@ -358,7 +360,6 @@ public class Server {
     /**
      * subscribe to multiple streams at once
      * @param streams stream names
-     * @throws URISyntaxException
      */
     public void subscribe(String[] streams) throws URISyntaxException {
         if (this.webSocketClient == null) {
