@@ -9,7 +9,7 @@ While exaroton also offers a web-socket API, this library currently only support
 
 Minimum Java Version: 8
 
-### Usage
+### Usage 
 You need an API key to use the API. You can generate an api key in the [account options](https://exaroton.com/account/).
 
 
@@ -24,6 +24,8 @@ public class Example {
     }
 }
 ```
+
+### REST API
 
 #### Show account info
 ```java
@@ -212,6 +214,152 @@ public class Example {
         } catch (APIException e) {
             e.printStackTrace();
         }
+    }
+}
+```
+
+### Websocket API
+The websocket API allows a constant connection to our websocket service to receive events in real time without polling 
+(e.g. trying to get the server status every few seconds).
+
+#### Server status changes
+You can simply connect to the websocket API for a server by running the subscribe() function.
+By default, you are always subscribed to server status update events, you can react to server status 
+changes by adding a subscriber: 
+
+```java
+import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.server.Server;
+import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
+
+public class Example {
+    public static void main(String[] args) {
+        ExarotonClient client = new ExarotonClient("asd");
+
+        Server server = client.getServer("tgkm731xO7GiHt76");
+        server.subscribe();
+        server.addStatusSubscriber(new ServerStatusSubscriber() {
+            @Override
+            public void statusUpdate(Server oldServer, Server newServer) {
+                System.out.printf("Server had status %s and now has status %s!%n", oldServer.getStatus(), newServer.getStatus());
+            }
+        });
+    }
+}
+```
+This event is not only triggered when the status itself changes but also when other events happen, 
+e.g. a player joins the server.
+
+#### Console messages
+One of the optional streams is the console stream. You can subscribe to one or more optional streams 
+using the subscribe method. The console stream emits an event for every new console line.
+```java
+import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.server.Server;
+import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
+
+public class Example {
+    public static void main(String[] args) {
+        ExarotonClient client = new ExarotonClient("asd");
+
+        Server server = client.getServer("tgkm731xO7GiHt76");
+        server.subscribe("console");
+        server.addConsoleSubscriber(new ConsoleSubscriber() {
+            @Override
+            public void line(String line) {
+                System.out.println(line);
+            }
+        });
+    }
+}
+```
+
+The console stream also allows you to send commands directly over the websocket. This is faster because
+the connection is already established and no further authorization etc. is necessary. This library
+already checks if you are subscribed to the console stream and sends the command through that stream
+instead, so you can just use it the same way as [before](#get-a-single-server).
+
+#### Tick times
+On Minecraft Java edition servers with version 1.16 and higher it is possible to get the tick times, 
+and the TPS (ticks per second) of your server. This information is also available as an optional stream.
+
+```java
+import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.server.Server;
+import com.exaroton.api.ws.data.TickData;
+import com.exaroton.api.ws.subscriber.TickSubscriber;
+
+public class Example {
+    public static void main(String[] args) {
+        ExarotonClient client = new ExarotonClient("asd");
+
+        Server server = client.getServer("tgkm731xO7GiHt76");
+        server.subscribe("tick");
+        server.addTickSubscriber(new TickSubscriber() {
+            @Override
+            public void tick(TickData tick) {
+                System.out.printf("Average tick time: %s%nCalculated TPS: %s%n",
+                        tick.getAverageTickTime(), tick.calculateTPS());
+            }
+        });
+    }
+}
+```
+The tps are calculated by dividing 1000 by the average tick time and limiting it to 20.
+
+#### RAM usage
+There are two different optional streams to get RAM usage, the general stats stream and the Java specific 
+heap stream. It is recommended to use the heap stream if you are running a server software that is based 
+on Java. It is not recommended using both.
+
+You can subscribe to multiple streams at once by passing an array to the subscribe function.
+
+```java
+import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.server.Server;
+import com.exaroton.api.ws.data.HeapUsage;
+import com.exaroton.api.ws.data.StatsData;
+import com.exaroton.api.ws.subscriber.HeapSubscriber;
+import com.exaroton.api.ws.subscriber.StatsSubscriber;
+
+public class Example {
+    public static void main(String[] args) {
+        ExarotonClient client = new ExarotonClient("asd");
+
+        Server server = client.getServer("tgkm731xO7GiHt76");
+        server.subscribe(new String[]{"stats", "heap"});
+        server.addStatsSubscriber(new StatsSubscriber() {
+            @Override
+            public void stats(StatsData stats) {
+                System.out.printf("%s (%s)%n", stats.getMemory().getUsage(), stats.getMemory().getPercent());
+            }
+        });
+        server.addHeapSubscriber(new HeapSubscriber() {
+            @Override
+            public void heap(HeapUsage heap) {
+                System.out.println(heap.getUsage());
+            }
+        });
+    }
+}
+```
+
+#### Unsubscribe
+You can unsubscribe from one, multiple or all streams using the server.unsubscribe() function.
+
+```java
+import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.server.Server;
+
+public class Example {
+    public static void main(String[] args) {
+        ExarotonClient client = new ExarotonClient("asd");
+
+        Server server = client.getServer("tgkm731xO7GiHt76");
+        server.subscribe(new String[]{"console", "stats", "heap"});
+        server.unsubscribe("heap");
+        server.unsubscribe(new String[]{"stats", "console"});
+        server.unsubscribe(); // closes websocket connection
     }
 }
 ```
