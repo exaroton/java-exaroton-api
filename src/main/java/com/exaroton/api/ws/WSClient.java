@@ -217,6 +217,47 @@ public class WSClient extends WebSocketClient {
     }
 
     /**
+     * unsubscribe from a stream
+     * @param stream stream name
+     */
+    public void unsubscribe(String stream) {
+        if (stream == null) throw new IllegalArgumentException("No stream specified");
+
+        switch (stream.toLowerCase(Locale.ROOT)) {
+            case "console":
+                if (consoleStream != null) {
+                    consoleStream.stop();
+                    consoleStream = null;
+                }
+                break;
+
+            case "heap":
+                if (heapStream != null) {
+                    heapStream.stop();
+                    heapStream = null;
+                }
+                break;
+
+            case "stats":
+                if (statsStream != null) {
+                    statsStream.stop();
+                    statsStream = null;
+                }
+                break;
+
+            case "tick":
+                if (tickStream != null) {
+                    tickStream.stop();
+                    tickStream = null;
+                }
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown stream");
+        }
+    }
+
+    /**
      * subscribe to server status changes
      * @param subscriber instance of class handling server status changes
      */

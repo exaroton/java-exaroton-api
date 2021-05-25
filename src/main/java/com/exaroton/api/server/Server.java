@@ -378,6 +378,24 @@ public class Server {
     }
 
     /**
+     * unsubscribe from a single stream
+     * @param stream stream name
+     */
+    public void unsubscribe(String stream) {
+        this.webSocketClient.unsubscribe(stream);
+    }
+
+    /**
+     * unsubscribe from multiple streams at once
+     * @param streams stream names
+     */
+    public void unsubscribe(String[] streams) {
+        for (String stream: streams) {
+            this.unsubscribe(stream);
+        }
+    }
+
+    /**
      * subscribe to server status changes
      * @param subscriber status change handler
      */

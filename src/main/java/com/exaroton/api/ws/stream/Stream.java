@@ -50,4 +50,11 @@ public abstract class Stream<SubscriberType> {
     public void start() {
         this.send("start");
     }
+
+    /**
+     * stop stream
+     */
+    public void stop() {
+        this.send("stop");
+    }
 }
