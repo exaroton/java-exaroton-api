@@ -62,7 +62,6 @@ public class WSClient extends WebSocketClient {
     private final Logger logger =  LoggerFactory.getLogger("java-exaroton-api");
 
     /**
-     *
      * @param uri websocket uri
      * @param server exaroton server
      */

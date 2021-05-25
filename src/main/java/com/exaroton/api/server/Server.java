@@ -74,8 +74,14 @@ public class Server {
      */
     private transient WSClient webSocketClient;
 
+    /**
+     * @param client exaroton client that will be used for requests
+     * @param id server id
+     */
     public Server(ExarotonClient client, String id) {
+        if (client == null) throw new IllegalArgumentException("Invalid client!");
         this.client = client;
+        if (id == null) throw new IllegalArgumentException("Invalid server ID!");
         this.id = id;
     }
 
