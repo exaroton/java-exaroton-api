@@ -17,11 +17,6 @@ import java.util.Locale;
 public class WSClient extends WebSocketClient {
 
     /**
-     * should the web socket client automatically reconnect?
-     */
-    private boolean autoReconnect = true;
-
-    /**
      * active server status stream
      */
     private ServerStatusStream serverStatusStream;
@@ -143,25 +138,12 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        logger.info("Websocket disconnected with code " + code + ": " + reason);
-        if (this.autoReconnect && remote) {
-            ready = false;
-            logger.info("Reconnecting to websocket...");
-            this.reconnect();
-        }
+        logger.info("Websocket disconnected with code " + code + (reason.length() > 0 ? ": " + reason : ""));
     }
 
     @Override
     public void onError(Exception ex) {
         logger.error("A websocket error ocurred", ex);
-    }
-
-    /**
-     * en-/disable auto-reconnect
-     * @param autoReconnect should auto-reconnect be enabled
-     */
-    public void setAutoReconnect(boolean autoReconnect) {
-        this.autoReconnect = autoReconnect;
     }
 
     /**
