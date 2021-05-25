@@ -7,6 +7,8 @@ import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -60,6 +62,11 @@ public class WSClient extends WebSocketClient {
     private final ArrayList<String> messages = new ArrayList<>();
 
     /**
+     * logger
+     */
+    private final Logger logger =  LoggerFactory.getLogger("java-exaroton-api");
+
+    /**
      *
      * @param uri websocket uri
      * @param server exaroton server
@@ -71,7 +78,7 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-
+        logger.info("Connected to websocket!");
     }
 
     @Override
@@ -136,16 +143,17 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        logger.info("Websocket disconnected with code " + code + ": " + reason);
         if (this.autoReconnect && remote) {
             ready = false;
-            System.out.println("Websocket disconnected with code " + code + ": " + reason);
+            logger.info("Reconnecting to websocket...");
             this.reconnect();
         }
     }
 
     @Override
     public void onError(Exception ex) {
-        ex.printStackTrace();
+        logger.error("A websocket error ocurred", ex);
     }
 
     /**
