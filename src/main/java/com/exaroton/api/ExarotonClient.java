@@ -85,18 +85,30 @@ public class ExarotonClient {
         return protocol + "://" + host + basePath;
     }
 
+    /**
+     * @return request protocol
+     */
     public String getProtocol() {
         return protocol;
     }
 
+    /**
+     * @return API host
+     */
     public String getHost() {
         return host;
     }
 
+    /**
+     * @return API base path
+     */
     public String getBasePath() {
         return basePath;
     }
 
+    /**
+     * @return API token
+     */
     public String getApiToken() {
         return apiToken;
     }
