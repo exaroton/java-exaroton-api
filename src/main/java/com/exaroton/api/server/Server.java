@@ -267,7 +267,7 @@ public class Server {
      * @throws APIException connection or API errors
      */
     public void stop() throws APIException {
-        StartServerRequest request = new StartServerRequest(this.client, this.id);
+        StopServerRequest request = new StopServerRequest(this.client, this.id);
         request.request();
     }
 
