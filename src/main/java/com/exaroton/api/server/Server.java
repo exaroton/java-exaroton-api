@@ -3,11 +3,8 @@ package com.exaroton.api.server;
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.*;
-import com.exaroton.api.ws.WSClient;
+import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.subscriber.*;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class Server {
 
@@ -72,7 +69,7 @@ public class Server {
     /**
      * web socket client
      */
-    private transient WSClient webSocketClient;
+    private transient WebSocketManager webSocket;
 
     /**
      * @param client exaroton client that will be used for requests
@@ -286,7 +283,7 @@ public class Server {
      * @throws APIException connection or API errors
      */
     public void executeCommand(String command) throws APIException {
-        if (this.webSocketClient == null || !this.webSocketClient.executeCommand(command)) {
+        if (this.webSocket == null || !this.webSocket.executeCommand(command)) {
             ExecuteCommandRequest request = new ExecuteCommandRequest(this.client, this.id, command);
             request.request();
         }
@@ -344,15 +341,8 @@ public class Server {
      */
     public void subscribe() {
         String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
-        String s = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
-        try {
-            URI u = new URI(s);
-            this.webSocketClient = new WSClient(u, this);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Failed to connect to websocket", e);
-        }
-        this.webSocketClient.addHeader("Authorization", "Bearer " + this.client.getApiToken());
-        this.webSocketClient.connect();
+        String uri = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
+        this.webSocket = new WebSocketManager(uri, this.client.getApiToken(), this);
     }
 
     /**
@@ -360,11 +350,11 @@ public class Server {
      * @param stream stream name
      */
     public void subscribe(String stream) {
-        if (this.webSocketClient == null) {
+        if (this.webSocket == null) {
             this.subscribe();
         }
 
-        this.webSocketClient.subscribe(stream);
+        this.webSocket.subscribe(stream);
     }
 
     /**
@@ -381,7 +371,8 @@ public class Server {
      * unsubscribe from websocket events
      */
     public void unsubscribe() {
-        this.webSocketClient.close();
+        this.webSocket.close();
+        this.webSocket = null;
     }
 
     /**
@@ -389,7 +380,7 @@ public class Server {
      * @param stream stream name
      */
     public void unsubscribe(String stream) {
-        this.webSocketClient.unsubscribe(stream);
+        this.webSocket.unsubscribe(stream);
     }
 
     /**
@@ -407,8 +398,8 @@ public class Server {
      * @param subscriber status change handler
      */
     public void addStatusSubscriber(ServerStatusSubscriber subscriber) {
-        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocketClient.addServerStatusSubscriber(subscriber);
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocket.addServerStatusSubscriber(subscriber);
     }
 
     /**
@@ -416,8 +407,8 @@ public class Server {
      * @param subscriber console message handler
      */
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocketClient.addConsoleSubscriber(subscriber);
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocket.addConsoleSubscriber(subscriber);
     }
 
     /**
@@ -425,8 +416,8 @@ public class Server {
      * @param subscriber heap data handler
      */
     public void addHeapSubscriber(HeapSubscriber subscriber) {
-        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocketClient.addHeapSubscriber(subscriber);
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocket.addHeapSubscriber(subscriber);
     }
 
     /**
@@ -434,8 +425,8 @@ public class Server {
      * @param subscriber stats handler
      */
     public void addStatsSubscriber(StatsSubscriber subscriber) {
-        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocketClient.addStatsSubscriber(subscriber);
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocket.addStatsSubscriber(subscriber);
     }
 
     /**
@@ -443,8 +434,14 @@ public class Server {
      * @param subscriber tick data handler
      */
     public void addTickSubscriber(TickSubscriber subscriber) {
-        if (this.webSocketClient == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocketClient.addTickSubscriber(subscriber);
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
+        this.webSocket.addTickSubscriber(subscriber);
     }
 
+    /**
+     * @return web socket manager
+     */
+    public WebSocketManager getWebSocket() {
+        return webSocket;
+    }
 }

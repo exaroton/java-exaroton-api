@@ -1,6 +1,6 @@
 package com.exaroton.api.ws.stream;
 
-import com.exaroton.api.ws.WSClient;
+import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.data.StreamData;
 import com.google.gson.Gson;
 
@@ -16,10 +16,10 @@ public abstract class Stream<SubscriberType> {
     /**
      * web socket client
      */
-    private final WSClient client;
+    private final WebSocketManager ws;
 
-    public Stream(WSClient client) {
-        this.client = client;
+    public Stream(WebSocketManager ws) {
+        this.ws = ws;
     }
 
     /**
@@ -27,7 +27,7 @@ public abstract class Stream<SubscriberType> {
      * @param type message type
      */
     public void send(String type) {
-        client.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type)));
+        ws.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type)));
     }
 
     /**
@@ -41,7 +41,7 @@ public abstract class Stream<SubscriberType> {
      * @param data message data
      */
     public void send(String type, String data) {
-        client.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type, data)));
+        ws.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type, data)));
     }
 
     /**

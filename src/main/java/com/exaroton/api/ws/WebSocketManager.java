@@ -5,16 +5,33 @@ import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class WSClient extends WebSocketClient {
+public class WebSocketManager {
+
+    private final WebSocketClient client;
+
+    private Timer reconnectTimer;
+
+    private boolean autoReconnect = true;
+
+    /**
+     * messages to send once the connection becomes ready
+     */
+    private final ArrayList<String> messages = new ArrayList<>();
+
+    /**
+     * is the connection ready
+     */
+    private boolean ready = false;
 
     /**
      * active server status stream
@@ -47,51 +64,29 @@ public class WSClient extends WebSocketClient {
     private final Server server;
 
     /**
-     * is the connection ready
-     */
-    private boolean ready = false;
-
-    /**
-     * messages to send once the connection becomes ready
-     */
-    private final ArrayList<String> messages = new ArrayList<>();
-
-    /**
      * logger
      */
     private final Logger logger =  LoggerFactory.getLogger("java-exaroton-api");
 
-    /**
-     * @param uri websocket uri
-     * @param server exaroton server
-     */
-    public WSClient(URI uri, Server server) {
-        super(uri);
+    public WebSocketManager(String uri, String apiToken, Server server) {
+        try {
+            URI u = new URI(uri);
+            this.client = new WebSocketClient(u, this);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to connect to websocket", e);
+        }
+        this.client.addHeader("Authorization", "Bearer " + apiToken);
+        this.client.connect();
         this.server = server;
     }
 
-    @Override
-    public void onOpen(ServerHandshake handshakedata) {
-        logger.info("Connected to websocket!");
-    }
-
-    @Override
-    public void onMessage(String message) {
-        WSMessage m = (new Gson()).fromJson(message, WSMessage.class);
-        switch (m.getType()) {
-            case "keep-alive":
-            case "connected":
-            case "disconnected":
-                break;
-
-            case "ready":
-                ready = true;
-                for (String data : this.messages) {
-                    this.send(data);
-                }
-                this.messages.clear();
-                break;
-
+    /**
+     * handle websocket data
+     * @param type message type
+     * @param message raw message
+     */
+    public void handleData(String type, String message) {
+        switch (type) {
             case "status":
                 if (this.serverStatusStream == null) return;
                 Server oldServer = new Server(server.getClient(), server.getId())
@@ -135,25 +130,33 @@ public class WSClient extends WebSocketClient {
         }
     }
 
-    @Override
-    public void onClose(int code, String reason, boolean remote) {
+    /**
+     * handle closed websocket connection
+     * reconnect if enabled
+     * @param code disconnect code
+     * @param reason disconnect reason
+     * @param remote closing side
+     */
+    public void handleClose(int code, String reason, boolean remote) {
         logger.info("Websocket disconnected with code " + code + (reason.length() > 0 ? ": " + reason : ""));
-    }
-
-    @Override
-    public void onError(Exception ex) {
-        logger.error("A websocket error ocurred", ex);
+        if (remote && this.shouldAutoReconnect()) {
+            reconnectTimer = new Timer();
+            reconnectTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.info("Trying to reconnect...");
+                    client.reconnect();
+                }
+            }, 0, 5000);
+        }
     }
 
     /**
-     * send data once connection is ready
-     * @param data web socket message
+     * handle an opened connection
      */
-    public void sendWhenReady(String data) {
-        if (this.ready)
-            this.send(data);
-        else
-            this.messages.add(data);
+    public void handleOpen() {
+        logger.info("Connected to websocket!");
+        if (this.reconnectTimer != null) this.reconnectTimer.cancel();
     }
 
     /**
@@ -164,6 +167,15 @@ public class WSClient extends WebSocketClient {
         if (stream == null) throw new IllegalArgumentException("No stream specified");
 
         switch (stream.toLowerCase(Locale.ROOT)) {
+
+            case "ready":
+                ready = true;
+                for (String data : this.messages) {
+                    this.client.send(data);
+                }
+                this.messages.clear();
+                break;
+
             case "console":
                 if (consoleStream == null) {
                     consoleStream = new ConsoleStream(this);
@@ -296,5 +308,39 @@ public class WSClient extends WebSocketClient {
             this.consoleStream.executeCommand(command);
             return true;
         }
+    }
+
+    /**
+     * send data once connection is ready
+     * @param data web socket message
+     */
+    public void sendWhenReady(String data) {
+        if (this.ready)
+            this.client.send(data);
+        else
+            this.messages.add(data);
+    }
+
+    /**
+     * en-/disable auto reconnect
+     * @param autoReconnect new reconnect state
+     */
+    public void setAutoReconnect(boolean autoReconnect) {
+        this.autoReconnect = autoReconnect;
+    }
+
+    /**
+     * @return is auto reconnect enabled
+     */
+    public boolean shouldAutoReconnect() {
+        return autoReconnect;
+    }
+
+    /**
+     * close websocket connection
+     */
+    public void close() {
+        if (this.reconnectTimer != null) this.reconnectTimer.cancel();
+        this.client.close();
     }
 }

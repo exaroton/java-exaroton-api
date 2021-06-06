@@ -1,12 +1,12 @@
 package com.exaroton.api.ws.stream;
 
-import com.exaroton.api.ws.WSClient;
+import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 
 public class ConsoleStream extends Stream<ConsoleSubscriber> {
 
-    public ConsoleStream(WSClient client) {
-        super(client);
+    public ConsoleStream(WebSocketManager ws) {
+        super(ws);
     }
 
     @Override
