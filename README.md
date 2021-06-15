@@ -7,6 +7,23 @@ that can be used to automatically manage Minecraft servers (e.g. starting or sto
 
 Required Java Version: 8+
 
+### Installing
+Gradle:
+```gradle
+dependencies {
+    implementation 'com.exaroton:api:1.1.1'
+}
+```
+
+Maven:
+```xml
+<dependency>
+  <groupId>com.exaroton</groupId>
+  <artifactId>api</artifactId>
+  <version>1.1.1</version>
+</dependency>
+```
+
 ### Usage 
 You need an API key to use the API. You can generate an api key in the [account options](https://exaroton.com/account/).
 
