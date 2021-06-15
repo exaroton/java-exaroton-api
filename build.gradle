@@ -4,7 +4,7 @@ plugins {
     id 'signing'
 }
 
-group 'com.exaroton.api'
+group 'com.exaroton'
 version '1.1.1'
 
 sourceSets {
@@ -45,8 +45,8 @@ ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 publishing {
     repositories {
         maven {
-            def releaseRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotRepo = "https://oss.sonatype.org/content/repositories/snapshots/"
+            def releaseRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
             url = isReleaseVersion ? releaseRepo : snapshotRepo
             credentials {
                 username = project.hasProperty('ossrhUsername') ? ossrhUsername : "Unknown user"
@@ -57,6 +57,7 @@ publishing {
 
     publications {
         mavenJava(MavenPublication) {
+            artifactId = 'api'
             from components.java
             pom {
                 name = 'exaroton API'
