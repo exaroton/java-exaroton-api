@@ -21,6 +21,7 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
 
     /**
      * @param uri websocket uri
+     * @param manager websocket manager
      */
     public WebSocketClient(URI uri, WebSocketManager manager) {
         super(uri);
