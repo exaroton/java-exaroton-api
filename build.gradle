@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'signing'
 }
 
 group 'com.exaroton.api'
@@ -37,6 +38,58 @@ test {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+publishing {
+    repositories {
+        maven {
+            def releaseRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = isReleaseVersion ? releaseRepo : snapshotRepo
+            credentials {
+                username = project.hasProperty('ossrhUsername') ? ossrhUsername : "Unknown user"
+                password = project.hasProperty('ossrhPassword') ? ossrhPassword : "Unknown password"
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'exaroton API'
+                description = 'The official exaroton java library'
+                url = 'https://github.com/exaroton/java-exaroton-api'
+                licenses {
+                    license {
+                        name = 'MIT'
+                        url = 'https://github.com/exaroton/java-exaroton-api/blob/master/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'julian'
+                        name = 'Julian Vennen'
+                        email = 'julian@aternos.org'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/exaroton/java-exaroton-api.git'
+                    developerConnection = 'scm:git:git@github.com:exaroton/java-exaroton-api.git'
+                    url = 'https://github.com/exaroton/java-exaroton-api'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+tasks.withType(Sign) {
+    onlyIf { isReleaseVersion }
 }
 
 jar {
