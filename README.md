@@ -34,54 +34,35 @@ You need an API key to use the API. You can generate an api key in the [account 
 #### Create a client
 
 ```java
-import com.exaroton.api.ExarotonClient;
-
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-    }
-}
+ExarotonClient client = new ExarotonClient("example-api-token");
 ```
 
 ### REST API
 
 #### Show account info
 ```java
-import com.exaroton.api.ExarotonClient;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-        try {
-            Account account = client.getAccount();
-            System.out.println("My account " + account.getName() + " has " + account.getCredits() + "!");
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
-    }
+try {
+    Account account = client.getAccount();
+    System.out.println("My account " + account.getName() + " has " + account.getCredits() + "!");
+} catch (APIException e) {
+    e.printStackTrace();
 }
 ```
 Objects of the Account class contain getters for each field in the [API docs](https://support.exaroton.com/hc/en-us/articles/360011926177#account). 
 
 #### Get all servers
 ```java
-import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        try {
-            Server[] servers = client.getServers();
-            for (Server server: servers) {
-                System.out.println(server.getId() + ":" + server.getAddress());
-            }
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
+try {
+    Server[] servers = client.getServers();
+    for (Server server: servers) {
+        System.out.println(server.getId() + ":" + server.getAddress());
     }
+} catch (APIException e){
+    e.printStackTrace();
 }
 ```
 Objects of the Server class contain getters for each field in the [API docs](https://support.exaroton.com/hc/en-us/articles/360011926177#servers).
@@ -89,58 +70,41 @@ Objects of the Server class contain getters for each field in the [API docs](htt
 
 #### Get a single server
 ```java
-import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        try {
-            server.get();
-            System.out.println(server.getAddress());
-            server.start();
-            server.restart();
-            server.stop();
-            server.executeCommand("say hello world");
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
-    }
+Server server = client.getServer("tgkm731xO7GiHt76");
+try {
+    server.get();
+    System.out.println(server.getAddress());
+    server.start();
+    server.restart();
+    server.stop();
+    server.executeCommand("say hello world");
+} catch (APIException e) {
+    e.printStackTrace();
 }
 ```
 
 #### Check the server status
 ```java
-import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.server.ServerStatus;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
+Server server = client.getServer("tgkm731xO7GiHt76");
+try {
+    server.get();
+    System.out.println(server.getStatus());
 
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        try {
-            server.get();
-            System.out.println(server.getStatus());
-
-            if (server.hasStatus(ServerStatus.ONLINE)) {
-                System.out.println("Server is online!");
-            }
-            else if (server.hasStatus(ServerStatus.OFFLINE)) {
-                System.out.println("Server is offline!");
-            }
-            else if (server.hasStatus(new int[]{ServerStatus.PREPARING, ServerStatus.LOADING, ServerStatus.STARTING})) {
-                System.out.println("Server is starting!");
-            }
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
+    if (server.hasStatus(ServerStatus.ONLINE)) {
+        System.out.println("Server is online!");
     }
+    else if (server.hasStatus(ServerStatus.OFFLINE)) {
+        System.out.println("Server is offline!");
+    }
+    else if (server.hasStatus(new int[]{ServerStatus.PREPARING, ServerStatus.LOADING, ServerStatus.STARTING})) {
+        System.out.println("Server is starting!");
+    }
+} catch (APIException e) {
+    e.printStackTrace();
 }
 ```
 The server status is an integer as described in the [documentation](https://support.exaroton.com/hc/en-us/articles/360011926177#servers).
@@ -148,29 +112,19 @@ You can use the ServerStatus class to easily get the value of any status.
 
 #### Get/Share your server log
 ```java
-import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.MclogsData;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.server.ServerLog;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
+Server server = client.getServer("tgkm731xO7GiHt76");
+try {
+    // Get your log
+    ServerLog log = server.getLog();
+    System.out.println(log.getContent());
 
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        try {
-            // Get your log
-            ServerLog log = server.getLog();
-            System.out.println(log.getContent());
-
-            // Send your log to the mclogs API
-            MclogsData mclogs = server.shareLog();
-            System.out.println(mclogs.getUrl());
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
-    }
+    // Send your log to the mclogs API
+    MclogsData mclogs = server.shareLog();
+    System.out.println(mclogs.getUrl());
+} catch (APIException e) {
+    e.printStackTrace();
 }
 ```
 The result is cached and will not return the latest updates immediately. It's not possible to get the server logs while the server is loading, stopping or saving.
@@ -178,25 +132,16 @@ The result is cached and will not return the latest updates immediately. It's no
 
 #### Get/Set server RAM
 ```java
-import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.server.ServerRAMInfo;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        try {
-            ServerRAMInfo ram = server.getRAM();
-            System.out.println("Current RAM: " + ram.getRam() + "GiB");
-            ram = server.setRAM(8);
-            System.out.println("New RAM: " + ram.getRam() + "GiB");
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
-    }
+Server server = client.getServer("tgkm731xO7GiHt76");
+try {
+    ServerRAMInfo ram = server.getRAM();
+    System.out.println("Current RAM: " + ram.getRam() + "GiB");
+    ram = server.setRAM(8);
+    System.out.println("New RAM: " + ram.getRam() + "GiB");
+} catch (APIException e) {
+    e.printStackTrace();
 }
 ```
 RAM values are in full GiB and have to be between 2 and 16.
@@ -211,28 +156,19 @@ You can list all available playerlists using server.getPlayerLists()
 
 ##### List/modify entries
 ```java
-import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.PlayerList;
-import com.exaroton.api.server.Server;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        PlayerList whitelist = server.getPlayerList("whitelist");
-        try {
-            System.out.println("Whitelist:");
-            for (String entry: whitelist.getEntries()) {
-                System.out.println(entry);
-            }
-            whitelist.add(new String[]{"example", "example2"});
-            whitelist.remove("example34");
-        } catch (APIException e) {
-            e.printStackTrace();
-        }
+Server server = client.getServer("tgkm731xO7GiHt76");
+PlayerList whitelist = server.getPlayerList("whitelist");
+try {
+    System.out.println("Whitelist:");
+    for (String entry: whitelist.getEntries()) {
+        System.out.println(entry);
     }
+    whitelist.add(new String[]{"example", "example2"});
+    whitelist.remove("example34");
+} catch (APIException e) {
+    e.printStackTrace();
 }
 ```
 
@@ -246,24 +182,16 @@ By default, you are always subscribed to server status update events, you can re
 changes by adding a subscriber: 
 
 ```java
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        server.subscribe();
-        server.addStatusSubscriber(new ServerStatusSubscriber() {
-            @Override
-            public void statusUpdate(Server oldServer, Server newServer) {
-                System.out.printf("Server had status %s and now has status %s!%n", oldServer.getStatus(), newServer.getStatus());
-            }
-        });
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.subscribe();
+server.addStatusSubscriber(new ServerStatusSubscriber() {
+    @Override
+    public void statusUpdate(Server oldServer, Server newServer) {
+        System.out.printf("Server had status %s and now has status %s!%n", oldServer.getStatus(), newServer.getStatus());
     }
-}
+});
 ```
 This event is not only triggered when the status itself changes but also when other events happen, 
 e.g. a player joins the server.
@@ -272,24 +200,16 @@ e.g. a player joins the server.
 One of the optional streams is the console stream. You can subscribe to one or more optional streams 
 using the subscribe method. The console stream emits an event for every new console line.
 ```java
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        server.subscribe("console");
-        server.addConsoleSubscriber(new ConsoleSubscriber() {
-            @Override
-            public void line(String line) {
-                System.out.println(line);
-            }
-        });
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.subscribe("console");
+server.addConsoleSubscriber(new ConsoleSubscriber() {
+    @Override
+    public void line(String line) {
+        System.out.println(line);
     }
-}
+});
 ```
 
 The console stream also allows you to send commands directly over the websocket. This is faster because
@@ -302,26 +222,17 @@ On Minecraft Java edition servers with version 1.16 and higher it is possible to
 and the TPS (ticks per second) of your server. This information is also available as an optional stream.
 
 ```java
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.ws.data.TickData;
-import com.exaroton.api.ws.subscriber.TickSubscriber;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        server.subscribe("tick");
-        server.addTickSubscriber(new TickSubscriber() {
-            @Override
-            public void tick(TickData tick) {
-                System.out.printf("Average tick time: %s%nCalculated TPS: %s%n",
-                        tick.getAverageTickTime(), tick.calculateTPS());
-            }
-        });
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.subscribe("tick");
+server.addTickSubscriber(new TickSubscriber() {
+    @Override
+    public void tick(TickData tick) {
+        System.out.printf("Average tick time: %s%nCalculated TPS: %s%n", 
+            tick.getAverageTickTime(), tick.calculateTPS());
     }
-}
+});
 ```
 The tps are calculated by dividing 1000 by the average tick time and limiting it to 20.
 
@@ -333,51 +244,33 @@ on Java. It is not recommended using both.
 You can subscribe to multiple streams at once by passing an array to the subscribe function.
 
 ```java
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
-import com.exaroton.api.ws.data.HeapUsage;
-import com.exaroton.api.ws.data.StatsData;
-import com.exaroton.api.ws.subscriber.HeapSubscriber;
-import com.exaroton.api.ws.subscriber.StatsSubscriber;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        server.subscribe(new String[]{"stats", "heap"});
-        server.addStatsSubscriber(new StatsSubscriber() {
-            @Override
-            public void stats(StatsData stats) {
-                System.out.printf("%s (%s)%n", stats.getMemory().getUsage(), stats.getMemory().getPercent());
-            }
-        });
-        server.addHeapSubscriber(new HeapSubscriber() {
-            @Override
-            public void heap(HeapUsage heap) {
-                System.out.println(heap.getUsage());
-            }
-        });
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.subscribe(new String[]{"stats", "heap"});
+server.addStatsSubscriber(new StatsSubscriber() {
+    @Override
+    public void stats(StatsData stats) {
+        System.out.printf("%s (%s)%n", stats.getMemory().getUsage(), stats.getMemory().getPercent());
     }
-}
+});
+server.addHeapSubscriber(new HeapSubscriber() {
+    @Override
+    public void heap(HeapUsage heap) {
+        System.out.println(heap.getUsage());
+    }
+});
 ```
 
 #### Unsubscribe
 You can unsubscribe from one, multiple or all streams using the server.unsubscribe() function.
 
 ```java
-import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
+ExarotonClient client = new ExarotonClient("example-api-token");
 
-public class Example {
-    public static void main(String[] args) {
-        ExarotonClient client = new ExarotonClient("example-api-token");
-
-        Server server = client.getServer("tgkm731xO7GiHt76");
-        server.subscribe(new String[]{"console", "stats", "heap"});
-        server.unsubscribe("heap");
-        server.unsubscribe(new String[]{"stats", "console"});
-        server.unsubscribe(); // closes websocket connection
-    }
-}
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.subscribe(new String[]{"console", "stats", "heap"});
+server.unsubscribe("heap");
+server.unsubscribe(new String[]{"stats", "console"});
+server.unsubscribe(); // closes websocket connection
 ```
