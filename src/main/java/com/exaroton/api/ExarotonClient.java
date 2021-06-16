@@ -34,7 +34,7 @@ public class ExarotonClient {
     /**
      * API user agent
      */
-    private String userAgent = "java-exaroton-api@1.1.1";
+    private String userAgent = "java-exaroton-api@1.1.2";
 
     /**
      * exaroton API token

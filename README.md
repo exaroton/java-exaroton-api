@@ -14,7 +14,7 @@ EXAROTON_SERVER_ID to find the ID of the server it's running on.
 Gradle:
 ```gradle
 dependencies {
-    implementation 'com.exaroton:api:1.1.1'
+    implementation 'com.exaroton:api:1.1.2'
 }
 ```
 
@@ -23,7 +23,7 @@ Maven:
 <dependency>
   <groupId>com.exaroton</groupId>
   <artifactId>api</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.2</version>
 </dependency>
 ```
 
