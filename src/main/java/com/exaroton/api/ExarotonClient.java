@@ -34,7 +34,7 @@ public class ExarotonClient {
     /**
      * API user agent
      */
-    private String userAgent = "java-exaroton-api@1.1.2";
+    private String userAgent = "java-exaroton-api@1.2.0";
 
     /**
      * exaroton API token
@@ -197,5 +197,16 @@ public class ExarotonClient {
      */
     public Server getServer(String id) {
         return new Server(this, id);
+    }
+
+    /**
+     * Get the current exaroton server using the EXAROTON_SERVER_ID environment variable.
+     * If the environment variable is not set returns null
+     * @return the exaroton server running this code
+     */
+    public Server getCurrentServer() {
+        String id = System.getenv("EXAROTON_SERVER_ID");
+        if (id == null) return null;
+        return this.getServer(id);
     }
 }

@@ -7,14 +7,13 @@ that can be used to automatically manage Minecraft servers (e.g. starting or sto
 
 Required Java Version: 8+
 
-If you're creating a plugin/mod that runs on an exaroton server, you can use the environment variable
-EXAROTON_SERVER_ID to find the ID of the server it's running on.
+If you're creating a plugin/mod that runs on an exaroton server, you can get the current server using client.getCurrentServer().
 
 ### Installing
 Gradle:
 ```gradle
 dependencies {
-    implementation 'com.exaroton:api:1.1.2'
+    implementation 'com.exaroton:api:1.2.0'
 }
 ```
 
@@ -23,7 +22,7 @@ Maven:
 <dependency>
   <groupId>com.exaroton</groupId>
   <artifactId>api</artifactId>
-  <version>1.1.2</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
