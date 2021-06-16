@@ -7,6 +7,9 @@ that can be used to automatically manage Minecraft servers (e.g. starting or sto
 
 Required Java Version: 8+
 
+If you're creating a plugin/mod that runs on an exaroton server, you can use the environment variable
+EXAROTON_SERVER_ID to find the ID of the server it's running on.
+
 ### Installing
 Gradle:
 ```gradle
