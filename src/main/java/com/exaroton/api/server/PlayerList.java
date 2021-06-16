@@ -33,7 +33,7 @@ public class PlayerList {
 
     /**
      * @return players in list
-     * @throws APIException
+     * @throws APIException API error
      */
     public String[] getEntries() throws APIException {
         GetPlayerListEntriesRequest request = new GetPlayerListEntriesRequest(this.client, this.server, this.name);
@@ -42,7 +42,8 @@ public class PlayerList {
 
     /**
      * add players to list
-     * @throws APIException
+     * @param entries player names
+     * @throws APIException API error
      */
     public void add(String[] entries) throws APIException {
         AddPlayerListEntriesRequest request = new AddPlayerListEntriesRequest(this.client, this.server, this.name, entries);
@@ -51,7 +52,8 @@ public class PlayerList {
 
     /**
      * add player to list
-     * @throws APIException
+     * @param entry player name
+     * @throws APIException API error
      */
     public void add(String entry) throws APIException {
         this.add(new String[]{entry});
@@ -59,7 +61,8 @@ public class PlayerList {
 
     /**
      * remove players from list
-     * @throws APIException
+     * @param entries player names
+     * @throws APIException API error
      */
     public void remove(String[] entries) throws APIException {
         RemovePlayerListEntriesRequest request = new RemovePlayerListEntriesRequest(this.client, this.server, this.name, entries);
@@ -68,7 +71,8 @@ public class PlayerList {
 
     /**
      * remove player from list
-     * @throws APIException
+     * @param entry player name
+     * @throws APIException API error
      */
     public void remove(String entry) throws APIException {
         this.remove(new String[]{entry});
