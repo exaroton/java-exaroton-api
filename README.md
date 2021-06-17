@@ -13,7 +13,7 @@ If you're creating a plugin/mod that runs on an exaroton server, you can get the
 Gradle:
 ```gradle
 dependencies {
-    implementation 'com.exaroton:api:1.2.0'
+    implementation 'com.exaroton:api:1.2.1'
 }
 ```
 
@@ -22,7 +22,7 @@ Maven:
 <dependency>
   <groupId>com.exaroton</groupId>
   <artifactId>api</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 

@@ -273,7 +273,7 @@ public class Server {
      * @throws APIException connection or API errors
      */
     public void restart() throws APIException {
-        StartServerRequest request = new StartServerRequest(this.client, this.id);
+        RestartServerRequest request = new RestartServerRequest(this.client, this.id);
         request.request();
     }
 
