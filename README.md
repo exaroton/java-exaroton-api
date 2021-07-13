@@ -2,7 +2,7 @@
 
 ---
 ### About
-The official java library for the [exaroton API](https://support.exaroton.com/hc/en-us/articles/360019857878-API-documentation) 
+The official java library for the [exaroton API](https://developers.exaroton.com/) 
 that can be used to automatically manage Minecraft servers (e.g. starting or stopping them).
 
 Required Java Version: 8+
@@ -49,7 +49,7 @@ try {
     e.printStackTrace();
 }
 ```
-Objects of the Account class contain getters for each field in the [API docs](https://support.exaroton.com/hc/en-us/articles/360011926177#account). 
+Objects of the Account class contain getters for each field in the [API docs](https://developers.exaroton.com/#account-get). 
 
 #### Get all servers
 ```java
@@ -64,7 +64,7 @@ try {
     e.printStackTrace();
 }
 ```
-Objects of the Server class contain getters for each field in the [API docs](https://support.exaroton.com/hc/en-us/articles/360011926177#servers).
+Objects of the Server class contain getters for each field in the [API docs](https://developers.exaroton.com/#servers-get-1).
 
 
 #### Get a single server
@@ -106,7 +106,19 @@ try {
     e.printStackTrace();
 }
 ```
-The server status is an integer as described in the [documentation](https://support.exaroton.com/hc/en-us/articles/360011926177#servers).
+The server status is an integer.
+Status codes:
+- 0 = OFFLINE
+- 1 = ONLINE
+- 2 = STARTING
+- 3 = STOPPING
+- 4 = RESTARTING
+- 5 = SAVING
+- 6 = LOADING
+- 7 = CRASHED
+- 8 = PENDING
+- 10 = PREPARING
+
 You can use the ServerStatus class to easily get the value of any status.
 
 #### Get/Share your server log
