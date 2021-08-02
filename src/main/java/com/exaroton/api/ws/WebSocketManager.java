@@ -155,7 +155,6 @@ public class WebSocketManager {
      * handle an opened connection
      */
     public void handleOpen() {
-        logger.info("Connected to websocket!");
         if (this.reconnectTimer != null) this.reconnectTimer.cancel();
     }
 
