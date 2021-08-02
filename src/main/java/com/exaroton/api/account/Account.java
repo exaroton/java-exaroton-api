@@ -20,7 +20,7 @@ public class Account {
     /**
      * credit count
      */
-    private final int credits;
+    private final double credits;
 
 
     public Account(String name, String email, boolean verified, int credits) {
@@ -43,7 +43,7 @@ public class Account {
         return verified;
     }
 
-    public int getCredits() {
+    public double getCredits() {
         return credits;
     }
 }
