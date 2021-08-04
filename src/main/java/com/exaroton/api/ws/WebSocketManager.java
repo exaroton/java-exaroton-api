@@ -138,13 +138,11 @@ public class WebSocketManager {
      * @param remote closing side
      */
     public void handleClose(int code, String reason, boolean remote) {
-        logger.info("Websocket disconnected with code " + code + (reason.length() > 0 ? ": " + reason : ""));
         if (remote && this.shouldAutoReconnect()) {
             reconnectTimer = new Timer();
             reconnectTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    logger.info("Trying to reconnect...");
                     client.reconnect();
                 }
             }, 0, 5000);

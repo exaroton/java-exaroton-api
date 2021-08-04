@@ -371,6 +371,7 @@ public class Server {
      * unsubscribe from websocket events
      */
     public void unsubscribe() {
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
         this.webSocket.close();
         this.webSocket = null;
     }
@@ -380,6 +381,7 @@ public class Server {
      * @param stream stream name
      */
     public void unsubscribe(String stream) {
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
         this.webSocket.unsubscribe(stream);
     }
 
