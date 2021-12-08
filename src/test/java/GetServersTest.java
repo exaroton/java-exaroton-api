@@ -25,8 +25,26 @@ public class GetServersTest {
                     assertDoesNotThrow(server::getLog);
                     assertDoesNotThrow(server::getRAM);
                     assertDoesNotThrow(server::getPlayerLists);
+                    server.hasStatus(0);
+                    server.hasStatus(0,1,2);
+                    server.hasStatus(new int[]{0,1,2});
+                    server.hasStatus();
                 });
             }
+        });
+    }
+
+    @Test
+    void getOptions() {
+        assertDoesNotThrow(() -> {
+            Server[] servers = client.getServers();
+            if (servers.length == 0) {
+                System.out.println("[WARN] No servers. Option tests will not be executed!");
+                return;
+            }
+            Server server = servers[0];
+            server.fetchMotd();
+            server.getRAM();
         });
     }
 }
