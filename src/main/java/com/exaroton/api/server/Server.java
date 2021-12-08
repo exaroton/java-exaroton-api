@@ -149,7 +149,8 @@ public class Server {
 
     /**
      * Set the server MOTD
-     * @return server MOTD
+     * @param motd new server MOTD
+     * @return updated server MOTD
      * @throws APIException connection or API errors
      */
     public ServerMOTDInfo setMotd(String motd) throws APIException {
