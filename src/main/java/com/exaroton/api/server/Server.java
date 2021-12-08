@@ -117,19 +117,10 @@ public class Server {
 
     /**
      * check if the server has this status
-     * @param status status code (see ServerStatus)
+     * @param statusCodes status codes (see {@link ServerStatus})
      * @return status match
      */
-    public boolean hasStatus(int status) {
-        return this.status == status;
-    }
-
-    /**
-     * check if the server has one of these status codes
-     * @param statusCodes status codes (see ServerStatus)
-     * @return status match
-     */
-    public boolean hasStatus(int[] statusCodes) {
+    public boolean hasStatus(int... statusCodes) {
         if (statusCodes == null) throw new IllegalArgumentException("Invalid status code array");
         for (int statusCode: statusCodes) {
             if (this.status == statusCode) return true;
