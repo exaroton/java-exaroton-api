@@ -146,6 +146,27 @@ public class Server {
     }
 
     /**
+     * Fetch the MOTD from the API
+     * To retrieve the cached MOTD use {@link #getMotd()}
+     * @return server MOTD
+     * @throws APIException connection or API errors
+     */
+    public ServerMOTDInfo fetchMotd() throws APIException {
+        GetServerMOTDRequest request = new GetServerMOTDRequest(this.client, this.id);
+        return request.request().getData();
+    }
+
+    /**
+     * Set the server MOTD
+     * @return server MOTD
+     * @throws APIException connection or API errors
+     */
+    public ServerMOTDInfo setMotd(String motd) throws APIException {
+        SetServerMOTDRequest request = new SetServerMOTDRequest(this.client, this.id, motd);
+        return request.request().getData();
+    }
+
+    /**
      * Get player info
      * @return server player info
      */
