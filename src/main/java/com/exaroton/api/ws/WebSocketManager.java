@@ -87,6 +87,15 @@ public class WebSocketManager {
      */
     public void handleData(String type, String message) {
         switch (type) {
+
+            case "ready":
+                ready = true;
+                for (String data : this.messages) {
+                    this.client.send(data);
+                }
+                this.messages.clear();
+                break;
+
             case "status":
                 if (this.serverStatusStream == null) return;
                 Server oldServer = new Server(server.getClient(), server.getId())
@@ -164,14 +173,6 @@ public class WebSocketManager {
         if (stream == null) throw new IllegalArgumentException("No stream specified");
 
         switch (stream.toLowerCase(Locale.ROOT)) {
-
-            case "ready":
-                ready = true;
-                for (String data : this.messages) {
-                    this.client.send(data);
-                }
-                this.messages.clear();
-                break;
 
             case "console":
                 if (consoleStream == null) {
