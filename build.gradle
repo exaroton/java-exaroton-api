@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.exaroton'
-version '1.4.0'
+version '1.4.1'
 
 repositories {
     mavenCentral()
@@ -16,8 +16,8 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.java-websocket:Java-WebSocket:1.5.2'
-    implementation 'org.slf4j:slf4j-api:1.7.32'
-    implementation 'org.slf4j:slf4j-jdk14:1.7.32'
+    implementation 'org.slf4j:slf4j-api:1.7.33'
+    implementation 'org.slf4j:slf4j-jdk14:1.7.33'
 }
 
 test {
