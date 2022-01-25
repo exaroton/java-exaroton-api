@@ -2,7 +2,7 @@ package com.exaroton.api.ws.subscriber;
 
 import com.exaroton.api.server.Server;
 
-public abstract class ServerStatusSubscriber {
+public abstract class ServerStatusSubscriber extends Subscriber {
 
     /**
      * handle status update

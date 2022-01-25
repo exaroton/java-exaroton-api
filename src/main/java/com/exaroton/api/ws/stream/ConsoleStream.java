@@ -3,7 +3,7 @@ package com.exaroton.api.ws.stream;
 import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 
-public class ConsoleStream extends Stream<ConsoleSubscriber> {
+public class ConsoleStream extends Stream {
 
     public ConsoleStream(WebSocketManager ws) {
         super(ws);

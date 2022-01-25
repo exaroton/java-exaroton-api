@@ -186,6 +186,7 @@ public class ExarotonClient {
         Server[] servers = request.request().getData();
         for (Server server: servers) {
             server.setClient(this);
+            server.fetched = true;
         }
         return servers;
     }

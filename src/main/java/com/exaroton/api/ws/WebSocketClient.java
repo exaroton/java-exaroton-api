@@ -37,8 +37,9 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     public void onMessage(String message) {
         WSMessage m = (new Gson()).fromJson(message, WSMessage.class);
         switch (m.getType()) {
-            case "keep-alive":
+
             case "connected":
+            case "keep-alive":
             case "disconnected":
                 break;
 

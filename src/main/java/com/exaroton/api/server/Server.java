@@ -9,6 +9,11 @@ import com.exaroton.api.ws.subscriber.*;
 public class Server {
 
     /**
+     * has this server been fetched from the API yet
+     */
+    public boolean fetched;
+
+    /**
      * Unique server ID
      */
     private String id;
@@ -76,6 +81,7 @@ public class Server {
      * @param id server id
      */
     public Server(ExarotonClient client, String id) {
+        this.fetched = false;
         if (client == null) throw new IllegalArgumentException("Invalid client!");
         this.client = client;
         if (id == null) throw new IllegalArgumentException("Invalid server ID!");
@@ -217,6 +223,7 @@ public class Server {
      * @throws APIException connection or API errors
      */
     public Server get() throws APIException {
+        this.fetched = true;
         GetServerRequest request = new GetServerRequest(this.client, this.id);
         this.setFromObject(request.request().getData());
         return this;

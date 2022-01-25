@@ -5,15 +5,10 @@ import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class WebSocketManager {
 
@@ -34,39 +29,14 @@ public class WebSocketManager {
     private boolean ready = false;
 
     /**
-     * active server status stream
+     * active streams
      */
-    private ServerStatusStream serverStatusStream;
-
-    /**
-     * active console stream
-     */
-    private ConsoleStream consoleStream;
-
-    /**
-     * active heap stream
-     */
-    private HeapStream heapStream;
-
-    /**
-     * active stats stream
-     */
-    private StatsStream statsStream;
-
-    /**
-     * active tick stream
-     */
-    private TickStream tickStream;
+    private final Map<StreamName, Stream> streams = new HashMap<>();
 
     /**
      * exaroton server
      */
     private final Server server;
-
-    /**
-     * logger
-     */
-    private final Logger logger =  LoggerFactory.getLogger("java-exaroton-api");
 
     public WebSocketManager(String uri, String apiToken, Server server) {
         try {
@@ -86,7 +56,11 @@ public class WebSocketManager {
      * @param message raw message
      */
     public void handleData(String type, String message) {
+        final StreamName name = StreamName.get(type);
+        final Stream stream = streams.get(name);
         switch (type) {
+            case "disconnected":
+                break;
 
             case "ready":
                 ready = true;
@@ -97,43 +71,49 @@ public class WebSocketManager {
                 break;
 
             case "status":
-                if (this.serverStatusStream == null) return;
                 Server oldServer = new Server(server.getClient(), server.getId())
                         .setFromObject(server);
                 this.server.setFromObject((new Gson()).fromJson(message, ServerStatusStreamData.class).getData());
-                for (ServerStatusSubscriber subscriber: this.serverStatusStream.subscribers) {
-                    subscriber.statusUpdate(oldServer, this.server);
+
+                //start/stop streams based on status
+                for (Stream s: streams.values()) {
+                    s.onStatusChange();
+                }
+
+                if (stream == null) return;
+                for (Object subscriber: stream.subscribers) {
+                    ((ServerStatusSubscriber) subscriber).statusUpdate(oldServer, this.server);
                 }
                 break;
 
             case "line":
-                if (this.consoleStream == null) return;
+                if (stream == null) return;
                 String line = (new Gson()).fromJson(message, ConsoleStreamData.class).getData();
-                for (ConsoleSubscriber subscriber: consoleStream.subscribers) {
-                    subscriber.line(line);
+                for (Object subscriber: stream.subscribers) {
+                    ((ConsoleSubscriber) subscriber).line(line);
                 }
                 break;
             case "heap":
-                if (this.heapStream == null) return;
+                if (stream == null) return;
                 HeapUsage usage = (new Gson()).fromJson(message, HeapStreamData.class).getData();
-                for (HeapSubscriber subscriber : heapStream.subscribers) {
-                    subscriber.heap(usage);
+                for (Object subscriber : stream.subscribers) {
+                    ((HeapSubscriber) subscriber).heap(usage);
                 }
                 break;
 
             case "stats":
-                if (this.statsStream == null) return;
+                if (stream == null) return;
                 StatsData stats = (new Gson()).fromJson(message, StatsStreamData.class).getData();
-                for (StatsSubscriber subscriber : statsStream.subscribers) {
-                    subscriber.stats(stats);
+                for (Object subscriber : stream.subscribers) {
+                    ((StatsSubscriber) subscriber).stats(stats);
                 }
                 break;
 
             case "tick":
-                if (this.tickStream == null) return;
+                if (stream == null) return;
                 TickData tick = (new Gson()).fromJson(message, TickStreamData.class).getData();
-                for (TickSubscriber subscriber: tickStream.subscribers) {
-                    subscriber.tick(tick);
+                for (Object subscriber: stream.subscribers) {
+                    ((TickSubscriber) subscriber).tick(tick);
                 }
                 break;
         }
@@ -172,39 +152,32 @@ public class WebSocketManager {
     public void subscribe(String stream) {
         if (stream == null) throw new IllegalArgumentException("No stream specified");
 
-        switch (stream.toLowerCase(Locale.ROOT)) {
+        Stream s;
+        final StreamName name = StreamName.get(stream);
+        switch (name) {
 
-            case "console":
-                if (consoleStream == null) {
-                    consoleStream = new ConsoleStream(this);
-                    consoleStream.start();
-                }
+            case CONSOLE:
+                s = new ConsoleStream(this);
                 break;
 
-            case "heap":
-                if (heapStream == null) {
-                    heapStream = new HeapStream(this);
-                    heapStream.start();
-                }
+            case HEAP:
+                s = new HeapStream(this);
                 break;
 
-            case "stats":
-                if (statsStream == null) {
-                    statsStream = new StatsStream(this);
-                    statsStream.start();
-                }
+            case STATS:
+                s = new StatsStream(this);
                 break;
 
-            case "tick":
-                if (tickStream == null) {
-                    tickStream = new TickStream(this);
-                    tickStream.start();
-                }
+            case TICK:
+                s = new TickStream(this);
                 break;
 
             default:
                 throw new IllegalArgumentException("Unknown stream");
         }
+
+        this.streams.put(name, s);
+        s.start();
     }
 
     /**
@@ -214,37 +187,11 @@ public class WebSocketManager {
     public void unsubscribe(String stream) {
         if (stream == null) throw new IllegalArgumentException("No stream specified");
 
-        switch (stream.toLowerCase(Locale.ROOT)) {
-            case "console":
-                if (consoleStream != null) {
-                    consoleStream.stop();
-                    consoleStream = null;
-                }
-                break;
-
-            case "heap":
-                if (heapStream != null) {
-                    heapStream.stop();
-                    heapStream = null;
-                }
-                break;
-
-            case "stats":
-                if (statsStream != null) {
-                    statsStream.stop();
-                    statsStream = null;
-                }
-                break;
-
-            case "tick":
-                if (tickStream != null) {
-                    tickStream.stop();
-                    tickStream = null;
-                }
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unknown stream");
+        final StreamName name = StreamName.get(stream);
+        Stream s = this.streams.get(name);
+        if (s != null) {
+            s.stop();
+            this.streams.remove(name);
         }
     }
 
@@ -253,8 +200,13 @@ public class WebSocketManager {
      * @param subscriber instance of class handling server status changes
      */
     public void addServerStatusSubscriber(ServerStatusSubscriber subscriber) {
-        if (this.serverStatusStream == null) this.serverStatusStream = new ServerStatusStream(this);
-        this.serverStatusStream.subscribers.add(subscriber);
+        if (!this.streams.containsKey(StreamName.STATUS)) this.streams.put(StreamName.STATUS, new ServerStatusStream(this));
+        this.streams.get(StreamName.STATUS).subscribers.add(subscriber);
+    }
+
+    public void addStreamSubscriber(StreamName name, Subscriber subscriber) {
+        if (!this.streams.containsKey(name)) throw new RuntimeException("There is no active stream for: "+name);
+        this.streams.get(name).subscribers.add(subscriber);
     }
 
     /**
@@ -262,8 +214,7 @@ public class WebSocketManager {
      * @param subscriber instance of class handling new console lines
      */
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        if (this.consoleStream == null) throw new RuntimeException("There is no active console stream");
-        this.consoleStream.subscribers.add(subscriber);
+        this.addStreamSubscriber(StreamName.CONSOLE, subscriber);
     }
 
     /**
@@ -271,8 +222,7 @@ public class WebSocketManager {
      * @param subscriber instance of class handling heap data
      */
     public void addHeapSubscriber(HeapSubscriber subscriber) {
-        if (this.heapStream == null) throw new RuntimeException("There is no active heap stream");
-        this.heapStream.subscribers.add(subscriber);
+        this.addStreamSubscriber(StreamName.HEAP, subscriber);
     }
 
     /**
@@ -280,8 +230,7 @@ public class WebSocketManager {
      * @param subscriber instance of class handling stats
      */
     public void addStatsSubscriber(StatsSubscriber subscriber) {
-        if (this.statsStream == null) throw new RuntimeException("There is no active stats stream");
-        this.statsStream.subscribers.add(subscriber);
+        this.addStreamSubscriber(StreamName.STATS, subscriber);
     }
 
     /**
@@ -289,8 +238,7 @@ public class WebSocketManager {
      * @param subscriber instance of class handling stats
      */
     public void addTickSubscriber(TickSubscriber subscriber) {
-        if (this.tickStream == null) throw new RuntimeException("There is no active tick stream");
-        this.tickStream.subscribers.add(subscriber);
+        this.addStreamSubscriber(StreamName.TICK, subscriber);
     }
 
     /**
@@ -299,11 +247,12 @@ public class WebSocketManager {
      * @return was the command executed
      */
     public boolean executeCommand(String command) {
-        if (this.consoleStream == null) {
+        Stream s = this.streams.get(StreamName.CONSOLE);
+        if (s == null) {
             return false;
         }
         else {
-            this.consoleStream.executeCommand(command);
+            ((ConsoleStream) s).executeCommand(command);
             return true;
         }
     }
@@ -313,8 +262,9 @@ public class WebSocketManager {
      * @param data web socket message
      */
     public void sendWhenReady(String data) {
-        if (this.ready)
+        if (this.ready) {
             this.client.send(data);
+        }
         else
             this.messages.add(data);
     }
@@ -340,5 +290,16 @@ public class WebSocketManager {
     public void close() {
         if (this.reconnectTimer != null) this.reconnectTimer.cancel();
         this.client.close();
+    }
+
+    public boolean serverHasStatus(int... status) {
+        if (!this.server.fetched) {
+            try {
+                this.server.get();
+            } catch (Exception ignored) {
+
+            }
+        }
+        return this.server.hasStatus(status);
     }
 }
