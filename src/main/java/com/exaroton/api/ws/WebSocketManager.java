@@ -38,6 +38,10 @@ public class WebSocketManager {
      */
     private final Server server;
 
+    private ErrorListener errorListener = null;
+
+    private DebugListener debugListener = null;
+
     public WebSocketManager(String uri, String apiToken, Server server) {
         try {
             URI u = new URI(uri);
@@ -302,4 +306,39 @@ public class WebSocketManager {
         }
         return this.server.hasStatus(status);
     }
+
+    /**
+     * Listen to websocket errors
+     * @param errorListener the only error listener
+     */
+    public void setErrorListener(ErrorListener errorListener) {
+        this.errorListener = errorListener;
+    }
+
+    /**
+     * listen to websocket debug information
+     * @param debugListener the only debug listener
+     */
+    public void setDebugListener(DebugListener debugListener) {
+        this.debugListener = debugListener;
+    }
+
+
+    /**
+     * send debug information to listeners
+     */
+    void sendDebug(String message) {
+        if (this.debugListener != null) {
+            this.debugListener.onDebug(message);
+        }
+    }
+
+    /**
+     * send error to listeners
+     */
+    void onError(String error, Throwable throwable) {
+        this.errorListener.onError(error, throwable);
+    }
+
+
 }

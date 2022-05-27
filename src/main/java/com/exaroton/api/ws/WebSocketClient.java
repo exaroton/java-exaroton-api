@@ -30,6 +30,7 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
+        manager.sendDebug("Websocket opened with status " + handshakedata.getHttpStatus() + ": " + handshakedata.getHttpStatusMessage());
         manager.handleOpen();
     }
 
@@ -51,10 +52,12 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     @Override
     public void onError(Exception ex) {
         logger.error("A websocket error ocurred", ex);
+        manager.onError("A websocket error ocurred: " + ex.getMessage(), ex);
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        manager.sendDebug("Websocket closed with code " + code + ": " + reason);
         manager.handleClose(code, reason, remote);
     }
 }
