@@ -13,7 +13,8 @@ public class PlayerList {
 
     /**
      * create a new playerlist
-     * @param name playerlist name (see Server.getPlayerLists)
+     *
+     * @param name   playerlist name (see Server.getPlayerLists)
      * @param server exaroton server
      * @param client exaroton client
      */
@@ -42,40 +43,31 @@ public class PlayerList {
 
     /**
      * add players to list
+     *
      * @param entries player names
      * @throws APIException API error
      */
-    public void add(String[] entries) throws APIException {
+    public void add(String... entries) throws APIException {
+        if (entries.length == 0) {
+            return;
+        }
+
         AddPlayerListEntriesRequest request = new AddPlayerListEntriesRequest(this.client, this.server, this.name, entries);
         request.request();
     }
 
     /**
-     * add player to list
-     * @param entry player name
-     * @throws APIException API error
-     */
-    public void add(String entry) throws APIException {
-        this.add(new String[]{entry});
-    }
-
-    /**
      * remove players from list
+     *
      * @param entries player names
      * @throws APIException API error
      */
-    public void remove(String[] entries) throws APIException {
+    public void remove(String... entries) throws APIException {
+        if (entries.length == 0) {
+            return;
+        }
+
         RemovePlayerListEntriesRequest request = new RemovePlayerListEntriesRequest(this.client, this.server, this.name, entries);
         request.request();
     }
-
-    /**
-     * remove player from list
-     * @param entry player name
-     * @throws APIException API error
-     */
-    public void remove(String entry) throws APIException {
-        this.remove(new String[]{entry});
-    }
-
 }

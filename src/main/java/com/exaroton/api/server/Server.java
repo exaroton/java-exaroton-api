@@ -366,24 +366,16 @@ public class Server {
     }
 
     /**
-     * subscribe to a single stream
-     * @param stream stream name
-     */
-    public void subscribe(String stream) {
-        if (this.webSocket == null) {
-            this.subscribe();
-        }
-
-        this.webSocket.subscribe(stream);
-    }
-
-    /**
-     * subscribe to multiple streams at once
+     * subscribe to one or more streams
      * @param streams stream names
      */
-    public void subscribe(String[] streams) {
+    public void subscribe(String... streams) {
         for (String stream: streams) {
-            this.subscribe(stream);
+            if (this.webSocket == null) {
+                this.subscribe();
+            }
+
+            this.webSocket.subscribe(stream);
         }
     }
 
@@ -397,21 +389,13 @@ public class Server {
     }
 
     /**
-     * unsubscribe from a single stream
-     * @param stream stream name
-     */
-    public void unsubscribe(String stream) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.unsubscribe(stream);
-    }
-
-    /**
-     * unsubscribe from multiple streams at once
+     * unsubscribe from one or more streams
      * @param streams stream names
      */
-    public void unsubscribe(String[] streams) {
+    public void unsubscribe(String... streams) {
+        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
         for (String stream: streams) {
-            this.unsubscribe(stream);
+            this.webSocket.unsubscribe(stream);
         }
     }
 

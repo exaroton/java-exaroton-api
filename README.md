@@ -176,7 +176,7 @@ try {
     for (String entry: whitelist.getEntries()) {
         System.out.println(entry);
     }
-    whitelist.add(new String[]{"example", "example2"});
+    whitelist.add("example", "example2");
     whitelist.remove("example34");
 } catch (APIException e) {
     e.printStackTrace();
@@ -258,7 +258,7 @@ You can subscribe to multiple streams at once by passing an array to the subscri
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe(new String[]{"stats", "heap"});
+server.subscribe("stats", "heap");
 server.addStatsSubscriber(new StatsSubscriber() {
     @Override
     public void stats(StatsData stats) {
@@ -280,8 +280,21 @@ You can unsubscribe from one, multiple or all streams using the server.unsubscri
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe(new String[]{"console", "stats", "heap"});
+server.subscribe("console", "stats", "heap");
 server.unsubscribe("heap");
-server.unsubscribe(new String[]{"stats", "console"});
+server.unsubscribe("stats", "console");
 server.unsubscribe(); // closes websocket connection
+```
+
+### Debugging Websocket connections
+```java
+ExarotonClient client = new ExarotonClient("example-api-token");
+
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.subscribe();
+server.getWebSocket().setErrorListener((message, throwable) -> {
+    System.out.println(message);
+    System.out.println(throwable.toString());
+});
+server.getWebSocket().setDebugListener(System.out::println);
 ```
