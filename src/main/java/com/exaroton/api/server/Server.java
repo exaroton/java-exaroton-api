@@ -42,7 +42,7 @@ public class Server {
     /**
      * Information about players
      */
-    private PlayerInfo playerInfo;
+    private PlayerInfo players;
 
     /**
      * Host address
@@ -169,7 +169,7 @@ public class Server {
      * @return server player info
      */
     public PlayerInfo getPlayerInfo() {
-        return playerInfo;
+        return players;
     }
 
     /**
@@ -339,7 +339,7 @@ public class Server {
         this.address = server.getAddress();
         this.motd = server.getMotd();
         this.status = server.getStatus();
-        this.playerInfo = server.getPlayerInfo();
+        this.players = server.getPlayerInfo();
         this.host = server.getHost();
         this.port = server.getPort();
         this.software = server.getSoftware();
