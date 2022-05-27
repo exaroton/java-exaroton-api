@@ -133,12 +133,13 @@ public class WebSocketManager {
     public void handleClose(int code, String reason, boolean remote) {
         if (remote && this.shouldAutoReconnect()) {
             reconnectTimer = new Timer();
+            this.sendDebug("Reconnecting in 5s");
             reconnectTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     client.reconnect();
                 }
-            }, 0, 5000);
+            }, 5000, 5000);
         }
     }
 
