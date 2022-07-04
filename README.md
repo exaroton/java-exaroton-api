@@ -183,6 +183,38 @@ try {
 }
 ```
 
+### Files
+To manage a file on your server first obtain a file Object:
+```java
+ExarotonClient client = new ExarotonClient("example-api-token");
+
+Server server = client.getServer("tgkm731xO7GiHt76");
+ServerFile file = server.getFile("/whitelist.json");
+```
+
+Now you can fetch file info, get the context of a file (if it's a text file) or download it.
+```java
+file.getInfo();
+if (file.isTextFile()) {
+    System.out.println(file.getContent());
+}
+else {
+    file.download(Paths.get("whitelist.json"));    
+}
+```
+
+You can also write to the file or upload a file:
+```java
+file.putContent("I can write to a file o.O");
+file.upload(Paths.get("other-whitelist.json"));
+```
+
+Deleting files and creating directories is possible as well:
+```java
+file.delete();
+file.createAsDirectory();
+```
+
 ### Websocket API
 The websocket API allows a constant connection to our websocket service to receive events in real time without polling 
 (e.g. trying to get the server status every few seconds).
