@@ -7,6 +7,7 @@ import com.exaroton.api.server.Server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -81,7 +82,7 @@ public class ExarotonClient {
      * get the base URL
      * @return base URL for api requests
      */
-    private String baseURL(){
+    protected String baseURL(){
         return protocol + "://" + host + basePath;
     }
 
@@ -137,33 +138,48 @@ public class ExarotonClient {
     }
 
     /**
-     * make a request to the exaroton API
+     * @param method HTTP method
+     * @param endpoint api endpoint
+     * @return http connection with user agent and authorization
+     * @throws IOException failed to open connection
+     */
+    public HttpURLConnection createConnection(String method, String endpoint) throws IOException {
+        URL url = new URL(this.baseURL() + endpoint);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod(method);
+        connection.setRequestProperty("User-Agent", this.userAgent);
+        connection.setRequestProperty("Authorization", "Bearer " + this.apiToken);
+        return connection;
+    }
+
+    /**
+     * make a JSON request to the exaroton API
      * @param endpoint API endpoint e.g. "account/"
      * @param method HTTP method e.g. GET or POST
      * @return content string
      * @throws APIException connection and API errors
+     * @deprecated use {{@link APIRequest}} instead
      */
-    protected String request(String endpoint, String method) throws APIException {
+    public String request(String endpoint, String method) throws APIException {
         HttpURLConnection connection = null;
+        InputStream stream;
         try {
-            URL url = new URL(this.baseURL() + endpoint);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(method);
+            connection = this.createConnection(method, endpoint);
             connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("User-Agent", userAgent);
-            connection.setRequestProperty("Authorization", "Bearer " + this.apiToken);
 
-            return new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
+            stream = connection.getInputStream();
         }
         catch (IOException e) {
-            if (connection == null || connection.getErrorStream() == null) throw new APIException("Connection problem",e);
+            if (connection == null || connection.getErrorStream() == null) {
+                throw new APIException("Failed to request data from exaroton API", e);
+            }
 
-            return new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))
+            stream = connection.getErrorStream();
+        }
+
+        return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));
-        }
     }
 
     /**

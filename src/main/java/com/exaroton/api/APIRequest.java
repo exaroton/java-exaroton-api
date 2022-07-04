@@ -3,26 +3,25 @@ package com.exaroton.api;
 
 import com.google.gson.Gson;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class APIRequest<Datatype> {
-
     /**
      * exaroton API client
      */
     protected final ExarotonClient client;
 
-
     public APIRequest(ExarotonClient client) {
         this.client = client;
     }
-
 
     /**
      * get API endpoint
@@ -40,38 +39,97 @@ public abstract class APIRequest<Datatype> {
         return "GET";
     }
 
-    public APIResponse<Datatype> request() throws APIException {
-        StringBuilder endpoint = new StringBuilder(this.getEndpoint());
-
+    /**
+     * @return request url with parameters
+     * @throws APIException failed to encode URL parameters
+     */
+    protected String getUrl() throws APIException {
+        String endpoint = this.getEndpoint();
         //replace data
         for (Map.Entry<String, String> entry : this.getData().entrySet()) {
-            endpoint = new StringBuilder(endpoint.toString().replace("{" + entry.getKey() + "}", entry.getValue()));
+            endpoint = endpoint.replace("{" + entry.getKey() + "}", entry.getValue());
         }
 
         //add parameters
         boolean first = true;
+        StringBuilder url = new StringBuilder(endpoint);
         for (Parameter parameter: this.getParameters()) {
             if (first) {
-                endpoint.append("?");
+                url.append("?");
                 first = false;
             }
             else {
-                endpoint.append("&");
+                url.append("&");
             }
             try {
-                endpoint.append(parameter.getName())
+                url.append(parameter.getName())
                         .append("=")
                         .append(URLEncoder.encode(parameter.getValue(), StandardCharsets.UTF_8.toString()));
             } catch (UnsupportedEncodingException e) {
                 throw new APIException("Error encoding URL parameters", e);
             }
         }
+        return url.toString();
+    }
 
-        String json = client.request(endpoint.toString(), this.getMethod());
+    public InputStream requestRaw() throws APIException {
+        HttpURLConnection connection = null;
+        InputStream stream;
+        try {
+            connection = client.createConnection(this.getMethod(), this.getUrl());
+            for (Map.Entry<String, String> entry : this.getHeaders().entrySet()) {
+                connection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+
+            InputStream inputStream = this.getInputStream();
+            if (this.getInputStream() != null) {
+                connection.setDoOutput(true);
+                OutputStream out = connection.getOutputStream();
+                byte[] buf = new byte[8192];
+                int length;
+                while ((length = inputStream.read(buf)) > 0) {
+                    out.write(buf, 0, length);
+                }
+            }
+            stream = connection.getInputStream();
+        }
+        catch (IOException e) {
+            if (connection == null || connection.getErrorStream() == null) {
+                throw new APIException("Failed to request data from exaroton API", e);
+            }
+
+            stream = connection.getErrorStream();
+        }
+
+        return stream;
+    }
+
+    public String requestString() throws APIException {
+        try (InputStream stream = this.requestRaw()) {
+            return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
+                    .lines()
+                    .collect(Collectors.joining("\n"));
+        }
+        catch (IOException e) {
+            throw new APIException("Failed to read input stream", e);
+        }
+    }
+
+    public APIResponse<Datatype> request() throws APIException {
+        String json = this.requestString();
         APIResponse<Datatype> response = (new Gson()).fromJson(json, this.getType());
         if (!response.isSuccess()) throw new APIException(response.getError());
 
         return response;
+    }
+
+    /**
+     * @return request headers
+     */
+    protected HashMap<String, String> getHeaders() {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("Response-Type", "application/json");
+        return map;
     }
 
     /**
@@ -94,5 +152,12 @@ public abstract class APIRequest<Datatype> {
      */
     protected ArrayList<Parameter> getParameters() {
         return new ArrayList<>();
+    }
+
+    /**
+     * @return input stream with data that should be sent to the request
+     */
+    protected InputStream getInputStream() {
+        return null;
     }
 }

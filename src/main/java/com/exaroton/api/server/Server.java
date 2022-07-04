@@ -6,6 +6,8 @@ import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.subscriber.*;
 
+import java.io.InputStream;
+
 public class Server {
 
     /**
@@ -317,6 +319,15 @@ public class Server {
     public String[] getPlayerLists() throws APIException {
         GetPlayerListsRequest request = new GetPlayerListsRequest(this.client, this.id);
         return request.request().getData();
+    }
+
+    /**
+     * get a file
+     * @param path file path
+     * @return octet stream
+     */
+    public ServerFile getFile(String path) {
+        return new ServerFile(this.client, this, path);
     }
 
     /**
