@@ -18,7 +18,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -Prelease=${{  github.ref_name }}
       - name: Test with Gradle
-        run: ./gradlew test -Prelease=${{  github.ref_name }}
+        run: ./gradlew test -Prelease=${{  github.ref_name }} --info
       - name: Publish to Maven Central
         env:
           ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_KEY }}
