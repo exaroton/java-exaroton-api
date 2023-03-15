@@ -16,9 +16,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew build -Prelease=${{  github.ref_name }}
-      - name: Test with Gradle
-        run: ./gradlew test -Prelease=${{  github.ref_name }} --info
+        run: ./gradlew build -Prelease=${{  github.ref_name }} --info
+        env:
+          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_TOKEN }}
       - name: Publish to Maven Central
         env:
           ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_KEY }}
