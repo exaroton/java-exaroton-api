@@ -16,3 +16,5 @@ jobs:
         run: git submodule init && git submodule update
       - name: Build with Gradle
         run: ./gradlew test
+        env:
+          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_TOKEN }}

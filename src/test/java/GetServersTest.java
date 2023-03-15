@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GetServersTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_TOKEN"));
+    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
 
     @Test
     void getServers() {

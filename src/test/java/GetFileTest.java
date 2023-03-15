@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GetFileTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_TOKEN"));
+    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
 
     @Test
     void getFile() {

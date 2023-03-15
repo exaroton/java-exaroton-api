@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SetProtocolTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_TOKEN"));
+    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
 
     @Test
     void protocolHTTP() {
