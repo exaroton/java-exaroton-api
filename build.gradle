@@ -4,20 +4,21 @@ plugins {
     id 'signing'
 }
 
-group 'com.exaroton'
-version '1.5.0'
+group = 'com.exaroton'
+version = project.findProperty("release") ?: "dev"
+ext.isReleaseVersion = version != "dev" &&  !version.endsWith("SNAPSHOT")
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    implementation 'com.google.code.gson:gson:2.9.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'org.java-websocket:Java-WebSocket:1.5.3'
-    implementation 'org.slf4j:slf4j-api:1.7.36'
-    implementation 'org.slf4j:slf4j-jdk14:1.7.36'
+    implementation 'org.slf4j:slf4j-api:2.0.6'
+    implementation 'org.slf4j:slf4j-jdk14:2.0.6'
 }
 
 test {
@@ -41,8 +42,8 @@ publishing {
             def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
             url = isReleaseVersion ? releaseRepo : snapshotRepo
             credentials {
-                username = project.hasProperty('ossrhUsername') ? ossrhUsername : "Unknown user"
-                password = project.hasProperty('ossrhPassword') ? ossrhPassword : "Unknown password"
+                username = findProperty('OSSRH_USERNAME')
+                password = findProperty('OSSRH_PASSWORD')
             }
         }
     }
@@ -79,9 +80,12 @@ publishing {
 }
 
 signing {
+    def signingKey = findProperty("SIGNING_KEY").toString()
+    def signingPassword = findProperty("SIGNING_PASSPHRASE").toString()
+    useInMemoryPgpKeys(signingKey, signingPassword)
     sign publishing.publications.mavenJava
 }
-tasks.withType(Sign) {
+tasks.withType(Sign).configureEach {
     onlyIf { isReleaseVersion }
 }
 
