@@ -18,14 +18,14 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -Prelease=${{  github.ref_name }} --info
         env:
-          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_TOKEN }}
+          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
       - name: Publish to Maven Central
         env:
           ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_SIGNING_PASSPHRASE: ${{ secrets.EXAROTON_GPG_SIGNING_PASSPHRASE }}
           ORG_GRADLE_PROJECT_OSSRH_USERNAME: ${{ secrets.SONATYPE_OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_OSSRH_PASSWORD: ${{ secrets.SONATYPE_OSSRH_PASSWORD }}
-          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_TOKEN }}
+          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
         run: ./gradlew publish -Prelease=${{ github.ref_name }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
