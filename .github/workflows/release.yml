@@ -32,4 +32,4 @@ jobs:
           files: |
             ./build/libs/mclogs-*.jar
           body_path: ${{ github.workspace }}/CHANGELOG.md
-          name: v${{ github.ref_name }}
+          name: ${{ github.ref_name }}
