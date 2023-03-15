@@ -19,7 +19,7 @@ public class GetFileTest {
 
     @Test
     void getFile() {
-        Server server = client.getServer("eY6o31lHct5tDcSJ");
+        Server server = client.getServer(System.getenv("EXAROTON_TEST_SERVER"));
         assertDoesNotThrow(() -> {
             ServerFile whitelist = server.getFile("whitelist.json");
             whitelist.putContent("[{\"name\":\"JulianVennen\", \"uuid\": \"abcd9e56-5ac2-490c-8bc9-6c1cad18f506\"}]");

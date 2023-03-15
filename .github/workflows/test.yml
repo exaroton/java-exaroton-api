@@ -18,3 +18,4 @@ jobs:
         run: ./gradlew build --info
         env:
           EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
+          EXAROTON_TEST_SERVER: "WgvSsfR8ZizUO1RQ"
