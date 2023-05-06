@@ -6,9 +6,7 @@ import com.google.gson.Gson;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,49 +38,35 @@ public abstract class APIRequest<Datatype> {
     }
 
     /**
-     * @return request url with parameters
-     * @throws APIException failed to encode URL parameters
+     * @return request path with replaced parameters
      */
-    protected String getUrl() throws APIException {
-        String endpoint = this.getEndpoint();
-        //replace data
+    protected String getPath() {
+        String path = this.getEndpoint();
+
         for (Map.Entry<String, String> entry : this.getData().entrySet()) {
-            endpoint = endpoint.replace("{" + entry.getKey() + "}", entry.getValue());
+            path = path.replace("{" + entry.getKey() + "}", entry.getValue());
         }
 
-        //add parameters
-        boolean first = true;
-        StringBuilder url = new StringBuilder(endpoint);
-        for (Parameter parameter: this.getParameters()) {
-            if (first) {
-                url.append("?");
-                first = false;
-            }
-            else {
-                url.append("&");
-            }
-            try {
-                url.append(parameter.getName())
-                        .append("=")
-                        .append(URLEncoder.encode(parameter.getValue(), StandardCharsets.UTF_8.toString()));
-            } catch (UnsupportedEncodingException e) {
-                throw new APIException("Error encoding URL parameters", e);
-            }
-        }
-        return url.toString();
+        return path;
     }
 
     public InputStream requestRaw() throws APIException {
         HttpURLConnection connection = null;
         InputStream stream;
         try {
-            connection = client.createConnection(this.getMethod(), this.getUrl());
+            connection = client.createConnection(this.getMethod(), this.getPath());
             for (Map.Entry<String, String> entry : this.getHeaders().entrySet()) {
                 connection.setRequestProperty(entry.getKey(), entry.getValue());
             }
 
+            Object body = this.getBody();
             InputStream inputStream = this.getInputStream();
-            if (this.getInputStream() != null) {
+            if (body != null) {
+                inputStream = new ByteArrayInputStream((new Gson()).toJson(body).getBytes(StandardCharsets.UTF_8));
+                connection.setRequestProperty("Content-Type", "application/json");
+            }
+
+            if (inputStream != null) {
                 connection.setDoOutput(true);
                 OutputStream out = connection.getOutputStream();
                 byte[] buf = new byte[8192];
@@ -147,17 +131,17 @@ public abstract class APIRequest<Datatype> {
     }
 
     /**
-     * List of request parameters
-     * @return http parameters
-     */
-    protected ArrayList<Parameter> getParameters() {
-        return new ArrayList<>();
-    }
-
-    /**
      * @return input stream with data that should be sent to the request
      */
     protected InputStream getInputStream() {
+        return null;
+    }
+
+    /**
+     * Get the request body
+     * @return request body
+     */
+    protected Object getBody() {
         return null;
     }
 }

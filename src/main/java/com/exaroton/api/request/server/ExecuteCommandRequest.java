@@ -2,12 +2,11 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.Parameter;
 import com.exaroton.api.server.ServerRAMInfo;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ExecuteCommandRequest extends ServerRequest<ServerRAMInfo> {
     private final String command;
@@ -34,9 +33,9 @@ public class ExecuteCommandRequest extends ServerRequest<ServerRAMInfo> {
     }
 
     @Override
-    protected ArrayList<Parameter> getParameters() {
-        ArrayList<Parameter> parameters = super.getParameters();
-        parameters.add(new Parameter("command", this.command));
-        return parameters;
+    protected Object getBody() {
+        HashMap<String, Object> body = new HashMap<>();
+        body.put("command", this.command);
+        return body;
     }
 }

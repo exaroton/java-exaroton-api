@@ -2,11 +2,10 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.Parameter;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AddPlayerListEntriesRequest extends ServerListRequest<String[]> {
 
@@ -34,11 +33,9 @@ public class AddPlayerListEntriesRequest extends ServerListRequest<String[]> {
     }
 
     @Override
-    protected ArrayList<Parameter> getParameters() {
-        ArrayList<Parameter> parameters = super.getParameters();
-        for (String entry: entries) {
-            parameters.add(new Parameter("entries[]", entry));
-        }
-        return parameters;
+    protected Object getBody() {
+        HashMap<String, Object> body = new HashMap<>();
+        body.put("entries", this.entries);
+        return body;
     }
 }

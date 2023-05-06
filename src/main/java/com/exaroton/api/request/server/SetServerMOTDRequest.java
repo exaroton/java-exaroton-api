@@ -2,12 +2,11 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.Parameter;
 import com.exaroton.api.server.ServerMOTDInfo;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SetServerMOTDRequest extends ServerRequest<ServerMOTDInfo> {
     private final String motd;
@@ -28,14 +27,14 @@ public class SetServerMOTDRequest extends ServerRequest<ServerMOTDInfo> {
     }
 
     @Override
-    protected ArrayList<Parameter> getParameters() {
-        ArrayList<Parameter> parameters = super.getParameters();
-        parameters.add(new Parameter("motd", this.motd));
-        return parameters;
+    protected Type getType() {
+        return new TypeToken<APIResponse<ServerMOTDInfo>>(){}.getType();
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<ServerMOTDInfo>>(){}.getType();
+    protected Object getBody() {
+        HashMap<String, Object> body = new HashMap<>();
+        body.put("motd", this.motd);
+        return body;
     }
 }

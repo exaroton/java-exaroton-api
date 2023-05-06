@@ -274,10 +274,21 @@ public class Server {
 
     /**
      * Start the server
+     * Equivalent to {@link #start(boolean)} with useOwnCredits = false
      * @throws APIException connection or API errors
      */
     public void start() throws APIException {
-        StartServerRequest request = new StartServerRequest(this.client, this.id);
+        this.start(false);
+    }
+
+
+    /**
+     * Start the server
+     * @param useOwnCredits use the credits of the account that created the API key instead of the server owner's credits
+     * @throws APIException connection or API errors
+     */
+    public void start(boolean useOwnCredits) throws APIException {
+        StartServerRequest request = new StartServerRequest(this.client, this.id, useOwnCredits);
         request.request();
     }
 

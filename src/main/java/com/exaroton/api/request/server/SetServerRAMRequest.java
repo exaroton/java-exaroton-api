@@ -2,12 +2,11 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.Parameter;
 import com.exaroton.api.server.ServerRAMInfo;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
     private final int ram;
@@ -28,14 +27,14 @@ public class SetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
     }
 
     @Override
-    protected ArrayList<Parameter> getParameters() {
-        ArrayList<Parameter> parameters = super.getParameters();
-        parameters.add(new Parameter("ram", Integer.toString(this.ram)));
-        return parameters;
+    protected Type getType() {
+        return new TypeToken<APIResponse<ServerRAMInfo>>(){}.getType();
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<ServerRAMInfo>>(){}.getType();
+    protected Object getBody() {
+        HashMap<String, Object> body = new HashMap<>();
+        body.put("ram", this.ram);
+        return body;
     }
 }
