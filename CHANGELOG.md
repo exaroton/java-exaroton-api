@@ -1,1 +1,3 @@
+- Add option to use own credits to Server.start()
+- Use JSON body instead of form data
 - Update dependencies
