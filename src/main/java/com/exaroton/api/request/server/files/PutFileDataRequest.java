@@ -5,10 +5,9 @@ import com.exaroton.api.ExarotonClient;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 
 public class PutFileDataRequest extends FileDataRequest {
-    protected InputStream inputStream;
+    protected final InputStream inputStream;
 
     public PutFileDataRequest(ExarotonClient client, String serverId, String path, InputStream stream) {
         super(client, serverId, path);

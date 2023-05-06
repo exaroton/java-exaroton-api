@@ -29,7 +29,7 @@ public class ExecuteCommandRequest extends ServerRequest<ServerRAMInfo> {
 
     @Override
     protected Type getType() {
-        return new TypeToken<APIResponse>(){}.getType();
+        return new TypeToken<APIResponse<?>>(){}.getType();
     }
 
     @Override

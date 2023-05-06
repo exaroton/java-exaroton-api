@@ -160,6 +160,7 @@ public class ExarotonClient {
      * @throws APIException connection and API errors
      * @deprecated use {{@link APIRequest}} instead
      */
+    @Deprecated
     public String request(String endpoint, String method) throws APIException {
         HttpURLConnection connection = null;
         InputStream stream;

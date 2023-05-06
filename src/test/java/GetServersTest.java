@@ -27,7 +27,7 @@ public class GetServersTest {
                     assertDoesNotThrow(server::getPlayerLists);
                     server.hasStatus(0);
                     server.hasStatus(0,1,2);
-                    server.hasStatus(new int[]{0,1,2});
+                    server.hasStatus(0,1,2);
                     server.hasStatus();
                 });
             }

@@ -6,8 +6,6 @@ import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.subscriber.*;
 
-import java.io.InputStream;
-
 public class Server {
 
     /**

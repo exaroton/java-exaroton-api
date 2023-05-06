@@ -24,7 +24,7 @@ public class AddPlayerListEntriesRequest extends ServerListRequest<String[]> {
 
     @Override
     protected Type getType() {
-        return new TypeToken<APIResponse>(){}.getType();
+        return new TypeToken<APIResponse<?>>(){}.getType();
     }
 
     @Override

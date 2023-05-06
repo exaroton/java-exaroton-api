@@ -29,7 +29,7 @@ public class StartServerRequest extends ServerRequest<Server> {
 
     @Override
     protected Type getType() {
-        return new TypeToken<APIResponse>(){}.getType();
+        return new TypeToken<APIResponse<?>>(){}.getType();
     }
 
     @Override

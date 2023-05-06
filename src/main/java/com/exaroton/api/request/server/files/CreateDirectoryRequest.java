@@ -2,7 +2,6 @@ package com.exaroton.api.request.server.files;
 
 import com.exaroton.api.ExarotonClient;
 
-import java.io.InputStream;
 import java.util.HashMap;
 
 public class CreateDirectoryRequest extends FileDataRequest {
