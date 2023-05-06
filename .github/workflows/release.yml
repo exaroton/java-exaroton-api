@@ -33,6 +33,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./build/libs/mclogs-*.jar
+            ./build/libs/java-exaroton-api-*.jar
           body_path: ${{ github.workspace }}/CHANGELOG.md
           name: ${{ github.ref_name }}
