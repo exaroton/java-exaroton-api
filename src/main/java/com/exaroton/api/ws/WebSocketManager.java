@@ -1,5 +1,6 @@
 package com.exaroton.api.ws;
 
+import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
@@ -11,6 +12,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 public class WebSocketManager {
+    private final ExarotonClient exaroton;
 
     private final WebSocketClient client;
 
@@ -42,7 +44,8 @@ public class WebSocketManager {
 
     private DebugListener debugListener = null;
 
-    public WebSocketManager(String uri, String apiToken, Server server) {
+    public WebSocketManager(ExarotonClient exaroton, String uri, String apiToken, Server server) {
+        this.exaroton = exaroton;
         try {
             URI u = new URI(uri);
             this.client = new WebSocketClient(u, this);
@@ -52,6 +55,10 @@ public class WebSocketManager {
         this.client.addHeader("Authorization", "Bearer " + apiToken);
         this.client.connect();
         this.server = server;
+    }
+
+    public Gson getGson() {
+        return exaroton.getGson();
     }
 
     /**
@@ -77,7 +84,7 @@ public class WebSocketManager {
             case "status":
                 Server oldServer = new Server(server.getClient(), server.getId())
                         .setFromObject(server);
-                this.server.setFromObject((new Gson()).fromJson(message, ServerStatusStreamData.class).getData());
+                this.server.setFromObject(exaroton.getGson().fromJson(message, ServerStatusStreamData.class).getData());
 
                 //start/stop streams based on status
                 for (Stream s: streams.values()) {
@@ -92,14 +99,14 @@ public class WebSocketManager {
 
             case "line":
                 if (stream == null) return;
-                String line = (new Gson()).fromJson(message, ConsoleStreamData.class).getData();
+                String line = exaroton.getGson().fromJson(message, ConsoleStreamData.class).getData();
                 for (Object subscriber: stream.subscribers) {
                     ((ConsoleSubscriber) subscriber).line(line);
                 }
                 break;
             case "heap":
                 if (stream == null) return;
-                HeapUsage usage = (new Gson()).fromJson(message, HeapStreamData.class).getData();
+                HeapUsage usage = exaroton.getGson().fromJson(message, HeapStreamData.class).getData();
                 for (Object subscriber : stream.subscribers) {
                     ((HeapSubscriber) subscriber).heap(usage);
                 }
@@ -107,7 +114,7 @@ public class WebSocketManager {
 
             case "stats":
                 if (stream == null) return;
-                StatsData stats = (new Gson()).fromJson(message, StatsStreamData.class).getData();
+                StatsData stats = exaroton.getGson().fromJson(message, StatsStreamData.class).getData();
                 for (Object subscriber : stream.subscribers) {
                     ((StatsSubscriber) subscriber).stats(stats);
                 }
@@ -115,7 +122,7 @@ public class WebSocketManager {
 
             case "tick":
                 if (stream == null) return;
-                TickData tick = (new Gson()).fromJson(message, TickStreamData.class).getData();
+                TickData tick = exaroton.getGson().fromJson(message, TickStreamData.class).getData();
                 for (Object subscriber: stream.subscribers) {
                     ((TickSubscriber) subscriber).tick(tick);
                 }
@@ -340,6 +347,4 @@ public class WebSocketManager {
     void onError(String error, Throwable throwable) {
         this.errorListener.onError(error, throwable);
     }
-
-
 }

@@ -62,7 +62,7 @@ public abstract class APIRequest<Datatype> {
             Object body = this.getBody();
             InputStream inputStream = this.getInputStream();
             if (body != null) {
-                inputStream = new ByteArrayInputStream((new Gson()).toJson(body).getBytes(StandardCharsets.UTF_8));
+                inputStream = new ByteArrayInputStream(client.getGson().toJson(body).getBytes(StandardCharsets.UTF_8));
                 connection.setRequestProperty("Content-Type", "application/json");
             }
 
@@ -101,7 +101,7 @@ public abstract class APIRequest<Datatype> {
 
     public APIResponse<Datatype> request() throws APIException {
         String json = this.requestString();
-        APIResponse<Datatype> response = (new Gson()).fromJson(json, this.getType());
+        APIResponse<Datatype> response = client.getGson().fromJson(json, this.getType());
         if (!response.isSuccess()) throw new APIException(response.getError());
 
         return response;

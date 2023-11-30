@@ -215,7 +215,42 @@ file.delete();
 file.createAsDirectory();
 ```
 
-### Websocket API
+### Configs
+Some files are special because they are parsed, validated and understood by the exaroton backend.
+These files are called configs and can be managed like this:
+```java
+ExarotonClient client = new ExarotonClient("example-api-token");
+
+Server server = client.getServer("tgkm731xO7GiHt76");
+ServerFile file = server.getFile("/server.properties");
+ServerConfig config = file.getConfig();
+
+Map<String, ServerConfigOption> options = config.getOptions();
+for (ServerConfigOption option: options) {
+    System.out.println(option.getName() + ": " + option.getValue());
+}
+
+ConfigOption option = config.getOption("level-seed");
+```
+
+There are several types of options which extend the ServerConfigOption class:
+```java
+for (ServerConfigOption option: options) {
+    if (option.getType() == OptionType.BOOLEAN) {
+        BooleanConfigOption booleanOption = (BooleanConfigOption) option;
+        System.out.println(booleanOption.getName() + ": " + booleanOption.getValue());
+    }
+}
+```
+
+To save changes to a config, use the save() method:
+```java
+config.getOption("level-seed").setValue("example");
+config.save();
+```
+
+
+## Websocket API
 The websocket API allows a constant connection to our websocket service to receive events in real time without polling 
 (e.g. trying to get the server status every few seconds).
 

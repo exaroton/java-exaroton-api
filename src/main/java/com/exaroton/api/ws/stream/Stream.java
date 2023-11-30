@@ -31,7 +31,7 @@ public abstract class Stream {
      * @param type message type
      */
     public void send(String type) {
-        ws.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type)));
+        ws.sendWhenReady(ws.getGson().toJson(new StreamData<>(this.getName(), type)));
     }
 
     /**
@@ -45,7 +45,7 @@ public abstract class Stream {
      * @param data message data
      */
     public void send(String type, String data) {
-        ws.sendWhenReady((new Gson()).toJson(new StreamData<>(this.getName(), type, data)));
+        ws.sendWhenReady(ws.getGson().toJson(new StreamData<>(this.getName(), type, data)));
     }
 
     /**

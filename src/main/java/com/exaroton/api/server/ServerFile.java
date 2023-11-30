@@ -3,6 +3,7 @@ package com.exaroton.api.server;
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.files.*;
+import com.exaroton.api.server.config.ServerConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,6 +141,14 @@ public class ServerFile {
         new CreateDirectoryRequest(this.client, this.server.getId(), this.path).request();
     }
 
+    /**
+     * get a ServerConfig object for this file
+     * @return server config object
+     */
+    public ServerConfig getConfig() {
+        return new ServerConfig(this.client, this.server, this.path);
+    }
+
     public String getPath() {
         return path;
     }
@@ -187,7 +196,6 @@ public class ServerFile {
     public void setPath(String path) {
         this.path = path.replaceAll("^/+", "");
     }
-
 
     /**
      * update properties from fetched object

@@ -1,5 +1,6 @@
 package com.exaroton.api.ws;
 
+import com.exaroton.api.ExarotonClient;
 import com.google.gson.Gson;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 
 public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
-
     /**
      * logger
      */
@@ -36,7 +36,7 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        WSMessage m = (new Gson()).fromJson(message, WSMessage.class);
+        WSMessage m = manager.getGson().fromJson(message, WSMessage.class);
         switch (m.getType()) {
 
             case "connected":

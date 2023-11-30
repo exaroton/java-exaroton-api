@@ -4,6 +4,10 @@ import com.exaroton.api.account.Account;
 import com.exaroton.api.request.account.GetAccountRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.server.Server;
+import com.exaroton.api.server.config.ConfigOption;
+import com.exaroton.api.server.config.ConfigOptionTypeAdapter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +20,10 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class ExarotonClient {
+    /**
+     * Gson instance used for (de-)serialization
+     */
+    private final Gson gson;
 
     /**
      * Request protocol
@@ -47,6 +55,13 @@ public class ExarotonClient {
      */
     public ExarotonClient(String apiToken) {
         this.apiToken = apiToken;
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(ConfigOption.class, new ConfigOptionTypeAdapter())
+                .create();
+    }
+
+    public Gson getGson() {
+        return this.gson;
     }
 
 
