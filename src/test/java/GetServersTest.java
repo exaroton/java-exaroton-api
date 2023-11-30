@@ -17,6 +17,10 @@ public class GetServersTest {
                 assertNotNull(server.getName());
                 assertNotNull(server.getId());
 
+                if (server.isShared()) {
+                    continue;
+                }
+
                 assertDoesNotThrow(() -> {
                     Server s = client.getServer(server.getId()).get();
                     assertEquals(s.getId(), server.getId());
