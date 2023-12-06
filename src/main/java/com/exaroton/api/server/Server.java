@@ -150,7 +150,9 @@ public class Server {
      */
     public ServerMOTDInfo fetchMotd() throws APIException {
         GetServerMOTDRequest request = new GetServerMOTDRequest(this.client, this.id);
-        return request.request().getData();
+        ServerMOTDInfo motd = request.request().getData();
+        this.motd = motd.getMotd();
+        return motd;
     }
 
     /**
