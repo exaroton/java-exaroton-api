@@ -2,6 +2,7 @@ import com.exaroton.api.APIException;
 import com.exaroton.api.billing.pools.CreditPool;
 import com.exaroton.api.billing.pools.CreditPoolMember;
 import com.exaroton.api.server.Server;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +10,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class CreditPoolsTest extends APIClientTest {
-    private static final String TEST_POOL_ID = System.getenv("EXAROTON_TEST_POOL");
+    private static final @NotNull String TEST_POOL_ID = System.getenv("EXAROTON_TEST_POOL");
 
     @Test
     public void testGetCreditPools() throws APIException {
