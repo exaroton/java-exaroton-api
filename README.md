@@ -183,7 +183,7 @@ try {
 }
 ```
 
-### Files
+#### Files
 To manage a file on your server first obtain a file Object:
 ```java
 ExarotonClient client = new ExarotonClient("example-api-token");
@@ -215,7 +215,7 @@ file.delete();
 file.createAsDirectory();
 ```
 
-### Configs
+#### Configs
 Some files are special because they are parsed, validated and understood by the exaroton backend.
 These files are called configs and can be managed like this:
 ```java
@@ -247,6 +247,40 @@ To save changes to a config, use the save() method:
 ```java
 config.getOption("level-seed").setValue("example");
 config.save();
+```
+
+#### Credit Pools
+Credit pools allow you to share payments for your server with other users in a safe way.
+You can view information about credit pools like this:
+```java
+// get all credit pools
+CreditPool[] pools = client.getCreditPools();
+for (CreditPool pool: pools) {
+    System.out.println(pool.getName() + ": " + pool.getCredits());
+}
+
+// get a single credit pool
+CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
+pool.get(); // update pool info
+System.out.println(pool.getName() + ": " + pool.getCredits());
+```
+
+The API also allows you to fetch the servers in a pool:
+```java
+CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
+Server[] servers = pool.getServers();
+for (Server server: servers) {
+System.out.println(server.getName() + ": " + server.getAddress());
+}
+```
+
+If you have the "View members" permission, you can even get all members of a pool:
+```java
+CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
+CreditPoolMember[] members = pool.getMembers();
+for (CreditPoolMember member: members) {
+    System.out.println(member.getName() + ": " + member.getCredits());
+}
 ```
 
 

@@ -1,7 +1,10 @@
 package com.exaroton.api;
 
 import com.exaroton.api.account.Account;
+import com.exaroton.api.billing.pools.CreditPool;
 import com.exaroton.api.request.account.GetAccountRequest;
+import com.exaroton.api.request.billing.pools.GetCreditPoolRequest;
+import com.exaroton.api.request.billing.pools.GetCreditPoolsRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.config.ConfigOption;
@@ -230,6 +233,29 @@ public class ExarotonClient {
      */
     public Server getServer(String id) {
         return new Server(this, id);
+    }
+
+    /**
+     * list all credit pools you have access to
+     * @return accessible credit pools
+     * @throws APIException connection and API errors
+     */
+    public CreditPool[] getCreditPools() throws APIException {
+        GetCreditPoolsRequest request = new GetCreditPoolsRequest(this);
+        CreditPool[] pools = request.request().getData();
+        for (CreditPool server: pools) {
+            server.setClient(this).setFetched();
+        }
+        return pools;
+    }
+
+    /**
+     * get a credit pool
+     * @param id credit pool id
+     * @return empty credit pool object
+     */
+    public CreditPool getCreditPool(String id) {
+        return new CreditPool(this, id);
     }
 
     /**

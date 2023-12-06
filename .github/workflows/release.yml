@@ -28,6 +28,7 @@ jobs:
           ORG_GRADLE_PROJECT_OSSRH_PASSWORD: ${{ secrets.SONATYPE_OSSRH_PASSWORD }}
           EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
           EXAROTON_TEST_SERVER: "WgvSsfR8ZizUO1RQ"
+          EXAROTON_TEST_POOL: "N2t9gWOMpzRL37FI"
         run: ./gradlew publish -Prelease=${{ github.ref_name }}
       - name: Create Release
         uses: softprops/action-gh-release@v1

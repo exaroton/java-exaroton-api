@@ -1,1 +1,2 @@
 - Add endpoints for the server config
+- Add endpoints for credit pools
