@@ -1,5 +1,4 @@
 import com.exaroton.api.APIException;
-import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerFile;
 import org.junit.jupiter.api.Test;
@@ -14,12 +13,10 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GetFileTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
-
+public class GetFileTest extends APIClientTest {
     @Test
     void getFile() {
-        Server server = client.getServer(System.getenv("EXAROTON_TEST_SERVER"));
+        Server server = client.getServer(TEST_SERVER_ID);
         assertDoesNotThrow(() -> {
             ServerFile whitelist = server.getFile("whitelist.json");
             whitelist.putContent("[{\"name\":\"JulianVennen\", \"uuid\": \"abcd9e56-5ac2-490c-8bc9-6c1cad18f506\"}]");

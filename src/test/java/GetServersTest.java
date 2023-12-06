@@ -1,12 +1,9 @@
-import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.server.Server;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GetServersTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
-
+public class GetServersTest extends APIClientTest {
     @Test
     void getServers() {
         assertDoesNotThrow(() -> {

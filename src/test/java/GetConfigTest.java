@@ -1,4 +1,3 @@
-import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerFile;
 import com.exaroton.api.server.config.ConfigOption;
@@ -6,12 +5,10 @@ import com.exaroton.api.server.config.ServerConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class GetConfigTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
-
+public class GetConfigTest extends APIClientTest {
     @Test
     public void testGetConfig() {
-        Server server = client.getServer(System.getenv("EXAROTON_TEST_SERVER"));
+        Server server = client.getServer(TEST_SERVER_ID);
         Assertions. assertDoesNotThrow(() -> {
             ServerFile serverProperties = server.getFile("server.properties");
             Assertions.assertNotNull(serverProperties);

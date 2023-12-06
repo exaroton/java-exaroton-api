@@ -1,13 +1,10 @@
-import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.UnsupportedProtocolException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SetProtocolTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
-
+public class SetProtocolTest extends APIClientTest {
     @Test
     void protocolHTTP() {
         assertDoesNotThrow(() -> client.setProtocol("http"));

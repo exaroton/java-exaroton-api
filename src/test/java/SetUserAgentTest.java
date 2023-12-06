@@ -1,12 +1,9 @@
-import com.exaroton.api.ExarotonClient;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SetUserAgentTest {
-    private static final ExarotonClient client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
-
+public class SetUserAgentTest extends APIClientTest {
     @Test
     void userAgent() {
         assertDoesNotThrow(() -> client.setUserAgent("java-exaroton-api-tests"));
