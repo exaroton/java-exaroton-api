@@ -20,6 +20,7 @@ jobs:
         env:
           EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
           EXAROTON_TEST_SERVER: "WgvSsfR8ZizUO1RQ"
+          EXAROTON_TEST_POOL: "N2t9gWOMpzRL37FI"
       - name: Publish to Maven Central
         env:
           ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_KEY }}
