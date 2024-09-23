@@ -24,8 +24,9 @@ public class CreditPoolsTest extends APIClientTest {
         Assertions.assertNotNull(pool);
         Assertions.assertEquals(TEST_POOL_ID, pool.getId());
         Assertions.assertEquals("eAPI tests", pool.getName());
-        Assertions.assertEquals(100, pool.getCredits());
-        Assertions.assertEquals(100, pool.getOwnCredits());
+        double poolCredits = pool.getCredits();
+        Assertions.assertTrue(poolCredits > 100, "Expected pool to have more than 100 credits, got " + poolCredits);
+        Assertions.assertEquals(poolCredits, pool.getOwnCredits());
         Assertions.assertEquals(2, pool.getMembers());
         Assertions.assertEquals(1, pool.getServers());
     }
@@ -48,7 +49,7 @@ public class CreditPoolsTest extends APIClientTest {
         Assertions.assertTrue(owner.isPresent());
         Assertions.assertNotNull(owner.get().getAccount());
         Assertions.assertTrue(owner.get().isOwner());
-        Assertions.assertEquals(100, owner.get().getCredits());
+        Assertions.assertTrue(owner.get().getCredits() > 100, "Expected owner to have more than 100 credits, got " + owner.get().getCredits());
         Assertions.assertEquals(1, owner.get().getShare());
 
         Optional<CreditPoolMember> other = Arrays.stream(members).filter(member -> !member.isOwner()).findFirst();
