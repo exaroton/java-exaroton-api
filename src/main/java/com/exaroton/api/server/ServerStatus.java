@@ -10,5 +10,6 @@ public class ServerStatus {
     public static final int LOADING = 6;
     public static final int CRASHED = 7;
     public static final int PENDING = 8;
+    public static final int TRANSFERRING = 9;
     public static final int PREPARING = 10;
 }
