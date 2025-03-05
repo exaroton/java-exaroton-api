@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GetConfigOptionsRequest extends FileRequest<List<ConfigOption>> {
+public class GetConfigOptionsRequest extends FileRequest<List<ConfigOption<?>>> {
 
     public GetConfigOptionsRequest(
             @NotNull ExarotonClient client,
@@ -25,7 +25,7 @@ public class GetConfigOptionsRequest extends FileRequest<List<ConfigOption>> {
     }
 
     @Override
-    protected TypeToken<APIResponse<List<ConfigOption>>> getType() {
-        return new TypeToken<APIResponse<List<ConfigOption>>>(){};
+    protected TypeToken<APIResponse<List<ConfigOption<?>>>> getType() {
+        return new TypeToken<APIResponse<List<ConfigOption<?>>>>(){};
     }
 }

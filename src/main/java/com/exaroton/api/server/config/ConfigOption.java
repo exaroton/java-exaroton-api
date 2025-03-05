@@ -1,34 +1,74 @@
 package com.exaroton.api.server.config;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 
-public abstract class ConfigOption {
-    private final String key;
-    private final String label;
-    private final OptionType type;
-    private final String[] options;
+/**
+ * An option from a config file
+ * @param <T> type of the value
+ */
+@ApiStatus.NonExtendable
+public abstract class ConfigOption<T> {
+    /**
+     * key of the option
+     */
+    protected final String key;
+    /**
+     * value of the option
+     */
+    protected T value;
+    protected final String label;
+    protected final OptionType type;
 
-    protected ConfigOption(String key, String label, OptionType type, String[] options) {
+    /**
+     * Create a new config option
+     * @param key key of the option
+     * @param value value of the option
+     * @param label label of the option
+     * @param type type of the option
+     */
+    protected ConfigOption(String key, T value, String label, OptionType type) {
         this.key = key;
+        this.value = value;
         this.label = label;
         this.type = type;
-        this.options = options;
     }
 
+    /**
+     * Get the key of the option
+     * @return key
+     */
     public String getKey() {
         return key;
     }
 
+    /**
+     * Get the value of the option
+     * @return value
+     */
+    public T getValue() {
+        return value;
+    }
+
+    /**
+     * Set the value of the option
+     * @param value new value
+     */
+    public void setValue(T value) {
+        this.value = value;
+    }
+
+    /**
+     * Get the label of the option
+     * @return label
+     */
     public String getLabel() {
         return label;
     }
 
-    public @Nullable String[] getOptions() {
-        return options;
-    }
-
-    abstract public @Nullable Object getValue();
-
+    /**
+     * Get the type of the option
+     * @return type
+     */
     public OptionType getType() {
         return type;
     }

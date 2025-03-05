@@ -1,18 +1,13 @@
 package com.exaroton.api.server.config;
 
-import com.google.gson.annotations.SerializedName;
-
+/**
+ * An enum for all possible option types
+ */
 public enum OptionType {
-    @SerializedName("string")
     STRING,
-    @SerializedName("integer")
     INTEGER,
-    @SerializedName("float")
     FLOAT,
-    @SerializedName("boolean")
     BOOLEAN,
-    @SerializedName("multiselect")
     MULTISELECT,
-    @SerializedName("select")
     SELECT,
 }

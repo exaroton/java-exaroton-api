@@ -1,11 +1,6 @@
 package com.exaroton.api.server.config;
 
-import com.exaroton.api.server.config.options.BooleanConfigOption;
-import com.exaroton.api.server.config.options.FloatConfigOption;
-import com.exaroton.api.server.config.options.IntegerConfigOption;
-import com.exaroton.api.server.config.options.MultiselectConfigOption;
-import com.exaroton.api.server.config.options.SelectConfigOption;
-import com.exaroton.api.server.config.options.StringConfigOption;
+import com.exaroton.api.server.config.options.*;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -13,54 +8,56 @@ import com.google.gson.stream.JsonWriter;
 import com.google.gson.stream.MalformedJsonException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption> {
+public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
     @Override
-    public void write(JsonWriter out, ConfigOption value) throws IOException {
+    public void write(JsonWriter out, ConfigOption<?> value) throws IOException {
         out.beginObject();
         out.name("key").value(value.getKey());
         out.name("label").value(value.getLabel());
         out.name("type").value(value.getType().name().toLowerCase());
-        out.name("options").beginArray();
-        for (String option : value.getOptions()) {
-            out.value(option);
+        if (value instanceof BaseSelectOption<?>) {
+            BaseSelectOption<?> select = (BaseSelectOption<?>) value;
+            out.name("options").beginArray();
+            for (String option : select.getOptions()) {
+                out.value(option);
+            }
+            out.endArray();
         }
-        out.endArray();
         out.name("value");
-        switch (value.getType()) {
-            case STRING:
-            case SELECT:
-                out.value((String) value.getValue());
-                break;
-            case INTEGER:
-                out.value((Long) value.getValue());
-                break;
-            case FLOAT:
-                out.value((Double) value.getValue());
-                break;
-            case BOOLEAN:
-                out.value((Boolean) value.getValue());
-                break;
-            case MULTISELECT:
-                Object optionValue = value.getValue();
-                if (optionValue == null) {
-                    out.nullValue();
-                    break;
-                }
-
-                out.beginArray();
-                for (String option : (String[]) optionValue) {
-                    out.value(option);
-                }
-                out.endArray();
-                break;
+        if (value instanceof StringConfigOption) {
+            StringConfigOption option = (StringConfigOption) value;
+            out.value(option.getValue());
+        } else if(value instanceof SelectConfigOption) {
+            SelectConfigOption option = (SelectConfigOption) value;
+            out.value(option.getValue());
+        } else if (value instanceof IntegerConfigOption) {
+            IntegerConfigOption option = (IntegerConfigOption) value;
+            out.value(option.getValue());
+        } else if (value instanceof FloatConfigOption) {
+            FloatConfigOption option = (FloatConfigOption) value;
+            out.value(option.getValue());
+        } else if (value instanceof BooleanConfigOption) {
+            BooleanConfigOption option = (BooleanConfigOption) value;
+            out.value(option.getValue());
+        } else if (value instanceof MultiselectConfigOption) {
+            MultiselectConfigOption option = (MultiselectConfigOption) value;
+            out.beginArray();
+            for (String optionValue : option.getValue()) {
+                out.value(optionValue);
+            }
+            out.endArray();
+        } else {
+            throw new IllegalArgumentException("Unexpected option type " + value.getClass());
         }
+        out.endObject();
     }
 
     @Override
-    public ConfigOption read(JsonReader in) throws IOException {
+    public ConfigOption<?> read(JsonReader in) throws IOException {
         if (in.peek() == JsonToken.NULL) {
             in.nextNull();
             return null;
@@ -71,7 +68,7 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption> {
         String label = null;
         OptionType type = null;
         Object value = null;
-        String[] options = null;
+        Set<String> options = new HashSet<>();
         while (in.hasNext()) {
             switch (in.nextName()) {
                 case "key":
@@ -86,13 +83,13 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption> {
                 case "value":
                     switch (in.peek()) {
                         case BEGIN_ARRAY:
-                            List<String> list = new ArrayList<>();
+                            Set<String> collection = new HashSet<>();
                             in.beginArray();
                             while (in.hasNext()) {
-                                list.add(in.nextString());
+                                collection.add(in.nextString());
                             }
                             in.endArray();
-                            value = list.toArray(new String[0]);
+                            value = collection.toArray(new String[0]);
                             break;
                         case STRING:
                             value = in.nextString();
@@ -112,17 +109,15 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption> {
                     }
                     break;
                 case "options":
-                    List<String> list = new ArrayList<>();
                     if (in.peek() == JsonToken.NULL) {
                         in.nextNull();
                         break;
                     }
                     in.beginArray();
                     while (in.hasNext()) {
-                        list.add(in.nextString());
+                        options.add(in.nextString());
                     }
                     in.endArray();
-                    options = list.toArray(new String[0]);
                     break;
                 default:
                     in.skipValue();
@@ -138,7 +133,7 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption> {
         switch (type) {
             case STRING:
                 if (value == null || value instanceof String) {
-                    return new StringConfigOption(key, (String) value, label, options);
+                    return new StringConfigOption(key, (String) value, label);
                 }
                 throw new MalformedJsonException("Expected string getValue at " + in.getPath());
 
@@ -146,25 +141,26 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption> {
                 if (value == null || value instanceof Double) {
                     Double doubleValue = (Double) value;
                     Long longValue = doubleValue == null ? null : doubleValue.longValue();
-                    return new IntegerConfigOption(key, longValue, label, options);
+                    return new IntegerConfigOption(key, longValue, label);
                 }
                 throw new MalformedJsonException("Expected integer getValue at " + in.getPath());
 
             case FLOAT:
                 if (value == null || value instanceof Double) {
-                    return new FloatConfigOption(key, (Double) value, label, options);
+                    return new FloatConfigOption(key, (Double) value, label);
                 }
                 throw new MalformedJsonException("Expected float getValue at " + in.getPath());
 
             case BOOLEAN:
                 if (value == null || value instanceof Boolean) {
-                    return new BooleanConfigOption(key, (Boolean) value, label, options);
+                    return new BooleanConfigOption(key, (Boolean) value, label);
                 }
                 throw new MalformedJsonException("Expected boolean getValue at " + in.getPath());
 
             case MULTISELECT:
                 if (value == null || value instanceof String[]) {
-                    return new MultiselectConfigOption(key, (String[]) value, label, options);
+                    Set<String> set = value == null ? new HashSet<>() : new HashSet<>(Arrays.asList((String[]) value));
+                    return new MultiselectConfigOption(key, set, label, options);
                 }
                 throw new MalformedJsonException("Expected string array getValue at " + in.getPath());
 

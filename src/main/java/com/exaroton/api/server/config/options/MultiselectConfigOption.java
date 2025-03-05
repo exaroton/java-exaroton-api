@@ -1,24 +1,46 @@
 package com.exaroton.api.server.config.options;
 
-import com.exaroton.api.server.config.ConfigOption;
 import com.exaroton.api.server.config.OptionType;
-import org.jetbrains.annotations.Nullable;
 
-public class MultiselectConfigOption extends ConfigOption {
-    private String[] value;
+import java.util.HashSet;
+import java.util.Set;
 
-    public MultiselectConfigOption(String key, String[] value, String label, String[] options) {
-        super(key, label, OptionType.MULTISELECT, options);
-        this.value = value;
+/**
+ * A select option where multiple options can be selected
+ */
+public class MultiselectConfigOption extends BaseSelectOption<Set<String>> {
+    /**
+     * Create a new config option
+     * @param key key of the option
+     * @param value value of the option
+     * @param label label of the option
+     * @param options list of available options
+     */
+    public MultiselectConfigOption(String key, Set<String> value, String label, Set<String> options) {
+        super(key, new HashSet<>(value), label, OptionType.MULTISELECT, options);
     }
 
-    public MultiselectConfigOption setValue(String... value) {
-        this.value = value;
+    /**
+     * Add an option to the value
+     * @param option option to add
+     * @return this
+     */
+    public MultiselectConfigOption add(String option) {
+        if (!this.options.contains(option)) {
+            throw new IllegalArgumentException("Invalid value " + option + ". Available options: " + String.join(", ", this.options));
+        }
+
+        this.value.add(option);
         return this;
     }
 
-    @Override
-    public @Nullable String[] getValue() {
-        return value;
+    /**
+     * Remove an option from the value
+     * @param option option to remove
+     * @return this
+     */
+    public MultiselectConfigOption remove(String option) {
+        this.value.remove(option);
+        return this;
     }
 }

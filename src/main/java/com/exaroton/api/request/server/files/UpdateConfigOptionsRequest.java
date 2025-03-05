@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public class UpdateConfigOptionsRequest extends FileRequest<List<ConfigOption>> {
+public class UpdateConfigOptionsRequest extends FileRequest<List<ConfigOption<?>>> {
     private final Map<String, Object> options;
 
     public UpdateConfigOptionsRequest(
@@ -31,8 +31,8 @@ public class UpdateConfigOptionsRequest extends FileRequest<List<ConfigOption>> 
     }
 
     @Override
-    protected TypeToken<APIResponse<List<ConfigOption>>> getType() {
-        return new TypeToken<APIResponse<List<ConfigOption>>>(){};
+    protected TypeToken<APIResponse<List<ConfigOption<?>>>> getType() {
+        return new TypeToken<APIResponse<List<ConfigOption<?>>>>(){};
     }
 
     @Override

@@ -19,7 +19,7 @@ public class ServerConfig {
     protected final Gson gson;
     protected final Server server;
     protected final String path;
-    protected Map<String, ConfigOption> options = null;
+    protected Map<String, ConfigOption<?>> options = null;
 
     public ServerConfig(
             @NotNull ExarotonClient client,
@@ -33,11 +33,11 @@ public class ServerConfig {
         this.path = ParameterValidator.requireNonEmpty(path, "path");
     }
 
-    public Map<String, ConfigOption> getOptions() throws APIException {
+    public Map<String, ConfigOption<?>> getOptions() throws APIException {
         return this.getOptions(false);
     }
 
-    public Map<String, ConfigOption> getOptions(boolean update) throws APIException {
+    public Map<String, ConfigOption<?>> getOptions(boolean update) throws APIException {
         if (this.options == null || update) {
             this.fetchOptions();
         }
@@ -50,24 +50,24 @@ public class ServerConfig {
                 .getData());
     }
 
-    private void setOptions(List<ConfigOption> options) {
+    private void setOptions(List<ConfigOption<?>> options) {
         this.options = new HashMap<>();
-        for (ConfigOption option : options) {
+        for (ConfigOption<?> option : options) {
             this.options.put(option.getKey(), option);
         }
     }
 
-    public @Nullable ConfigOption getOption(String key) throws APIException {
+    public @Nullable ConfigOption<?> getOption(String key) throws APIException {
         return this.getOption(key, false);
     }
 
-    public @Nullable ConfigOption getOption(String key, boolean update) throws APIException {
+    public @Nullable ConfigOption<?> getOption(String key, boolean update) throws APIException {
         return this.getOptions(update).get(key);
     }
 
     public void save() throws APIException {
         Map<String, Object> options = new HashMap<>();
-        for (ConfigOption option : this.options.values()) {
+        for (ConfigOption<?> option : this.options.values()) {
             if (option.getValue() != null) {
                 options.put(option.getKey(), option.getValue());
             }

@@ -6,8 +6,7 @@ import com.exaroton.api.request.account.GetAccountRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolsRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.server.Server;
-import com.exaroton.api.server.config.ConfigOption;
-import com.exaroton.api.server.config.ConfigOptionTypeAdapter;
+import com.exaroton.api.server.config.ConfigOptionTypeAdapterFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -59,7 +58,7 @@ public class ExarotonClient {
     public ExarotonClient(String apiToken) {
         this.apiToken = apiToken;
         this.gson = new GsonBuilder()
-                .registerTypeAdapter(ConfigOption.class, new ConfigOptionTypeAdapter())
+                .registerTypeAdapterFactory(new ConfigOptionTypeAdapterFactory())
                 .create();
     }
 
