@@ -44,6 +44,10 @@ public abstract class APIRequest<Datatype> {
         String path = this.getEndpoint();
 
         for (Map.Entry<String, String> entry : this.getData().entrySet()) {
+            if (entry.getValue() == null) {
+                throw new IllegalStateException("Path variable " + entry.getKey() + " can't be null");
+            }
+
             path = path.replace("{" + entry.getKey() + "}", entry.getValue());
         }
 
