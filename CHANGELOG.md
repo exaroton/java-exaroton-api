@@ -2,6 +2,12 @@
 ## Java 11
 This library now requires Java 11 or higher.
 
+## ServerStatus
+The `ServerStatus` class is now an enum instead of a class with static `int` fields. Each status has a numeric
+value (`getValue`), a display name (`getName`) and a brand color (`getColor`).
+
+If a status code is unknown because the API client has not been updated `OFFLINE` will be returned.
+
 ### SLF4J Implementation
 This library no longer depends directly on any SLF4J implementation. If you want to see log messages
 from this library, you must include an SLF4J implementation in your project.

@@ -215,7 +215,6 @@ public class ExarotonClient {
         List<Server> servers = request.request().getData();
         for (Server server: servers) {
             server.init(this, gson);
-            server.fetched = true;
         }
         return servers;
     }

@@ -6,17 +6,19 @@ import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-public class Server {
+public final class Server {
 
     /**
      * has this server been fetched from the API yet
      */
-    public boolean fetched;
+    private boolean fetched;
 
     /**
      * Unique server ID
@@ -101,6 +103,15 @@ public class Server {
     }
 
     /**
+     * Check if this server has been fetched from the API.
+     * If not, some methods may not work as expected.
+     * @return true if the server has been fetched
+     */
+    public boolean isFetched() {
+        return fetched;
+    }
+
+    /**
      * Get the server id
      *
      * @return unique server id (tgkm731xO7GiHt76)
@@ -129,26 +140,30 @@ public class Server {
 
     /**
      * Get the current server status
-     * see ServerStatus
      *
-     * @return status code (see ServerStatus)
+     * @return status or OFFLINE if the status is unknown
      */
-    public int getStatus() {
-        return status;
+    public ServerStatus getStatus() {
+        return ServerStatus.fromValue(status).orElse(ServerStatus.OFFLINE);
     }
 
     /**
      * check if the server has this status
      *
-     * @param statusCodes status codes (see {@link ServerStatus})
-     * @return status match
+     * @param status status
+     * @return true if the status matches
      */
-    public boolean hasStatus(int... statusCodes) {
-        if (statusCodes == null) throw new IllegalArgumentException("Invalid status code array");
-        for (int statusCode : statusCodes) {
-            if (this.status == statusCode) return true;
-        }
-        return false;
+    public boolean hasStatus(ServerStatus... status) {
+        return hasStatus(Set.of(status));
+    }
+
+    /**
+     * check if the server has one of the given statuses
+     * @param status status
+     * @return true if the status matches
+     */
+    public boolean hasStatus(Set<ServerStatus> status) {
+        return Objects.requireNonNull(status).contains(this.getStatus());
     }
 
     /**
@@ -400,7 +415,7 @@ public class Server {
         this.name = server.getName();
         this.address = server.getAddress();
         this.motd = server.getMotd();
-        this.status = server.getStatus();
+        this.status = server.getStatus().getValue();
         this.players = server.getPlayerInfo();
         this.host = server.getHost();
         this.port = server.getPort();
@@ -410,14 +425,16 @@ public class Server {
     }
 
     /**
-     * set the exaroton client used for requests and the gson instance
+     * Set the exaroton client used for requests and the gson instance. This method assumes the server is already fetched.
      *
      * @param client exaroton client used for new requests
      * @param gson   gson instance used for (de-)serialization
      */
+    @ApiStatus.Internal
     public void init(@NotNull ExarotonClient client, @NotNull Gson gson) {
         this.client = Objects.requireNonNull(client);
         this.gson = Objects.requireNonNull(gson);
+        this.fetched = true;
     }
 
     /**

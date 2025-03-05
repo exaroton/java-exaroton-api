@@ -219,7 +219,6 @@ public class CreditPool {
         List<Server> servers = request.request().getData();
         for (Server server: servers) {
             server.init(this.client, gson);
-            server.fetched = true;
         }
         return servers;
     }

@@ -1,6 +1,7 @@
 package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
+import com.exaroton.api.server.ServerStatus;
 import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
@@ -300,8 +301,24 @@ public final class WebSocketManager {
         this.client.close();
     }
 
-    public boolean serverHasStatus(int... status) {
-        if (!this.server.fetched) {
+    /**
+     * check if the server has this status
+     *
+     * @param status status
+     * @return true if the status matches
+     */
+    public boolean serverHasStatus(ServerStatus... status) {
+        return serverHasStatus(Set.of(status));
+    }
+
+    /**
+     * check if the server has one of the given statuses
+     *
+     * @param status status
+     * @return true if the status matches
+     */
+    public boolean serverHasStatus(Set<ServerStatus> status) {
+        if (!this.server.isFetched()) {
             try {
                 this.server.get();
             } catch (Exception ignored) {
