@@ -8,8 +8,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-
 public class StopServerRequest extends ServerRequest<Server> {
 
     public StopServerRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
@@ -22,7 +20,7 @@ public class StopServerRequest extends ServerRequest<Server> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<?>>(){}.getType();
+    protected TypeToken<APIResponse<Server>> getType() {
+        return new TypeToken<APIResponse<Server>>(){};
     }
 }

@@ -4,15 +4,16 @@ import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerLog;
 import com.exaroton.api.server.ServerMOTDInfo;
 import com.exaroton.api.server.ServerRAMInfo;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerTest extends APIClientTest {
     @Test
     void testGetServers() throws APIException {
-        Server[] servers = client.getServers();
+        List<Server> servers = client.getServers();
         assertNotNull(servers);
         for (Server server: servers) {
             assertNotNull(server.getAddress());
@@ -51,9 +52,9 @@ public class ServerTest extends APIClientTest {
 
     @Test
     void testGetPlayerLists() throws APIException {
-        String[] lists = server.getPlayerLists();
+        List<String> lists = server.getPlayerLists();
         assertNotNull(lists);
-        assertTrue(lists.length > 0);
+        assertFalse(lists.isEmpty(), "Expected at least one player list, got none");
 
         for (String name: lists) {
             assertNotNull(name);

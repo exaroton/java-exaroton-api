@@ -7,9 +7,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
+import java.util.List;
 
-public class GetConfigOptionsRequest extends FileRequest<ConfigOption[]> {
+public class GetConfigOptionsRequest extends FileRequest<List<ConfigOption>> {
 
     public GetConfigOptionsRequest(
             @NotNull ExarotonClient client,
@@ -25,7 +25,7 @@ public class GetConfigOptionsRequest extends FileRequest<ConfigOption[]> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<ConfigOption[]>>(){}.getType();
+    protected TypeToken<APIResponse<List<ConfigOption>>> getType() {
+        return new TypeToken<APIResponse<List<ConfigOption>>>(){};
     }
 }

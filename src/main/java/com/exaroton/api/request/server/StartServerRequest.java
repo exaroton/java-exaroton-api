@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 
 public class StartServerRequest extends ServerRequest<Server> {
@@ -35,8 +34,8 @@ public class StartServerRequest extends ServerRequest<Server> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<?>>(){}.getType();
+    protected TypeToken<APIResponse<Server>> getType() {
+        return new TypeToken<APIResponse<Server>>(){};
     }
 
     @Override

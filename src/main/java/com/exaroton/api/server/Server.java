@@ -8,6 +8,7 @@ import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 
 public class Server {
@@ -363,7 +364,7 @@ public class Server {
      * @return available player lists
      * @throws APIException connection or API errors
      */
-    public String[] getPlayerLists() throws APIException {
+    public List<String> getPlayerLists() throws APIException {
         GetPlayerListsRequest request = new GetPlayerListsRequest(this.client, this.gson, this.id);
         return request.request().getData();
     }

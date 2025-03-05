@@ -7,8 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-
 public class GetCreditPoolRequest extends CreditPoolRequest<CreditPool> {
     public GetCreditPoolRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
         super(client, gson, id);
@@ -20,7 +18,7 @@ public class GetCreditPoolRequest extends CreditPoolRequest<CreditPool> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<CreditPool>>(){}.getType();
+    protected TypeToken<APIResponse<CreditPool>> getType() {
+        return new TypeToken<APIResponse<CreditPool>>(){};
     }
 }

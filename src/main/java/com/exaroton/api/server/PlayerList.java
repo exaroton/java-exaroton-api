@@ -52,7 +52,7 @@ public class PlayerList {
      * @return players in list
      * @throws APIException API error
      */
-    public String[] getEntries() throws APIException {
+    public List<String> getEntries() throws APIException {
         GetPlayerListEntriesRequest request = new GetPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name);
         return request.request().getData();
     }

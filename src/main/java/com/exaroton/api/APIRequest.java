@@ -2,6 +2,7 @@ package com.exaroton.api;
 
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -147,7 +148,7 @@ public abstract class APIRequest<Datatype> {
      * get the type required for parsing the JSON response
      * @return response type
      */
-    protected abstract Type getType();
+    protected abstract TypeToken<APIResponse<Datatype>> getType();
 
     /**
      * data that will be replaced in the endpoint

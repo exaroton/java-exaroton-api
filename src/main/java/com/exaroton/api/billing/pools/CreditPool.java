@@ -9,6 +9,7 @@ import com.exaroton.api.server.Server;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 
 public class CreditPool {
@@ -203,7 +204,7 @@ public class CreditPool {
      * @return array of pool members
      * @throws APIException connection or API errors
      */
-    public CreditPoolMember[] getMemberList() throws APIException {
+    public List<CreditPoolMember> getMemberList() throws APIException {
         GetCreditPoolMembersRequest request = new GetCreditPoolMembersRequest(this.client, this.gson, this.id);
         return request.request().getData();
     }
@@ -213,9 +214,9 @@ public class CreditPool {
      * @return array of pool servers
      * @throws APIException connection or API errors
      */
-    public Server[] getServerList() throws APIException {
+    public List<Server> getServerList() throws APIException {
         GetCreditPoolServersRequest request = new GetCreditPoolServersRequest(this.client, this.gson, this.id);
-        Server[] servers = request.request().getData();
+        List<Server> servers = request.request().getData();
         for (Server server: servers) {
             server.init(this.client, gson);
             server.fetched = true;

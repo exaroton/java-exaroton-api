@@ -7,7 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 
 public class SetServerMOTDRequest extends ServerRequest<ServerMOTDInfo> {
@@ -34,8 +33,8 @@ public class SetServerMOTDRequest extends ServerRequest<ServerMOTDInfo> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<ServerMOTDInfo>>(){}.getType();
+    protected TypeToken<APIResponse<ServerMOTDInfo>> getType() {
+        return new TypeToken<APIResponse<ServerMOTDInfo>>(){};
     }
 
     @Override

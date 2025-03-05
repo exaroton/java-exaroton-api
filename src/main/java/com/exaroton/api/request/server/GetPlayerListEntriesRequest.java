@@ -6,9 +6,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
+import java.util.List;
 
-public class GetPlayerListEntriesRequest extends ServerListRequest<String[]> {
+public class GetPlayerListEntriesRequest extends ServerListRequest<List<String>> {
 
     public GetPlayerListEntriesRequest(
             @NotNull ExarotonClient client,
@@ -25,7 +25,7 @@ public class GetPlayerListEntriesRequest extends ServerListRequest<String[]> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<String[]>>(){}.getType();
+    protected TypeToken<APIResponse<List<String>>> getType() {
+        return new TypeToken<APIResponse<List<String>>>(){};
     }
 }

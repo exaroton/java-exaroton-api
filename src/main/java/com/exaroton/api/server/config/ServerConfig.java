@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ServerConfig {
@@ -49,7 +50,7 @@ public class ServerConfig {
                 .getData());
     }
 
-    private void setOptions(ConfigOption[] options) {
+    private void setOptions(List<ConfigOption> options) {
         this.options = new HashMap<>();
         for (ConfigOption option : options) {
             this.options.put(option.getKey(), option);

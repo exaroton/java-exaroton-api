@@ -7,8 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-
 public class GetServerLogsRequest extends ServerRequest<ServerLog> {
 
     public GetServerLogsRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
@@ -21,7 +19,7 @@ public class GetServerLogsRequest extends ServerRequest<ServerLog> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<ServerLog>>(){}.getType();
+    protected TypeToken<APIResponse<ServerLog>> getType() {
+        return new TypeToken<APIResponse<ServerLog>>(){};
     }
 }

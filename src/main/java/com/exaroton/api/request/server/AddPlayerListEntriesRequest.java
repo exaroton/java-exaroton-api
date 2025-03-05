@@ -7,13 +7,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class AddPlayerListEntriesRequest extends ServerListRequest<String[]> {
+public class AddPlayerListEntriesRequest extends ServerListRequest<List<String>> {
 
     private final List<String> entries;
 
@@ -34,8 +31,8 @@ public class AddPlayerListEntriesRequest extends ServerListRequest<String[]> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<?>>(){}.getType();
+    protected TypeToken<APIResponse<List<String>>> getType() {
+        return new TypeToken<APIResponse<List<String>>>(){};
     }
 
     @Override

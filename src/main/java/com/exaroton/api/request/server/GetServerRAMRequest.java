@@ -7,8 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-
 public class GetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
 
     public GetServerRAMRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
@@ -21,7 +19,7 @@ public class GetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<ServerRAMInfo>>(){}.getType();
+    protected TypeToken<APIResponse<ServerRAMInfo>> getType() {
+        return new TypeToken<APIResponse<ServerRAMInfo>>(){};
     }
 }

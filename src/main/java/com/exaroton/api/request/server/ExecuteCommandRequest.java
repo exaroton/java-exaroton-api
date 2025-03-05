@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 
 public class ExecuteCommandRequest extends ServerRequest<ServerRAMInfo> {
@@ -35,9 +34,8 @@ public class ExecuteCommandRequest extends ServerRequest<ServerRAMInfo> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<?>>() {
-        }.getType();
+    protected TypeToken<APIResponse<ServerRAMInfo>> getType() {
+        return new TypeToken<APIResponse<ServerRAMInfo>>() {};
     }
 
     @Override

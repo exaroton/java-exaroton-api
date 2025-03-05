@@ -7,8 +7,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-
 public class ShareServerLogsRequest extends ServerRequest<MclogsData> {
 
     public ShareServerLogsRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
@@ -21,7 +19,7 @@ public class ShareServerLogsRequest extends ServerRequest<MclogsData> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<MclogsData>>(){}.getType();
+    protected TypeToken<APIResponse<MclogsData>> getType() {
+        return new TypeToken<APIResponse<MclogsData>>(){};
     }
 }

@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -210,9 +211,9 @@ public class ExarotonClient {
      * @return accessible servers
      * @throws APIException connection and API errors
      */
-    public Server[] getServers() throws APIException {
+    public List<Server> getServers() throws APIException {
         GetServersRequest request = new GetServersRequest(this, gson);
-        Server[] servers = request.request().getData();
+        List<Server> servers = request.request().getData();
         for (Server server: servers) {
             server.init(this, gson);
             server.fetched = true;
@@ -234,9 +235,9 @@ public class ExarotonClient {
      * @return accessible credit pools
      * @throws APIException connection and API errors
      */
-    public CreditPool[] getCreditPools() throws APIException {
+    public List<CreditPool> getCreditPools() throws APIException {
         GetCreditPoolsRequest request = new GetCreditPoolsRequest(this, gson);
-        CreditPool[] pools = request.request().getData();
+        List<CreditPool> pools = request.request().getData();
         for (CreditPool server: pools) {
             server.setClient(this).setFetched();
         }

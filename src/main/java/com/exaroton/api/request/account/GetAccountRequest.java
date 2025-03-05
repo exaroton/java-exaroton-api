@@ -9,8 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
-
 public class GetAccountRequest extends APIRequest<Account> {
 
     public GetAccountRequest(@NotNull ExarotonClient client, @NotNull Gson gson) {
@@ -23,7 +21,7 @@ public class GetAccountRequest extends APIRequest<Account> {
     }
 
     @Override
-    protected Type getType() {
-        return new TypeToken<APIResponse<Account>>(){}.getType();
+    protected TypeToken<APIResponse<Account>> getType() {
+        return new TypeToken<APIResponse<Account>>(){};
     }
 }
