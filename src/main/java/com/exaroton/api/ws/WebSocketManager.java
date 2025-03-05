@@ -6,12 +6,14 @@ import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
+@ApiStatus.Internal
 public final class WebSocketManager {
     private final Gson gson;
 
@@ -166,35 +168,37 @@ public final class WebSocketManager {
     /**
      * subscribe to a stream if it is not already active
      *
-     * @param stream stream name
+     * @param name stream name
      */
-    public void subscribe(String stream) {
-        if (stream == null) throw new IllegalArgumentException("No stream specified");
+    public void subscribe(@NotNull StreamName name) {
+        Objects.requireNonNull(name);
 
-        Stream s;
-        final StreamName name = StreamName.get(stream);
-        if (name == StreamName.CONSOLE) {
-            s = new ConsoleStream(this, this.gson);
-        } else {
-            s = new Stream(this, this.gson, name);
+        if (streams.containsKey(name)) {
+            return;
         }
 
-        this.streams.put(name, s);
-        s.start();
+        Stream stream;
+        if (name == StreamName.CONSOLE) {
+            stream = new ConsoleStream(this, this.gson);
+        } else {
+            stream = new Stream(this, this.gson, name);
+        }
+
+        this.streams.put(name, stream);
+        stream.start();
     }
 
     /**
      * unsubscribe from a stream
      *
-     * @param stream stream name
+     * @param name stream name
      */
-    public void unsubscribe(String stream) {
-        if (stream == null) throw new IllegalArgumentException("No stream specified");
+    public void unsubscribe(@NotNull StreamName name) {
+        Objects.requireNonNull(name);
 
-        final StreamName name = StreamName.get(stream);
-        Stream s = this.streams.get(name);
-        if (s != null) {
-            s.stop();
+        Stream stream = this.streams.get(name);
+        if (stream != null) {
+            stream.stop();
             this.streams.remove(name);
         }
     }

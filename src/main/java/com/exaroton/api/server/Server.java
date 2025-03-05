@@ -4,6 +4,7 @@ import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketManager;
+import com.exaroton.api.ws.stream.StreamName;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
@@ -451,8 +452,8 @@ public final class Server {
      *
      * @param streams stream names
      */
-    public void subscribe(String... streams) {
-        for (String stream : streams) {
+    public void subscribe(StreamName... streams) {
+        for (StreamName stream : streams) {
             if (this.webSocket == null) {
                 this.subscribe();
             }
@@ -475,9 +476,9 @@ public final class Server {
      *
      * @param streams stream names
      */
-    public void unsubscribe(String... streams) {
+    public void unsubscribe(StreamName... streams) {
         if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        for (String stream : streams) {
+        for (StreamName stream : streams) {
             this.webSocket.unsubscribe(stream);
         }
     }

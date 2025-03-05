@@ -13,6 +13,7 @@ This library no longer depends directly on any SLF4J implementation. If you want
 from this library, you must include an SLF4J implementation in your project.
 
 ### Other
+- `Server#subscribe` and `Server#unsubscribe` now accept the `StreamName` enum instead of any string
 - Arrays have been Replaced by Collection's in almost all places
 - Config options now return a generic type instead of `Object`
 - Removed `ExarotonClient#getGson()` and `WebsocketClient#getGson()`
