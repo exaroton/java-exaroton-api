@@ -13,7 +13,7 @@ If you're creating a plugin/mod that runs on an exaroton server, you can get the
 Gradle:
 ```gradle
 dependencies {
-    implementation 'com.exaroton:api:1.6.2'
+    implementation 'com.exaroton:api:1.6.2' //write implementation include('com.exaroton:api:1.6.2') to include the api within your jar
 }
 ```
 
