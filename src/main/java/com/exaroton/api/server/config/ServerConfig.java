@@ -2,24 +2,34 @@ package com.exaroton.api.server.config;
 
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.ParameterValidator;
 import com.exaroton.api.request.server.files.GetConfigOptionsRequest;
 import com.exaroton.api.request.server.files.UpdateConfigOptionsRequest;
 import com.exaroton.api.server.Server;
+import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ServerConfig {
-    protected ExarotonClient client;
-    protected Server server;
-    protected String path;
+    protected final ExarotonClient client;
+    protected final Gson gson;
+    protected final Server server;
+    protected final String path;
     protected Map<String, ConfigOption> options = null;
 
-    public ServerConfig(ExarotonClient client, Server server, String path) {
+    public ServerConfig(
+            @NotNull ExarotonClient client,
+            @NotNull Gson gson,
+            @NotNull Server server,
+            @NotNull String path
+    ) {
         this.client = client;
+        this.gson = gson;
         this.server = server;
-        this.path = path;
+        this.path = ParameterValidator.requireNonEmpty(path, "path");
     }
 
     public Map<String, ConfigOption> getOptions() throws APIException {
@@ -34,7 +44,7 @@ public class ServerConfig {
     }
 
     private void fetchOptions() throws APIException {
-        setOptions(new GetConfigOptionsRequest(this.client, this.server.getId(), this.path)
+        setOptions(new GetConfigOptionsRequest(this.client, this.gson, this.server.getId(), this.path)
                 .request()
                 .getData());
     }
@@ -62,7 +72,7 @@ public class ServerConfig {
             }
         }
 
-        setOptions(new UpdateConfigOptionsRequest(this.client, this.server.getId(), this.path, options)
+        setOptions(new UpdateConfigOptionsRequest(this.client, this.gson, this.server.getId(), this.path, options)
                 .request()
                 .getData());
     }

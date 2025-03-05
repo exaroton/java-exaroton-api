@@ -20,12 +20,18 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     private final WebSocketManager manager;
 
     /**
+     * Gson instance for (de-)serialization
+     */
+    private final Gson gson;
+
+    /**
      * @param uri websocket uri
      * @param manager websocket manager
      */
-    public WebSocketClient(URI uri, WebSocketManager manager) {
+    public WebSocketClient(URI uri, WebSocketManager manager, Gson gson) {
         super(uri);
         this.manager = manager;
+        this.gson = gson;
     }
 
     @Override
@@ -36,7 +42,7 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        WSMessage m = manager.getGson().fromJson(message, WSMessage.class);
+        WSMessage m = gson.fromJson(message, WSMessage.class);
         switch (m.getType()) {
 
             case "connected":

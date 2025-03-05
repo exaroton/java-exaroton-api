@@ -3,7 +3,6 @@ package com.exaroton.api;
 import com.exaroton.api.account.Account;
 import com.exaroton.api.billing.pools.CreditPool;
 import com.exaroton.api.request.account.GetAccountRequest;
-import com.exaroton.api.request.billing.pools.GetCreditPoolRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolsRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.server.Server;
@@ -63,18 +62,13 @@ public class ExarotonClient {
                 .create();
     }
 
-    public Gson getGson() {
-        return this.gson;
-    }
-
-
     /**
      * update the API token
      * @param apiToken exaroton API token
      * @return the updated client
      */
     public ExarotonClient setAPIToken(String apiToken){
-        if (apiToken == null || apiToken.length() == 0) {
+        if (apiToken == null || apiToken.isEmpty()) {
             throw new IllegalArgumentException("No API token specified");
         }
 
@@ -88,7 +82,7 @@ public class ExarotonClient {
      * @return the updated client
      */
     public ExarotonClient setUserAgent(String userAgent) {
-        if (userAgent == null || userAgent.length() == 0) {
+        if (userAgent == null || userAgent.isEmpty()) {
             throw new IllegalArgumentException("No user agent specified");
         }
 
@@ -207,7 +201,7 @@ public class ExarotonClient {
      * @throws APIException connection and API errors
      */
     public Account getAccount() throws APIException {
-        GetAccountRequest request = new GetAccountRequest(this);
+        GetAccountRequest request = new GetAccountRequest(this, gson);
         return request.request().getData();
     }
 
@@ -217,10 +211,10 @@ public class ExarotonClient {
      * @throws APIException connection and API errors
      */
     public Server[] getServers() throws APIException {
-        GetServersRequest request = new GetServersRequest(this);
+        GetServersRequest request = new GetServersRequest(this, gson);
         Server[] servers = request.request().getData();
         for (Server server: servers) {
-            server.setClient(this);
+            server.init(this, gson);
             server.fetched = true;
         }
         return servers;
@@ -232,7 +226,7 @@ public class ExarotonClient {
      * @return empty server object
      */
     public Server getServer(String id) {
-        return new Server(this, id);
+        return new Server(this, gson, id);
     }
 
     /**
@@ -241,7 +235,7 @@ public class ExarotonClient {
      * @throws APIException connection and API errors
      */
     public CreditPool[] getCreditPools() throws APIException {
-        GetCreditPoolsRequest request = new GetCreditPoolsRequest(this);
+        GetCreditPoolsRequest request = new GetCreditPoolsRequest(this, gson);
         CreditPool[] pools = request.request().getData();
         for (CreditPool server: pools) {
             server.setClient(this).setFetched();
@@ -255,7 +249,7 @@ public class ExarotonClient {
      * @return empty credit pool object
      */
     public CreditPool getCreditPool(String id) {
-        return new CreditPool(this, id);
+        return new CreditPool(this, gson, id);
     }
 
     /**

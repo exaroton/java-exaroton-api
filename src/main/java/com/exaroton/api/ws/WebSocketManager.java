@@ -6,6 +6,7 @@ import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,6 +14,8 @@ import java.util.*;
 
 public class WebSocketManager {
     private final ExarotonClient exaroton;
+
+    private final Gson gson;
 
     private final WebSocketClient client;
 
@@ -44,26 +47,30 @@ public class WebSocketManager {
 
     private DebugListener debugListener = null;
 
-    public WebSocketManager(ExarotonClient exaroton, String uri, String apiToken, Server server) {
-        this.exaroton = exaroton;
+    public WebSocketManager(
+            @NotNull ExarotonClient exaroton,
+            @NotNull Gson gson,
+            @NotNull String uri,
+            @NotNull String apiToken,
+            @NotNull Server server
+    ) {
+        this.exaroton = Objects.requireNonNull(exaroton);
+        this.gson = Objects.requireNonNull(gson);
         try {
-            URI u = new URI(uri);
-            this.client = new WebSocketClient(u, this);
+            URI u = new URI(Objects.requireNonNull(uri));
+            this.client = new WebSocketClient(u, this, gson);
         } catch (URISyntaxException e) {
             throw new RuntimeException("Failed to connect to websocket", e);
         }
         this.client.addHeader("Authorization", "Bearer " + apiToken);
         this.client.connect();
-        this.server = server;
-    }
-
-    public Gson getGson() {
-        return exaroton.getGson();
+        this.server = Objects.requireNonNull(server);
     }
 
     /**
      * handle websocket data
-     * @param type message type
+     *
+     * @param type    message type
      * @param message raw message
      */
     public void handleData(String type, String message) {
@@ -82,31 +89,31 @@ public class WebSocketManager {
                 break;
 
             case "status":
-                Server oldServer = new Server(server.getClient(), server.getId())
+                Server oldServer = new Server(server.getClient(), gson, server.getId())
                         .setFromObject(server);
-                this.server.setFromObject(exaroton.getGson().fromJson(message, ServerStatusStreamData.class).getData());
+                this.server.setFromObject(gson.fromJson(message, ServerStatusStreamData.class).getData());
 
                 //start/stop streams based on status
-                for (Stream s: streams.values()) {
+                for (Stream s : streams.values()) {
                     s.onStatusChange();
                 }
 
                 if (stream == null) return;
-                for (Object subscriber: stream.subscribers) {
+                for (Object subscriber : stream.subscribers) {
                     ((ServerStatusSubscriber) subscriber).statusUpdate(oldServer, this.server);
                 }
                 break;
 
             case "line":
                 if (stream == null) return;
-                String line = exaroton.getGson().fromJson(message, ConsoleStreamData.class).getData();
-                for (Object subscriber: stream.subscribers) {
+                String line = gson.fromJson(message, ConsoleStreamData.class).getData();
+                for (Object subscriber : stream.subscribers) {
                     ((ConsoleSubscriber) subscriber).line(line);
                 }
                 break;
             case "heap":
                 if (stream == null) return;
-                HeapUsage usage = exaroton.getGson().fromJson(message, HeapStreamData.class).getData();
+                HeapUsage usage = gson.fromJson(message, HeapStreamData.class).getData();
                 for (Object subscriber : stream.subscribers) {
                     ((HeapSubscriber) subscriber).heap(usage);
                 }
@@ -114,7 +121,7 @@ public class WebSocketManager {
 
             case "stats":
                 if (stream == null) return;
-                StatsData stats = exaroton.getGson().fromJson(message, StatsStreamData.class).getData();
+                StatsData stats = gson.fromJson(message, StatsStreamData.class).getData();
                 for (Object subscriber : stream.subscribers) {
                     ((StatsSubscriber) subscriber).stats(stats);
                 }
@@ -122,8 +129,8 @@ public class WebSocketManager {
 
             case "tick":
                 if (stream == null) return;
-                TickData tick = exaroton.getGson().fromJson(message, TickStreamData.class).getData();
-                for (Object subscriber: stream.subscribers) {
+                TickData tick = gson.fromJson(message, TickStreamData.class).getData();
+                for (Object subscriber : stream.subscribers) {
                     ((TickSubscriber) subscriber).tick(tick);
                 }
                 break;
@@ -133,7 +140,8 @@ public class WebSocketManager {
     /**
      * handle closed websocket connection
      * reconnect if enabled
-     * @param code disconnect code
+     *
+     * @param code   disconnect code
      * @param reason disconnect reason
      * @param remote closing side
      */
@@ -159,6 +167,7 @@ public class WebSocketManager {
 
     /**
      * subscribe to a stream if it is not already active
+     *
      * @param stream stream name
      */
     public void subscribe(String stream) {
@@ -169,19 +178,19 @@ public class WebSocketManager {
         switch (name) {
 
             case CONSOLE:
-                s = new ConsoleStream(this);
+                s = new ConsoleStream(this, this.gson);
                 break;
 
             case HEAP:
-                s = new HeapStream(this);
+                s = new HeapStream(this, this.gson);
                 break;
 
             case STATS:
-                s = new StatsStream(this);
+                s = new StatsStream(this, this.gson);
                 break;
 
             case TICK:
-                s = new TickStream(this);
+                s = new TickStream(this, this.gson);
                 break;
 
             default:
@@ -194,6 +203,7 @@ public class WebSocketManager {
 
     /**
      * unsubscribe from a stream
+     *
      * @param stream stream name
      */
     public void unsubscribe(String stream) {
@@ -209,20 +219,23 @@ public class WebSocketManager {
 
     /**
      * subscribe to server status changes
+     *
      * @param subscriber instance of class handling server status changes
      */
     public void addServerStatusSubscriber(ServerStatusSubscriber subscriber) {
-        if (!this.streams.containsKey(StreamName.STATUS)) this.streams.put(StreamName.STATUS, new ServerStatusStream(this));
+        if (!this.streams.containsKey(StreamName.STATUS))
+            this.streams.put(StreamName.STATUS, new ServerStatusStream(this, this.gson));
         this.streams.get(StreamName.STATUS).subscribers.add(subscriber);
     }
 
     public void addStreamSubscriber(StreamName name, Subscriber subscriber) {
-        if (!this.streams.containsKey(name)) throw new RuntimeException("There is no active stream for: "+name);
+        if (!this.streams.containsKey(name)) throw new RuntimeException("There is no active stream for: " + name);
         this.streams.get(name).subscribers.add(subscriber);
     }
 
     /**
      * subscribe to new console lines
+     *
      * @param subscriber instance of class handling new console lines
      */
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
@@ -231,6 +244,7 @@ public class WebSocketManager {
 
     /**
      * subscribe to heap data
+     *
      * @param subscriber instance of class handling heap data
      */
     public void addHeapSubscriber(HeapSubscriber subscriber) {
@@ -239,6 +253,7 @@ public class WebSocketManager {
 
     /**
      * subscribe to stats
+     *
      * @param subscriber instance of class handling stats
      */
     public void addStatsSubscriber(StatsSubscriber subscriber) {
@@ -247,6 +262,7 @@ public class WebSocketManager {
 
     /**
      * subscribe to stats
+     *
      * @param subscriber instance of class handling stats
      */
     public void addTickSubscriber(TickSubscriber subscriber) {
@@ -255,6 +271,7 @@ public class WebSocketManager {
 
     /**
      * execute a command using the console stream if it is active
+     *
      * @param command minecraft command
      * @return was the command executed
      */
@@ -262,8 +279,7 @@ public class WebSocketManager {
         Stream s = this.streams.get(StreamName.CONSOLE);
         if (s == null) {
             return false;
-        }
-        else {
+        } else {
             ((ConsoleStream) s).executeCommand(command);
             return true;
         }
@@ -271,18 +287,19 @@ public class WebSocketManager {
 
     /**
      * send data once connection is ready
+     *
      * @param data web socket message
      */
     public void sendWhenReady(String data) {
         if (this.ready) {
             this.client.send(data);
-        }
-        else
+        } else
             this.messages.add(data);
     }
 
     /**
      * en-/disable auto reconnect
+     *
      * @param autoReconnect new reconnect state
      */
     public void setAutoReconnect(boolean autoReconnect) {
@@ -317,6 +334,7 @@ public class WebSocketManager {
 
     /**
      * Listen to websocket errors
+     *
      * @param errorListener the only error listener
      */
     public void setErrorListener(ErrorListener errorListener) {
@@ -325,6 +343,7 @@ public class WebSocketManager {
 
     /**
      * listen to websocket debug information
+     *
      * @param debugListener the only debug listener
      */
     public void setDebugListener(DebugListener debugListener) {

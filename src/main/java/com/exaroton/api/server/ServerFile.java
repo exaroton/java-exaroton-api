@@ -4,15 +4,20 @@ import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.files.*;
 import com.exaroton.api.server.config.ServerConfig;
+import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 
 public class ServerFile {
-    protected final ExarotonClient client;
+    protected transient final ExarotonClient client;
+
+    protected transient final Gson gson;
 
     protected final Server server;
 
@@ -36,10 +41,16 @@ public class ServerFile {
 
     protected ServerFile[] children = new ServerFile[0];
 
-    public ServerFile(ExarotonClient client, Server server, String path) {
-        this.client = client;
-        this.server = server;
-        this.setPath(path);
+    public ServerFile(
+            @NotNull ExarotonClient client,
+            @NotNull Gson gson,
+            @NotNull Server server,
+            @NotNull String path
+    ) {
+        this.client = Objects.requireNonNull(client);
+        this.gson = Objects.requireNonNull(gson);
+        this.server = Objects.requireNonNull(server);
+        this.setPath(Objects.requireNonNull(path));
     }
 
     /**
@@ -48,7 +59,7 @@ public class ServerFile {
      * @throws APIException api error
      */
     public ServerFile getInfo() throws APIException {
-        GetFileInfoRequest request = new GetFileInfoRequest(this.client, this.server.getId(), this.path);
+        GetFileInfoRequest request = new GetFileInfoRequest(this.client, this.gson, this.server.getId(), this.path);
         return this.setFromObject(request.request().getData());
     }
 
@@ -60,7 +71,7 @@ public class ServerFile {
      * @throws APIException api error
      */
     public String getContent() throws APIException {
-        return new GetFileDataRequest(this.client, this.server.getId(), this.path, "application/text")
+        return new GetFileDataRequest(this.client, this.gson, this.server.getId(), this.path, "application/text")
                 .requestString();
     }
 
@@ -73,7 +84,7 @@ public class ServerFile {
      * @throws IOException failed to write file
      */
     public void download(Path path) throws APIException, IOException {
-        GetFileDataRequest request = new GetFileDataRequest(this.client, this.server.getId(), this.path, "octet-stream");
+        GetFileDataRequest request = new GetFileDataRequest(this.client, this.gson, this.server.getId(), this.path, "octet-stream");
         try (InputStream stream = request.requestRaw()) {
             Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
         }
@@ -87,7 +98,7 @@ public class ServerFile {
      * @return input stream for file data
      */
     public InputStream downloadStream() throws APIException {
-        return new GetFileDataRequest(this.client, this.server.getId(), this.path, "octet-stream")
+        return new GetFileDataRequest(this.client, this.gson, this.server.getId(), this.path, "octet-stream")
                 .requestRaw();
     }
 
@@ -98,7 +109,7 @@ public class ServerFile {
      * @param content file content
      */
     public void putContent(String content) throws APIException {
-        new PutFileDataRequest(this.client, this.server.getId(), this.path, content)
+        new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, content)
                 .request();
     }
 
@@ -109,7 +120,7 @@ public class ServerFile {
      * @param path path to file
      */
     public void upload(Path path) throws IOException, APIException {
-        new PutFileDataRequest(this.client, this.server.getId(), this.path, Files.newInputStream(path))
+        new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, Files.newInputStream(path))
                 .request();
     }
 
@@ -120,7 +131,7 @@ public class ServerFile {
      * @param stream input stream
      */
     public void upload(InputStream stream) throws APIException {
-        new PutFileDataRequest(this.client, this.server.getId(), this.path, stream)
+        new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, stream)
                 .request();
     }
 
@@ -129,7 +140,7 @@ public class ServerFile {
      * @throws APIException api error
      */
     public void delete() throws APIException {
-        new DeleteFileRequest(this.client, this.server.getId(), this.path)
+        new DeleteFileRequest(this.client, this.gson, this.server.getId(), this.path)
                 .request();
     }
 
@@ -138,7 +149,7 @@ public class ServerFile {
      * @throws APIException api error
      */
     public void createAsDirectory() throws APIException {
-        new CreateDirectoryRequest(this.client, this.server.getId(), this.path).request();
+        new CreateDirectoryRequest(this.client, this.gson, this.server.getId(), this.path).request();
     }
 
     /**
@@ -146,7 +157,7 @@ public class ServerFile {
      * @return server config object
      */
     public ServerConfig getConfig() {
-        return new ServerConfig(this.client, this.server, this.path);
+        return new ServerConfig(this.client, this.gson, this.server, this.path);
     }
 
     public String getPath() {

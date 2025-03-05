@@ -2,6 +2,7 @@ package com.exaroton.api;
 
 
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -9,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class APIRequest<Datatype> {
@@ -17,8 +19,14 @@ public abstract class APIRequest<Datatype> {
      */
     protected final ExarotonClient client;
 
-    public APIRequest(ExarotonClient client) {
-        this.client = client;
+    /**
+     * Gson instance used for (de-)serialization
+     */
+    protected final Gson gson;
+
+    public APIRequest(@NotNull ExarotonClient client, @NotNull Gson gson) {
+        this.client = Objects.requireNonNull(client);
+        this.gson = Objects.requireNonNull(gson);
     }
 
     /**
@@ -54,6 +62,11 @@ public abstract class APIRequest<Datatype> {
         return path;
     }
 
+    /**
+     * Execute this API Request and get the raw InputStream
+     * @return InputStream
+     * @throws APIException if the request fails
+     */
     public InputStream requestRaw() throws APIException {
         HttpURLConnection connection = null;
         InputStream stream;
@@ -66,7 +79,7 @@ public abstract class APIRequest<Datatype> {
             Object body = this.getBody();
             InputStream inputStream = this.getInputStream();
             if (body != null) {
-                inputStream = new ByteArrayInputStream(client.getGson().toJson(body).getBytes(StandardCharsets.UTF_8));
+                inputStream = new ByteArrayInputStream(gson.toJson(body).getBytes(StandardCharsets.UTF_8));
                 connection.setRequestProperty("Content-Type", "application/json");
             }
 
@@ -92,6 +105,11 @@ public abstract class APIRequest<Datatype> {
         return stream;
     }
 
+    /**
+     * Execute this API Request and get the response as a String
+     * @return response as a String
+     * @throws APIException if the request fails
+     */
     public String requestString() throws APIException {
         try (InputStream stream = this.requestRaw()) {
             return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
@@ -103,9 +121,14 @@ public abstract class APIRequest<Datatype> {
         }
     }
 
+    /**
+     * Execute this API Request and parse the API response
+     * @return Parsed API response
+     * @throws APIException if the request fails
+     */
     public APIResponse<Datatype> request() throws APIException {
         String json = this.requestString();
-        APIResponse<Datatype> response = client.getGson().fromJson(json, this.getType());
+        APIResponse<Datatype> response = gson.fromJson(json, this.getType());
         if (!response.isSuccess()) throw new APIException(response.getError());
 
         return response;

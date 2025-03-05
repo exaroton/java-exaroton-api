@@ -1,8 +1,9 @@
 package com.exaroton.api.request.billing.pools;
 
 import com.exaroton.api.APIRequest;
+import com.exaroton.api.ParameterValidator;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.billing.pools.CreditPool;
+import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -10,9 +11,9 @@ import java.util.HashMap;
 public abstract class CreditPoolRequest<T> extends APIRequest<T> {
     private final String poolId;
 
-    public CreditPoolRequest(@NotNull ExarotonClient client, @NotNull String id) {
-        super(client);
-        this.poolId = id;
+    protected CreditPoolRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
+        super(client, gson);
+        this.poolId = ParameterValidator.requireValidId(id);
     }
 
     @Override

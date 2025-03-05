@@ -2,8 +2,11 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.ParameterValidator;
 import com.exaroton.api.server.ServerRAMInfo;
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -11,9 +14,14 @@ import java.util.HashMap;
 public class SetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
     private final int ram;
 
-    public SetServerRAMRequest(ExarotonClient client, String id, int ram) {
-        super(client, id);
-        this.ram = ram;
+    public SetServerRAMRequest(
+            @NotNull ExarotonClient client,
+            @NotNull Gson gson,
+            @NotNull String id,
+            int ram
+    ) {
+        super(client, gson, id);
+        this.ram = ParameterValidator.requirePositive(ram, "ram");
     }
 
     @Override

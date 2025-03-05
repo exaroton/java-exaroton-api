@@ -4,6 +4,9 @@ plugins {
     id 'signing'
 }
 
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 group = 'com.exaroton'
 version = project.findProperty("release") ?: "dev"
 ext.isReleaseVersion = version != "dev" &&  !version.endsWith("SNAPSHOT")

@@ -4,9 +4,11 @@ import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.data.StreamData;
 import com.exaroton.api.ws.subscriber.Subscriber;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class Stream {
 
@@ -22,8 +24,14 @@ public abstract class Stream {
      */
     private final WebSocketManager ws;
 
-    public Stream(WebSocketManager ws) {
-        this.ws = ws;
+    /**
+     * Gson instance for (de-)serialization
+     */
+    private final Gson gson;
+
+    public Stream(@NotNull WebSocketManager ws, @NotNull Gson gson) {
+        this.ws = Objects.requireNonNull(ws);
+        this.gson = Objects.requireNonNull(gson);
     }
 
     /**
@@ -31,7 +39,7 @@ public abstract class Stream {
      * @param type message type
      */
     public void send(String type) {
-        ws.sendWhenReady(ws.getGson().toJson(new StreamData<>(this.getName(), type)));
+        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getName(), type)));
     }
 
     /**
@@ -45,7 +53,7 @@ public abstract class Stream {
      * @param data message data
      */
     public void send(String type, String data) {
-        ws.sendWhenReady(ws.getGson().toJson(new StreamData<>(this.getName(), type, data)));
+        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getName(), type, data)));
     }
 
     /**

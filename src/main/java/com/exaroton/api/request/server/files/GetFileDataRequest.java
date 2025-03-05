@@ -1,14 +1,23 @@
 package com.exaroton.api.request.server.files;
 
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.ParameterValidator;
+import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
 public class GetFileDataRequest extends FileDataRequest {
     protected final String responseType;
-    public GetFileDataRequest(ExarotonClient client, String serverId, String path, String responseType) {
-        super(client, serverId, path);
-        this.responseType = responseType;
+    public GetFileDataRequest(
+            @NotNull ExarotonClient client,
+            @NotNull Gson gson,
+            @NotNull String serverId,
+            @NotNull String path,
+            @NotNull String responseType
+    ) {
+        super(client, gson, serverId, path);
+        this.responseType = ParameterValidator.requireNonEmpty(responseType, "responseType");
     }
 
     @Override

@@ -6,7 +6,10 @@ import com.exaroton.api.request.billing.pools.GetCreditPoolMembersRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolServersRequest;
 import com.exaroton.api.server.Server;
+import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class CreditPool {
     /**
@@ -64,16 +67,28 @@ public class CreditPool {
      */
     private @NotNull transient ExarotonClient client;
 
-    public CreditPool(@NotNull ExarotonClient client, @NotNull String id) {
-        this.client = client;
-        this.id = id;
+    /**
+     * Gson instance used for (de-)serialization
+     */
+    private @NotNull transient Gson gson;
+
+    /**
+     * Create a new Credit Pool
+     * @param client exaroton client
+     * @param gson gson instance
+     * @param id unique pool id
+     */
+    public CreditPool(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
+        this.client = Objects.requireNonNull(client);
+        this.gson = Objects.requireNonNull(gson);
+        this.id = Objects.requireNonNull(id);
     }
 
     /**
      * Get the unique id of the pool
      * @return unique pool id
      */
-    public String getId() {
+    public @NotNull String getId() {
         return id;
     }
 
@@ -167,7 +182,7 @@ public class CreditPool {
      */
     public CreditPool get() throws APIException {
         this.fetched = true;
-        GetCreditPoolRequest request = new GetCreditPoolRequest(this.client, this.id);
+        GetCreditPoolRequest request = new GetCreditPoolRequest(this.client, this.gson, this.id);
         return this.setFromObject(request.request().getData());
     }
 
@@ -189,7 +204,7 @@ public class CreditPool {
      * @throws APIException connection or API errors
      */
     public CreditPoolMember[] getMemberList() throws APIException {
-        GetCreditPoolMembersRequest request = new GetCreditPoolMembersRequest(this.client, this.id);
+        GetCreditPoolMembersRequest request = new GetCreditPoolMembersRequest(this.client, this.gson, this.id);
         return request.request().getData();
     }
 
@@ -199,10 +214,10 @@ public class CreditPool {
      * @throws APIException connection or API errors
      */
     public Server[] getServerList() throws APIException {
-        GetCreditPoolServersRequest request = new GetCreditPoolServersRequest(this.client, this.id);
+        GetCreditPoolServersRequest request = new GetCreditPoolServersRequest(this.client, this.gson, this.id);
         Server[] servers = request.request().getData();
         for (Server server: servers) {
-            server.setClient(this.client);
+            server.init(this.client, gson);
             server.fetched = true;
         }
         return servers;

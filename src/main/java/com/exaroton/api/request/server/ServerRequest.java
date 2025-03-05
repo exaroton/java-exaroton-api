@@ -1,7 +1,10 @@
 package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIRequest;
+import com.exaroton.api.ParameterValidator;
 import com.exaroton.api.ExarotonClient;
+import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
@@ -9,10 +12,9 @@ public abstract class ServerRequest<Datatype> extends APIRequest<Datatype> {
 
     private final String serverId;
 
-    public ServerRequest(ExarotonClient client, String serverId) {
-        super(client);
-        if (serverId == null || serverId.length() == 0) throw new IllegalArgumentException("Invalid server id!");
-        this.serverId = serverId;
+    public ServerRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String serverId) {
+        super(client, gson);
+        this.serverId = ParameterValidator.requireValidId(serverId);
     }
 
     @Override
