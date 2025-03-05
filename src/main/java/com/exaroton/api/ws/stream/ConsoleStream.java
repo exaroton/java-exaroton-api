@@ -7,12 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class ConsoleStream extends Stream {
 
     public ConsoleStream(@NotNull WebSocketManager ws, @NotNull Gson gson) {
-        super(ws, gson);
-    }
-
-    @Override
-    protected String getName() {
-        return "console";
+        super(ws, gson, StreamName.CONSOLE);
     }
 
     /**

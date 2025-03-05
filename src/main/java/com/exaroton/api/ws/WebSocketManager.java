@@ -1,6 +1,5 @@
 package com.exaroton.api.ws;
 
-import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
@@ -13,8 +12,6 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 public class WebSocketManager {
-    private final ExarotonClient exaroton;
-
     private final Gson gson;
 
     private final WebSocketClient client;
@@ -48,13 +45,11 @@ public class WebSocketManager {
     private DebugListener debugListener = null;
 
     public WebSocketManager(
-            @NotNull ExarotonClient exaroton,
             @NotNull Gson gson,
             @NotNull String uri,
             @NotNull String apiToken,
             @NotNull Server server
     ) {
-        this.exaroton = Objects.requireNonNull(exaroton);
         this.gson = Objects.requireNonNull(gson);
         try {
             URI u = new URI(Objects.requireNonNull(uri));
@@ -65,6 +60,8 @@ public class WebSocketManager {
         this.client.addHeader("Authorization", "Bearer " + apiToken);
         this.client.connect();
         this.server = Objects.requireNonNull(server);
+
+        this.streams.put(StreamName.STATUS, new Stream(this, this.gson, StreamName.STATUS));
     }
 
     /**
@@ -175,26 +172,10 @@ public class WebSocketManager {
 
         Stream s;
         final StreamName name = StreamName.get(stream);
-        switch (name) {
-
-            case CONSOLE:
-                s = new ConsoleStream(this, this.gson);
-                break;
-
-            case HEAP:
-                s = new HeapStream(this, this.gson);
-                break;
-
-            case STATS:
-                s = new StatsStream(this, this.gson);
-                break;
-
-            case TICK:
-                s = new TickStream(this, this.gson);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unknown stream");
+        if (name == StreamName.CONSOLE) {
+            s = new ConsoleStream(this, this.gson);
+        } else {
+            s = new Stream(this, this.gson, name);
         }
 
         this.streams.put(name, s);
@@ -223,8 +204,6 @@ public class WebSocketManager {
      * @param subscriber instance of class handling server status changes
      */
     public void addServerStatusSubscriber(ServerStatusSubscriber subscriber) {
-        if (!this.streams.containsKey(StreamName.STATUS))
-            this.streams.put(StreamName.STATUS, new ServerStatusStream(this, this.gson));
         this.streams.get(StreamName.STATUS).subscribers.add(subscriber);
     }
 
@@ -349,7 +328,6 @@ public class WebSocketManager {
     public void setDebugListener(DebugListener debugListener) {
         this.debugListener = debugListener;
     }
-
 
     /**
      * send debug information to listeners

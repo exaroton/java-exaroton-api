@@ -4,13 +4,14 @@ import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.data.StreamData;
 import com.exaroton.api.ws.subscriber.Subscriber;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class Stream {
+public class Stream {
 
     private boolean shouldStart;
 
@@ -29,9 +30,16 @@ public abstract class Stream {
      */
     private final Gson gson;
 
-    public Stream(@NotNull WebSocketManager ws, @NotNull Gson gson) {
+    /**
+     * stream name
+     */
+    private final StreamName name;
+
+    @ApiStatus.Internal
+    public Stream(@NotNull WebSocketManager ws, @NotNull Gson gson, @NotNull StreamName name) {
         this.ws = Objects.requireNonNull(ws);
         this.gson = Objects.requireNonNull(gson);
+        this.name = name;
     }
 
     /**
@@ -39,13 +47,8 @@ public abstract class Stream {
      * @param type message type
      */
     public void send(String type) {
-        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getName(), type)));
+        ws.sendWhenReady(gson.toJson(new StreamData<>(this.name.getValue(), type)));
     }
-
-    /**
-     * @return stream name
-     */
-    protected abstract String getName();
 
     /**
      * send stream data through the websocket
@@ -53,7 +56,7 @@ public abstract class Stream {
      * @param data message data
      */
     public void send(String type, String data) {
-        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getName(), type, data)));
+        ws.sendWhenReady(gson.toJson(new StreamData<>(this.name.getValue(), type, data)));
     }
 
     /**

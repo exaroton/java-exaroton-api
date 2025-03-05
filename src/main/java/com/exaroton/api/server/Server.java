@@ -425,7 +425,7 @@ public class Server {
     public void subscribe() {
         String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
         String uri = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
-        this.webSocket = new WebSocketManager(client, gson, uri, this.client.getApiToken(), this);
+        this.webSocket = new WebSocketManager(gson, uri, this.client.getApiToken(), this);
     }
 
     /**
