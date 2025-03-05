@@ -1,0 +1,16 @@
+[versions]
+gson = "2.10.1"
+java-websocket = "1.5.3"
+jetbrains-annotations = "24.1.0"
+slf4j = "2.0.7"
+# Test dependencies
+junit = "5.9.3"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "java-websocket" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
+# Test dependencies
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
