@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 public class ServerFile {
@@ -39,7 +41,7 @@ public class ServerFile {
 
     protected int size;
 
-    protected ServerFile[] children = new ServerFile[0];
+    protected Collection<ServerFile> children = List.of();
 
     public ServerFile(
             @NotNull ExarotonClient client,
@@ -196,7 +198,7 @@ public class ServerFile {
         return size;
     }
 
-    public ServerFile[] getChildren() {
+    public Collection<ServerFile> getChildren() {
         return children;
     }
 

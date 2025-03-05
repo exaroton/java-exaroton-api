@@ -1,5 +1,6 @@
 package com.exaroton.api.ws.stream;
 
+import com.exaroton.api.server.ServerStatus;
 import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.data.StreamData;
 import com.exaroton.api.ws.subscriber.Subscriber;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@ApiStatus.NonExtendable
 public class Stream {
 
     private boolean shouldStart;
@@ -78,12 +80,13 @@ public class Stream {
         this.tryToStop();
     }
 
-    protected int[] getSupportedStatuses() {
-        return new int[]{1,2,3,4};
-    }
-
     protected boolean shouldBeStarted() {
-        return this.shouldStart && ws.serverHasStatus(getSupportedStatuses());
+        return this.shouldStart && ws.serverHasStatus(
+                ServerStatus.ONLINE,
+                ServerStatus.STARTING,
+                ServerStatus.STOPPING,
+                ServerStatus.RESTARTING
+        );
     }
 
     /**

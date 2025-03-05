@@ -32,14 +32,14 @@ You need an API key to use the API. You can generate an api key in the [account 
 
 #### Create a client
 
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 ```
 
 ### REST API
 
 #### Show account info
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 try {
@@ -52,11 +52,11 @@ try {
 Objects of the Account class contain getters for each field in the [API docs](https://developers.exaroton.com/#account-get). 
 
 #### Get all servers
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 try {
-    Server[] servers = client.getServers();
+    List<Server> servers = client.getServers();
     for (Server server: servers) {
         System.out.println(server.getId() + ":" + server.getAddress());
     }
@@ -68,7 +68,7 @@ Objects of the Server class contain getters for each field in the [API docs](htt
 
 
 #### Get a single server
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -85,7 +85,7 @@ try {
 ```
 
 #### Check the server status
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -99,7 +99,7 @@ try {
     else if (server.hasStatus(ServerStatus.OFFLINE)) {
         System.out.println("Server is offline!");
     }
-    else if (server.hasStatus(new int[]{ServerStatus.PREPARING, ServerStatus.LOADING, ServerStatus.STARTING})) {
+    else if (server.hasStatus(ServerStatus.PREPARING, ServerStatus.LOADING, ServerStatus.STARTING)) {
         System.out.println("Server is starting!");
     }
 } catch (APIException e) {
@@ -122,7 +122,7 @@ Status codes:
 You can use the ServerStatus class to easily get the value of any status.
 
 #### Get/Share your server log
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -142,7 +142,7 @@ The result is cached and will not return the latest updates immediately. It's no
 
 
 #### Get/Set server RAM
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -166,7 +166,7 @@ Player lists are also cached any might not immediately return new results when c
 You can list all available playerlists using server.getPlayerLists()
 
 ##### List/modify entries
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -185,7 +185,7 @@ try {
 
 #### Files
 To manage a file on your server first obtain a file Object:
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -193,7 +193,7 @@ ServerFile file = server.getFile("/whitelist.json");
 ```
 
 Now you can fetch file info, get the context of a file (if it's a text file) or download it.
-```java
+```jshelllanguage
 file.getInfo();
 if (file.isTextFile()) {
     System.out.println(file.getContent());
@@ -204,13 +204,13 @@ else {
 ```
 
 You can also write to the file or upload a file:
-```java
+```jshelllanguage
 file.putContent("I can write to a file o.O");
 file.upload(Paths.get("other-whitelist.json"));
 ```
 
 Deleting files and creating directories is possible as well:
-```java
+```jshelllanguage
 file.delete();
 file.createAsDirectory();
 ```
@@ -218,7 +218,7 @@ file.createAsDirectory();
 #### Configs
 Some files are special because they are parsed, validated and understood by the exaroton backend.
 These files are called configs and can be managed like this:
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -234,7 +234,7 @@ ConfigOption option = config.getOption("level-seed");
 ```
 
 There are several types of options which extend the ServerConfigOption class:
-```java
+```jshelllanguage
 for (ServerConfigOption option: options) {
     if (option.getType() == OptionType.BOOLEAN) {
         BooleanConfigOption booleanOption = (BooleanConfigOption) option;
@@ -244,7 +244,7 @@ for (ServerConfigOption option: options) {
 ```
 
 To save changes to a config, use the save() method:
-```java
+```jshelllanguage
 config.getOption("level-seed").setValue("example");
 config.save();
 ```
@@ -252,9 +252,9 @@ config.save();
 #### Credit Pools
 Credit pools allow you to share payments for your server with other users in a safe way.
 You can view information about credit pools like this:
-```java
+```jshelllanguage
 // get all credit pools
-CreditPool[] pools = client.getCreditPools();
+List<CreditPool> pools = client.getCreditPools();
 for (CreditPool pool: pools) {
     System.out.println(pool.getName() + ": " + pool.getCredits());
 }
@@ -266,18 +266,18 @@ System.out.println(pool.getName() + ": " + pool.getCredits());
 ```
 
 The API also allows you to fetch the servers in a pool:
-```java
+```jshelllanguage
 CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
-Server[] servers = pool.getServers();
+List<Server> servers = pool.getServers();
 for (Server server: servers) {
 System.out.println(server.getName() + ": " + server.getAddress());
 }
 ```
 
 If you have the "View members" permission, you can even get all members of a pool:
-```java
+```jshelllanguage
 CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
-CreditPoolMember[] members = pool.getMembers();
+List<CreditPoolMember> members = pool.getMembers();
 for (CreditPoolMember member: members) {
     System.out.println(member.getName() + ": " + member.getCredits());
 }
@@ -293,7 +293,7 @@ You can simply connect to the websocket API for a server by running the subscrib
 By default, you are always subscribed to server status update events, you can react to server status 
 changes by adding a subscriber: 
 
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -311,7 +311,7 @@ e.g. a player joins the server.
 #### Console messages
 One of the optional streams is the console stream. You can subscribe to one or more optional streams 
 using the subscribe method. The console stream emits an event for every new console line.
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -333,7 +333,7 @@ instead, so you can just use it the same way as [before](#get-a-single-server).
 On Minecraft Java edition servers with version 1.16 and higher it is possible to get the tick times, 
 and the TPS (ticks per second) of your server. This information is also available as an optional stream.
 
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -355,7 +355,7 @@ on Java. It is not recommended using both.
 
 You can subscribe to multiple streams at once by passing an array to the subscribe function.
 
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -377,7 +377,7 @@ server.addHeapSubscriber(new HeapSubscriber() {
 #### Unsubscribe
 You can unsubscribe from one, multiple or all streams using the server.unsubscribe() function.
 
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
@@ -388,7 +388,7 @@ server.unsubscribe(); // closes websocket connection
 ```
 
 ### Debugging Websocket connections
-```java
+```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
