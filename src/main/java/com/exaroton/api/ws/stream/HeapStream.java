@@ -22,7 +22,7 @@ public final class HeapStream extends Stream<HeapSubscriber> {
                 HeapUsage usage = gson.fromJson(message, HeapStreamData.class).getData();
 
                 for (HeapSubscriber subscriber : subscribers) {
-                    subscriber.heap(usage);
+                    subscriber.handleHeapUsage(usage);
                 }
                 break;
         }

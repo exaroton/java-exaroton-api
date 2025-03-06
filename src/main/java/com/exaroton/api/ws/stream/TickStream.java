@@ -22,7 +22,7 @@ public final class TickStream extends Stream<TickSubscriber> {
                 TickData tick = gson.fromJson(message, TickStreamData.class).getData();
 
                 for (TickSubscriber subscriber : subscribers) {
-                    subscriber.tick(tick);
+                    subscriber.handleTickData(tick);
                 }
                 break;
         }

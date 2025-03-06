@@ -22,7 +22,7 @@ public final class StatsStream extends Stream<StatsSubscriber> {
                 StatsData stats = gson.fromJson(message, StatsStreamData.class).getData();
 
                 for (StatsSubscriber subscriber : subscribers) {
-                    subscriber.stats(stats);
+                    subscriber.handleStats(stats);
                 }
                 break;
         }

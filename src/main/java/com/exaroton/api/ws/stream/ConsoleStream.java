@@ -28,7 +28,7 @@ public final class ConsoleStream extends Stream<ConsoleSubscriber> {
             case "line":
                 String line = gson.fromJson(message, ConsoleStreamData.class).getData();
                 for (ConsoleSubscriber subscriber : subscribers) {
-                    subscriber.line(line);
+                    subscriber.handleLine(line);
                 }
         }
     }

@@ -228,7 +228,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         return future.thenApply(s -> s.hasStatus(status));
     }
 
-    private <T extends Subscriber> void addStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
+    private <T> void addStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
         if (!this.streams.containsKey(c)) {
             throw new IllegalStateException("There is no active stream for: " + c);
         }

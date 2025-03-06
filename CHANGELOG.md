@@ -49,6 +49,9 @@ the `WebSocketClient` or `WebSocketManager` classes directly this shouldn't requ
 
 The debug/error handler methods have been removed. Errors and debug messages are now  exclusively logged using SLF4J
 
+#### Subscribers
+The `Subscriber` classes are now interfaces and their methods have been renamed to make the more explicit and reduce
+the chance of conflicts with other overrides.
 
 ### Other
 - Arrays have been Replaced by Collection's in almost all places

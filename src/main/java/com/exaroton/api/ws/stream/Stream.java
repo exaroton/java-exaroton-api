@@ -3,7 +3,6 @@ package com.exaroton.api.ws.stream;
 import com.exaroton.api.server.ServerStatus;
 import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.data.StreamData;
-import com.exaroton.api.ws.subscriber.Subscriber;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.ApiStatus;
@@ -15,7 +14,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.NonExtendable
-public abstract class Stream<T extends Subscriber> {
+public abstract class Stream<T> {
 
     /**
      * Has this stream been started?
