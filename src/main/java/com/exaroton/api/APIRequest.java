@@ -13,6 +13,7 @@ import java.util.Map;
 public abstract class APIRequest<Response> {
     /**
      * Build the HttpRequest
+     * @param gson gson instance
      * @param builder HttpRequest builder with preconfigured options
      * @param baseUrl base URL
      * @return HttpRequest

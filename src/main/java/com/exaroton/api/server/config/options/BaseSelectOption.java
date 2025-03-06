@@ -8,7 +8,7 @@ import java.util.Set;
 
 /**
  * Base class for select and multi-select options
- * @param <T> value type (String or Set<String>)
+ * @param <T> value type (String or Set&lt;String&gt;)
  */
 @ApiStatus.NonExtendable
 public class BaseSelectOption<T> extends ConfigOption<T> {

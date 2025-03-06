@@ -20,6 +20,7 @@ public final class WebSocketClient extends org.java_websocket.client.WebSocketCl
     private final WebSocketManager manager;
 
     /**
+     * @param logger SLF4J logger
      * @param uri websocket uri
      * @param manager websocket manager
      */

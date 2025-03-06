@@ -373,6 +373,7 @@ public final class Server implements Initializable {
      * Execute a server command. If a websocket connection with the console stream is active the command will be sent via the websocket.
      *
      * @param command command that will be sent to the console
+     * @return completable future that completes once the command has been sent
      * @throws IOException connection errors
      */
     public CompletableFuture<Void> executeCommand(String command) throws IOException {

@@ -152,7 +152,7 @@ public final class ServerFile {
      * @see #upload(InputStream)
      * @see #upload(Supplier)
      */
-    public CompletableFuture<Void> upload(Path path) throws IOException, APIException {
+    public CompletableFuture<Void> upload(Path path) throws IOException {
         return upload(Files.newInputStream(path));
     }
 

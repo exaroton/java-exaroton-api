@@ -170,12 +170,11 @@ public final class CreditPool implements Initializable {
      * Set the exaroton client used for further requests
      *
      * @param client exaroton client
-     * @return updated pool object
      */
     @ApiStatus.Internal
     @Override
-    public void initialize(ExarotonClient client, Gson gson) {
-        this.client = client;
+    public void initialize(@NotNull ExarotonClient client, @NotNull Gson gson) {
+        this.client = Objects.requireNonNull(client);
         this.fetched = true;
     }
 

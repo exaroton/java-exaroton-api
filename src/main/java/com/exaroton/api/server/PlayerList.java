@@ -63,6 +63,7 @@ public final class PlayerList {
      * add players to list
      *
      * @param entries player names
+     * @return completable future with all players in the list
      * @throws IOException Connection errors
      */
     public CompletableFuture<List<String>> add(List<String> entries) throws IOException {
@@ -77,6 +78,7 @@ public final class PlayerList {
      * remove players from list
      *
      * @param entries player names
+     * @return completable future with all players in the list
      * @throws IOException Connection errors
      */
     public CompletableFuture<List<String>> remove(List<String> entries) throws IOException {

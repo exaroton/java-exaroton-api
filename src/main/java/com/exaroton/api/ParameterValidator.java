@@ -94,7 +94,7 @@ public class ParameterValidator {
     }
 
     /**
-     * Require that a number is not null and positive (> 0)
+     * Require that a number is not null and positive (&gt; 0)
      *
      * @param number number to validate
      * @param name   name of the parameter

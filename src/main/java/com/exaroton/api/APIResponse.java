@@ -2,11 +2,13 @@ package com.exaroton.api;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -31,12 +33,18 @@ public class APIResponse<Datatype> {
 
     /**
      * Create a BodyHandler for APIResponse
-     * @param gson gson instance
-     * @param token type token of the response data
+     *
+     * @param client exaroton client
+     * @param gson   gson instance
+     * @param token  type token of the response data
+     * @param <T>    response data type
      * @return BodyHandler
-     * @param <T> response data type
      */
-    public static <T> HttpResponse.BodyHandler<APIResponse<T>> bodyHandler(ExarotonClient client, Gson gson, TypeToken<APIResponse<T>> token) {
+    public static <T> HttpResponse.BodyHandler<APIResponse<T>> bodyHandler(
+            @NotNull ExarotonClient client,
+            @NotNull Gson gson,
+            @NotNull TypeToken<APIResponse<T>> token
+    ) {
         return responseInfo -> new BodySubscriber<>(client, gson, token);
     }
 
@@ -81,10 +89,14 @@ public class APIResponse<Datatype> {
         private final TypeToken<APIResponse<T>> token;
         private final HttpResponse.BodySubscriber<String> parent;
 
-        private BodySubscriber(ExarotonClient client, Gson gson, TypeToken<APIResponse<T>> token) {
-            this.client = client;
-            this.gson = gson;
-            this.token = token;
+        private BodySubscriber(
+                @NotNull ExarotonClient client,
+                @NotNull Gson gson,
+                @NotNull TypeToken<APIResponse<T>> token
+        ) {
+            this.client = Objects.requireNonNull(client);
+            this.gson = Objects.requireNonNull(gson);
+            this.token = Objects.requireNonNull(token);
             this.parent = HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
         }
 
