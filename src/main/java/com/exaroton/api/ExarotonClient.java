@@ -7,8 +7,10 @@ import com.exaroton.api.request.billing.pools.GetCreditPoolsRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.config.ConfigOptionTypeAdapterFactory;
+import com.exaroton.api.ws.WebSocketConnection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -20,7 +22,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public class ExarotonClient {
     /**
@@ -118,13 +119,6 @@ public class ExarotonClient {
      */
     public String getBasePath() {
         return basePath;
-    }
-
-    /**
-     * @return API token
-     */
-    public String getApiToken() {
-        return apiToken;
     }
 
     /**
@@ -267,5 +261,22 @@ public class ExarotonClient {
         String id = System.getenv("EXAROTON_SERVER_ID");
         if (id == null) return null;
         return this.getServer(id);
+    }
+
+    /**
+     * Create a new websocket connection
+     * @param server server to connect to
+     * @param path websocket path
+     * @return websocket manager
+     */
+    @ApiStatus.Internal
+    public WebSocketConnection connectToWebSocket(Server server, String path) {
+        String protocol = this.getProtocol().equals("http") ? "ws" : "wss";
+        try {
+            URL url = new URL(protocol, getHost(), getBasePath());
+            return new WebSocketConnection(httpClient, gson, url.toURI().resolve(path), apiToken, server);
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

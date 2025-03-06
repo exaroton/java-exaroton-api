@@ -1,10 +1,9 @@
 package com.exaroton.api.server;
 
-import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.Initializable;
 import com.exaroton.api.request.server.*;
-import com.exaroton.api.ws.WebSocketManager;
+import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.stream.StreamName;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
@@ -22,7 +21,7 @@ public final class Server implements Initializable {
     /**
      * has this server been fetched from the API yet
      */
-    private boolean fetched;
+    private boolean fetched = false;
 
     /**
      * Unique server ID
@@ -85,7 +84,7 @@ public final class Server implements Initializable {
     /**
      * web socket client
      */
-    private transient WebSocketManager webSocket;
+    private transient WebSocketConnection webSocket;
 
     /**
      * gson instance
@@ -101,7 +100,6 @@ public final class Server implements Initializable {
      */
     @ApiStatus.Internal
     public Server(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
-        this.fetched = false;
         this.client = Objects.requireNonNull(client);
         this.gson = Objects.requireNonNull(gson);
         this.id = Objects.requireNonNull(id);
@@ -277,10 +275,7 @@ public final class Server implements Initializable {
      */
     public CompletableFuture<Server> get() throws IOException {
         return client.request(new GetServerRequest(this.client, this.gson, this.id))
-                .thenApply(data -> {
-                    this.fetched = true;
-                    return this.setFromObject(data);
-                });
+                .thenApply(this::setFromObject);
     }
 
     /**
@@ -422,6 +417,7 @@ public final class Server implements Initializable {
      */
     @ApiStatus.Internal
     public Server setFromObject(Server server) {
+        this.fetched = true;
         this.id = server.getId();
         this.name = server.getName();
         this.address = server.getAddress();
@@ -457,9 +453,7 @@ public final class Server implements Initializable {
             throw new IllegalStateException("Websocket connection already active.");
         }
 
-        String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
-        String uri = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
-        this.webSocket = new WebSocketManager(gson, uri, this.client.getApiToken(), this);
+        this.webSocket = client.connectToWebSocket(this, "servers/" + this.id + "/websocket");
     }
 
     /**
@@ -551,7 +545,7 @@ public final class Server implements Initializable {
     /**
      * @return web socket manager
      */
-    public WebSocketManager getWebSocket() {
+    public WebSocketConnection getWebSocket() {
         return webSocket;
     }
 }

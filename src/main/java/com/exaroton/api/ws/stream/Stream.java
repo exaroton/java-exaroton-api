@@ -1,7 +1,7 @@
 package com.exaroton.api.ws.stream;
 
 import com.exaroton.api.server.ServerStatus;
-import com.exaroton.api.ws.WebSocketManager;
+import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.data.StreamData;
 import com.exaroton.api.ws.subscriber.Subscriber;
 import com.google.gson.Gson;
@@ -25,7 +25,7 @@ public class Stream {
     /**
      * web socket client
      */
-    private final WebSocketManager ws;
+    private final WebSocketConnection ws;
 
     /**
      * Gson instance for (de-)serialization
@@ -38,7 +38,7 @@ public class Stream {
     private final StreamName name;
 
     @ApiStatus.Internal
-    public Stream(@NotNull WebSocketManager ws, @NotNull Gson gson, @NotNull StreamName name) {
+    public Stream(@NotNull WebSocketConnection ws, @NotNull Gson gson, @NotNull StreamName name) {
         this.ws = Objects.requireNonNull(ws);
         this.gson = Objects.requireNonNull(gson);
         this.name = name;

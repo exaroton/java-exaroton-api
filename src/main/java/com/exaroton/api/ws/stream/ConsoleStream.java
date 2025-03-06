@@ -1,12 +1,12 @@
 package com.exaroton.api.ws.stream;
 
-import com.exaroton.api.ws.WebSocketManager;
+import com.exaroton.api.ws.WebSocketConnection;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
 public class ConsoleStream extends Stream {
 
-    public ConsoleStream(@NotNull WebSocketManager ws, @NotNull Gson gson) {
+    public ConsoleStream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
         super(ws, gson, StreamName.CONSOLE);
     }
 

@@ -36,6 +36,9 @@ JSON body you can use `ApiRequest#jsonBodyPublisher(Object)`. This only affects 
 `ExarotonClient#request(ApiRequest, HttpResponse.BodyHandler)` use the respective body handlers to get an input stream,
 string or object.
 
+### WebSockets
+The `java-websocket` library has been replaced by the built-in Java 11 websocket implementation. Unless you were using
+the `WebSocketClient` or `WebSocketManager` classes directly this shouldn't require any changes to your code.
 
 ### Other
 - `Server#subscribe` and `Server#unsubscribe` now accept the `StreamName` enum instead of any string
@@ -49,6 +52,7 @@ string or object.
 - Added `ApiStatus` annotations to many classes and methods
 - Removed debug/error handler from `WebsocketManager` and `WebsocketClient`. Errors and debug messages are now
   exclusively logged using SLF4J
+- Removed `ExarotonClient#getApiToken()`
 
 ## Improvements
 - Update dependencies
