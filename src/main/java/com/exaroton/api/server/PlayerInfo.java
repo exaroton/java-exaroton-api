@@ -2,7 +2,7 @@ package com.exaroton.api.server;
 
 import java.util.Set;
 
-public class PlayerInfo {
+public final class PlayerInfo {
     /**
      * Maximum player count (slots)
      */

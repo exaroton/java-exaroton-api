@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class UpdateConfigOptionsRequest extends FileRequest<List<ConfigOption<?>
     }
 
     @Override
-    protected Object getBody() {
-        return gson.toJson(this.options);
+    protected HttpRequest.BodyPublisher getBodyPublisher(Gson gson, HttpRequest.Builder builder) {
+        return jsonBodyPublisher(gson, builder, this.options);
     }
 }

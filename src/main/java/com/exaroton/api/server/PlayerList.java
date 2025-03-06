@@ -10,10 +10,13 @@ import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
-public class PlayerList {
+public final class PlayerList {
     private transient final ExarotonClient client;
     private transient final Gson gson;
 
@@ -50,40 +53,37 @@ public class PlayerList {
 
     /**
      * @return players in list
-     * @throws APIException API error
+     * @throws IOException Connection errors
      */
-    public List<String> getEntries() throws APIException {
-        GetPlayerListEntriesRequest request = new GetPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name);
-        return request.request().getData();
+    public CompletableFuture<List<String>> getEntries() throws IOException {
+        return client.request(new GetPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name));
     }
 
     /**
      * add players to list
      *
      * @param entries player names
-     * @throws APIException API error
+     * @throws IOException Connection errors
      */
-    public void add(List<String> entries) throws APIException {
+    public CompletableFuture<List<String>> add(List<String> entries) throws IOException {
         if (entries.isEmpty()) {
-            return;
+            throw new IllegalArgumentException("Can't add empty list");
         }
 
-        AddPlayerListEntriesRequest request = new AddPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries);
-        request.request();
+        return client.request(new AddPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries));
     }
 
     /**
      * remove players from list
      *
      * @param entries player names
-     * @throws APIException API error
+     * @throws IOException Connection errors
      */
-    public void remove(List<String> entries) throws APIException {
+    public CompletableFuture<List<String>> remove(List<String> entries) throws IOException {
         if (entries.isEmpty()) {
-            return;
+            throw new IllegalArgumentException("Can't remove empty list");
         }
 
-        RemovePlayerListEntriesRequest request = new RemovePlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries);
-        request.request();
+        return client.request(new RemovePlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries));
     }
 }

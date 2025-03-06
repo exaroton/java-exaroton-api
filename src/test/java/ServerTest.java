@@ -6,14 +6,15 @@ import com.exaroton.api.server.ServerMOTDInfo;
 import com.exaroton.api.server.ServerRAMInfo;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerTest extends APIClientTest {
     @Test
-    void testGetServers() throws APIException {
-        List<Server> servers = client.getServers();
+    void testGetServers() throws IOException {
+        List<Server> servers = client.getServers().join();
         assertNotNull(servers);
         for (Server server: servers) {
             assertNotNull(server.getAddress());
@@ -23,36 +24,36 @@ public class ServerTest extends APIClientTest {
     }
 
     @Test
-    void testGetServer() throws APIException {
+    void testGetServer() throws IOException {
         server.get();
     }
 
     @Test
-    void testGetLog() throws APIException {
-        ServerLog log = server.getLog();
+    void testGetLog() throws IOException {
+        ServerLog log = server.getLog().join();
         assertNotNull(log);
         assertNotNull(log.getContent());
     }
 
     @Test
-    void testGetMotd() throws APIException {
+    void testGetMotd() throws IOException {
         assertNull(server.getMotd());
-        ServerMOTDInfo fetched = server.fetchMotd();
+        ServerMOTDInfo fetched = server.fetchMotd().join();
         assertNotNull(fetched);
         assertNotNull(server.getMotd());
         assertEquals(fetched.getMotd(), server.getMotd());
     }
 
     @Test
-    void testGetRAM() throws APIException {
-        ServerRAMInfo ram = server.getRAM();
+    void testGetRAM() throws IOException {
+        ServerRAMInfo ram = server.getRAM().join();
         assertNotNull(ram);
         assertTrue(ram.getRam() > 0);
     }
 
     @Test
-    void testGetPlayerLists() throws APIException {
-        List<String> lists = server.getPlayerLists();
+    void testGetPlayerLists() throws IOException {
+        List<String> lists = server.getPlayerLists().join();
         assertNotNull(lists);
         assertFalse(lists.isEmpty(), "Expected at least one player list, got none");
 

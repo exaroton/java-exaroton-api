@@ -5,44 +5,49 @@ import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.files.*;
 import com.exaroton.api.server.config.ServerConfig;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
-public class ServerFile {
-    protected transient final ExarotonClient client;
+public final class ServerFile {
+    private transient final ExarotonClient client;
 
-    protected transient final Gson gson;
+    private transient final Gson gson;
 
-    protected final Server server;
+    private final Server server;
 
-    protected String path;
+    private String path;
 
-    protected String name;
+    private String name;
 
-    protected boolean isTextFile;
+    private boolean isTextFile;
 
-    protected boolean isConfigFile;
+    private boolean isConfigFile;
 
-    protected boolean isDirectory;
+    private boolean isDirectory;
 
-    protected boolean isLog;
+    private boolean isLog;
 
-    protected boolean isReadable;
+    private boolean isReadable;
 
-    protected boolean isWritable;
+    private boolean isWritable;
 
-    protected int size;
+    private int size;
 
-    protected Collection<ServerFile> children = List.of();
+    private Collection<ServerFile> children = List.of();
 
+    @ApiStatus.Internal
     public ServerFile(
             @NotNull ExarotonClient client,
             @NotNull Gson gson,
@@ -58,11 +63,14 @@ public class ServerFile {
     /**
      * update this file with file information fetched from the API
      * @return this file object
-     * @throws APIException api error
+     * @throws IOException connection errors
      */
-    public ServerFile getInfo() throws APIException {
-        GetFileInfoRequest request = new GetFileInfoRequest(this.client, this.gson, this.server.getId(), this.path);
-        return this.setFromObject(request.request().getData());
+    public CompletableFuture<ServerFile> get() throws IOException {
+        return client.request(new GetFileInfoRequest(this.client, this.gson, this.server.getId(), this.path))
+                .thenApply(data -> {
+                    this.setFromObject(data);
+                    return this;
+                });
     }
 
     /**
@@ -70,11 +78,17 @@ public class ServerFile {
      * to read a different file use {@link #downloadStream()}
      * to download a file use {@link #download(Path)}
      * @return file content
-     * @throws APIException api error
+     * @throws IOException connection errors
      */
-    public String getContent() throws APIException {
-        return new GetFileDataRequest(this.client, this.gson, this.server.getId(), this.path, "application/text")
-                .requestString();
+    public CompletableFuture<String> getContent() throws IOException {
+        var request = new GetFileDataRequest(
+                this.client,
+                this.gson,
+                this.server.getId(),
+                this.path,
+                "application/text"
+        );
+        return client.request(request, HttpResponse.BodyHandlers.ofString());
     }
 
     /**
@@ -82,37 +96,52 @@ public class ServerFile {
      * to read a text different file use {@link #getContent()}
      * to read a different file use {@link #downloadStream()}
      * @param path output file path
-     * @throws APIException api error
-     * @throws IOException failed to write file
+     * @return future for download completion
+     * @throws IOException connection errors
      */
-    public void download(Path path) throws APIException, IOException {
-        GetFileDataRequest request = new GetFileDataRequest(this.client, this.gson, this.server.getId(), this.path, "octet-stream");
-        try (InputStream stream = request.requestRaw()) {
-            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
-        }
+    public CompletableFuture<Void> download(Path path) throws IOException {
+        return downloadStream().thenAccept(response -> {
+            try (InputStream stream = response) {
+                Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
      * get the download stream of this file
      * to read a text different file use {@link #getContent()}
      * to download a file use {@link #download(Path)}
-     * @throws APIException API error
+     * @throws IOException connection errors
      * @return input stream for file data
      */
-    public InputStream downloadStream() throws APIException {
-        return new GetFileDataRequest(this.client, this.gson, this.server.getId(), this.path, "octet-stream")
-                .requestRaw();
+    public CompletableFuture<InputStream> downloadStream() throws IOException {
+        var request = new GetFileDataRequest(
+                this.client,
+                this.gson,
+                this.server.getId(),
+                this.path,
+                "octet-stream"
+        );
+
+        return client.request(request, HttpResponse.BodyHandlers.ofInputStream());
     }
 
     /**
      * write content to a text file
      * to upload a file from a path use {@link #upload(Path)}
      * to upload from an input stream use {@link #upload(InputStream)}
+     *
      * @param content file content
+     * @return future for upload completion
+     * @throws IOException if the API returns an error
+     * @see #upload(Path)
+     * @see #upload(InputStream)
+     * @see #upload(Supplier)
      */
-    public void putContent(String content) throws APIException {
-        new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, content)
-                .request();
+    public CompletableFuture<Void> putContent(String content) throws IOException {
+        return client.request(new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, content));
     }
 
     /**
@@ -120,10 +149,14 @@ public class ServerFile {
      * to write text content use {@link #putContent(String)}
      * to upload from an input stream use {@link #upload(InputStream)}
      * @param path path to file
+     * @return future for upload completion
+     * @throws IOException if the API returns an error
+     * @see #putContent(String)
+     * @see #upload(InputStream)
+     * @see #upload(Supplier)
      */
-    public void upload(Path path) throws IOException, APIException {
-        new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, Files.newInputStream(path))
-                .request();
+    public CompletableFuture<Void> upload(Path path) throws IOException, APIException {
+        return upload(Files.newInputStream(path));
     }
 
     /**
@@ -131,27 +164,48 @@ public class ServerFile {
      * to write text content use {@link #putContent(String)}
      * to upload a file from a path use {@link #upload(Path)}
      * @param stream input stream
+     * @return future for upload completion
+     * @throws IOException if the API returns an error
+     * @see #putContent(String)
+     * @see #upload(Path)
+     * @see #upload(Supplier)
      */
-    public void upload(InputStream stream) throws APIException {
-        new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, stream)
-                .request();
+    public CompletableFuture<Void> upload(InputStream stream) throws IOException {
+        return upload(() -> stream);
+    }
+
+    /**
+     * upload a file
+     *
+     * @param stream input stream supplier
+     * @return future for upload completion
+     * @throws IOException if the API returns an error
+     * @see #putContent(String)
+     * @see #upload(Path)
+     * @see #upload(InputStream)
+     */
+    public CompletableFuture<Void> upload(Supplier<InputStream> stream) throws IOException {
+        return client.request(new PutFileDataRequest(this.client, this.gson, this.server.getId(), this.path, stream));
     }
 
     /**
      * delete this file
-     * @throws APIException api error
+     *
+     * @return future for deletion completion
+     * @throws IOException connection errors
      */
-    public void delete() throws APIException {
-        new DeleteFileRequest(this.client, this.gson, this.server.getId(), this.path)
-                .request();
+    public CompletableFuture<Void> delete() throws IOException {
+        return client.request(new DeleteFileRequest(this.client, this.gson, this.server.getId(), this.path));
     }
 
     /**
      * create this file as a directory
-     * @throws APIException api error
+     *
+     * @return future for creation completion
+     * @throws IOException connection errors
      */
-    public void createAsDirectory() throws APIException {
-        new CreateDirectoryRequest(this.client, this.gson, this.server.getId(), this.path).request();
+    public CompletableFuture<Void> createAsDirectory() throws IOException {
+        return client.request(new CreateDirectoryRequest(this.client, this.gson, this.server.getId(), this.path));
     }
 
     /**

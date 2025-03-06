@@ -1,11 +1,14 @@
 package com.exaroton.api.server;
 
-public class ServerMOTDInfo {
+import org.jetbrains.annotations.ApiStatus;
+
+public final class ServerMOTDInfo {
     /**
      * Server MOTD
      */
     private final String motd;
 
+    @ApiStatus.Internal
     public ServerMOTDInfo(String motd) {
         this.motd = motd;
     }

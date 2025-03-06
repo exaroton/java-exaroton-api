@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpRequest;
 import java.util.HashMap;
 
 public class SetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
@@ -39,9 +40,9 @@ public class SetServerRAMRequest extends ServerRequest<ServerRAMInfo> {
     }
 
     @Override
-    protected Object getBody() {
-        HashMap<String, Object> body = new HashMap<>();
+    protected HttpRequest.BodyPublisher getBodyPublisher(Gson gson, HttpRequest.Builder builder) {
+        HashMap<String, Integer> body = new HashMap<>();
         body.put("ram", this.ram);
-        return body;
+        return jsonBodyPublisher(gson, builder, body);
     }
 }

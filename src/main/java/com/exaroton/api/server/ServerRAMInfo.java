@@ -1,11 +1,14 @@
 package com.exaroton.api.server;
 
-public class ServerRAMInfo {
+import org.jetbrains.annotations.ApiStatus;
+
+public final class ServerRAMInfo {
     /**
      * Server RAM in GB
      */
     private final int ram;
 
+    @ApiStatus.Internal
     public ServerRAMInfo(int ram) {
         this.ram = ram;
     }

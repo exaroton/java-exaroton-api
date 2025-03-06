@@ -1,8 +1,11 @@
 package com.exaroton.api.server;
 
-public class ServerLog {
+import org.jetbrains.annotations.ApiStatus;
+
+public final class ServerLog {
     private final String content;
 
+    @ApiStatus.Internal
     public ServerLog(String content) {
         this.content = content;
     }

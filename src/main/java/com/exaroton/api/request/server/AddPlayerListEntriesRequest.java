@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpRequest;
 import java.util.HashMap;
 import java.util.List;
 
@@ -41,9 +42,9 @@ public class AddPlayerListEntriesRequest extends ServerListRequest<List<String>>
     }
 
     @Override
-    protected Object getBody() {
-        HashMap<String, Object> body = new HashMap<>();
+    protected HttpRequest.BodyPublisher getBodyPublisher(Gson gson, HttpRequest.Builder builder) {
+        HashMap<String, List<String>> body = new HashMap<>();
         body.put("entries", this.entries);
-        return body;
+        return this.jsonBodyPublisher(gson, builder, body);
     }
 }

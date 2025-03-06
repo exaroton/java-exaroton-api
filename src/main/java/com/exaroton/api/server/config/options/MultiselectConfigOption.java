@@ -1,6 +1,7 @@
 package com.exaroton.api.server.config.options;
 
 import com.exaroton.api.server.config.OptionType;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,7 +9,7 @@ import java.util.Set;
 /**
  * A select option where multiple options can be selected
  */
-public class MultiselectConfigOption extends BaseSelectOption<Set<String>> {
+public final class MultiselectConfigOption extends BaseSelectOption<Set<String>> {
     /**
      * Create a new config option
      * @param key key of the option
@@ -16,6 +17,7 @@ public class MultiselectConfigOption extends BaseSelectOption<Set<String>> {
      * @param label label of the option
      * @param options list of available options
      */
+    @ApiStatus.Internal
     public MultiselectConfigOption(String key, Set<String> value, String label, Set<String> options) {
         super(key, new HashSet<>(value), label, OptionType.MULTISELECT, options);
     }

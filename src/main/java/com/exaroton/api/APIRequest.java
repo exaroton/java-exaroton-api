@@ -3,31 +3,30 @@ package com.exaroton.api;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.nio.charset.StandardCharsets;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpRequest;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-public abstract class APIRequest<Datatype> {
+public abstract class APIRequest<Response> {
     /**
-     * exaroton API client
+     * Build the HttpRequest
+     * @param builder HttpRequest builder with preconfigured options
+     * @param baseUrl base URL
+     * @return HttpRequest
+     * @throws URISyntaxException if the constructed URI is invalid
      */
-    protected final ExarotonClient client;
+    public HttpRequest build(Gson gson, HttpRequest.Builder builder, URL baseUrl) throws URISyntaxException {
+        builder.uri(baseUrl.toURI().resolve(getPath()))
+                .method(this.getMethod(), getBodyPublisher(gson, builder));
 
-    /**
-     * Gson instance used for (de-)serialization
-     */
-    protected final Gson gson;
+        for (Map.Entry<String, String> header : this.getHeaders().entrySet()) {
+            builder.header(header.getKey(), header.getValue());
+        }
 
-    public APIRequest(@NotNull ExarotonClient client, @NotNull Gson gson) {
-        this.client = Objects.requireNonNull(client);
-        this.gson = Objects.requireNonNull(gson);
+        return builder.build();
     }
 
     /**
@@ -64,78 +63,6 @@ public abstract class APIRequest<Datatype> {
     }
 
     /**
-     * Execute this API Request and get the raw InputStream
-     * @return InputStream
-     * @throws APIException if the request fails
-     */
-    public InputStream requestRaw() throws APIException {
-        HttpURLConnection connection = null;
-        InputStream stream;
-        try {
-            connection = client.createConnection(this.getMethod(), this.getPath());
-            for (Map.Entry<String, String> entry : this.getHeaders().entrySet()) {
-                connection.setRequestProperty(entry.getKey(), entry.getValue());
-            }
-
-            Object body = this.getBody();
-            InputStream inputStream = this.getInputStream();
-            if (body != null) {
-                inputStream = new ByteArrayInputStream(gson.toJson(body).getBytes(StandardCharsets.UTF_8));
-                connection.setRequestProperty("Content-Type", "application/json");
-            }
-
-            if (inputStream != null) {
-                connection.setDoOutput(true);
-                OutputStream out = connection.getOutputStream();
-                byte[] buf = new byte[8192];
-                int length;
-                while ((length = inputStream.read(buf)) > 0) {
-                    out.write(buf, 0, length);
-                }
-            }
-            stream = connection.getInputStream();
-        }
-        catch (IOException e) {
-            if (connection == null || connection.getErrorStream() == null) {
-                throw new APIException("Failed to request data from exaroton API", e);
-            }
-
-            stream = connection.getErrorStream();
-        }
-
-        return stream;
-    }
-
-    /**
-     * Execute this API Request and get the response as a String
-     * @return response as a String
-     * @throws APIException if the request fails
-     */
-    public String requestString() throws APIException {
-        try (InputStream stream = this.requestRaw()) {
-            return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
-        }
-        catch (IOException e) {
-            throw new APIException("Failed to read input stream", e);
-        }
-    }
-
-    /**
-     * Execute this API Request and parse the API response
-     * @return Parsed API response
-     * @throws APIException if the request fails
-     */
-    public APIResponse<Datatype> request() throws APIException {
-        String json = this.requestString();
-        APIResponse<Datatype> response = gson.fromJson(json, this.getType());
-        if (!response.isSuccess()) throw new APIException(response.getError());
-
-        return response;
-    }
-
-    /**
      * @return request headers
      */
     protected HashMap<String, String> getHeaders() {
@@ -148,7 +75,7 @@ public abstract class APIRequest<Datatype> {
      * get the type required for parsing the JSON response
      * @return response type
      */
-    protected abstract TypeToken<APIResponse<Datatype>> getType();
+    protected abstract TypeToken<APIResponse<Response>> getType();
 
     /**
      * data that will be replaced in the endpoint
@@ -159,17 +86,24 @@ public abstract class APIRequest<Datatype> {
     }
 
     /**
-     * @return input stream with data that should be sent to the request
+     * Get the body publisher for the request
+     * @param gson gson instance
+     * @param builder request builder to set the Content-Type header
+     * @param body request body
+     * @return a body publisher
      */
-    protected InputStream getInputStream() {
-        return null;
+    protected HttpRequest.BodyPublisher jsonBodyPublisher(Gson gson, HttpRequest.Builder builder, Object body) {
+        builder.header("Content-Type", "application/json");
+        return HttpRequest.BodyPublishers.ofString(gson.toJson(body));
     }
 
     /**
-     * Get the request body
-     * @return request body
+     * Get the body publisher for the request
+     * @param gson gson instance
+     * @param builder request builder which can be used to set a Content-Type header
+     * @return a body publisher
      */
-    protected Object getBody() {
-        return null;
+    protected HttpRequest.BodyPublisher getBodyPublisher(Gson gson, HttpRequest.Builder builder) {
+        return HttpRequest.BodyPublishers.noBody();
     }
 }

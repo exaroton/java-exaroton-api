@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpRequest;
 import java.util.HashMap;
 
 public class StartServerRequest extends ServerRequest<Server> {
@@ -39,9 +40,9 @@ public class StartServerRequest extends ServerRequest<Server> {
     }
 
     @Override
-    protected Object getBody() {
+    protected HttpRequest.BodyPublisher getBodyPublisher(Gson gson, HttpRequest.Builder builder) {
         HashMap<String, Boolean> body = new HashMap<>();
         body.put("useOwnCredits", this.useOwnCredits);
-        return body;
+        return jsonBodyPublisher(gson, builder, body);
     }
 }

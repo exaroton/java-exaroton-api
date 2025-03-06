@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +15,8 @@ public class CreditPoolsTest extends APIClientTest {
     private static final @NotNull String TEST_POOL_ID = System.getenv("EXAROTON_TEST_POOL");
 
     @Test
-    public void testGetCreditPools() throws APIException {
-        List<CreditPool> pools = client.getCreditPools();
+    public void testGetCreditPools() throws IOException {
+        List<CreditPool> pools = client.getCreditPools().join();
         Assertions.assertNotNull(pools);
         Assertions.assertFalse(pools.isEmpty(), "Expected at least one pool, got none");
         checkTestPool(pools.stream().filter(pool -> pool.getId().equals(TEST_POOL_ID)).findFirst().orElse(null));
@@ -33,16 +34,16 @@ public class CreditPoolsTest extends APIClientTest {
     }
 
     @Test
-    public void testGetPool() throws APIException {
+    public void testGetPool() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
-        pool.get();
+        checkTestPool(pool.get().join());
         checkTestPool(pool);
     }
 
     @Test
-    public void testGetPoolMembers() throws APIException {
+    public void testGetPoolMembers() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
-        List<CreditPoolMember> members = pool.getMemberList();
+        List<CreditPoolMember> members = pool.getMemberList().join();
         Assertions.assertNotNull(members);
         Assertions.assertEquals(2, members.size());
 
@@ -62,9 +63,9 @@ public class CreditPoolsTest extends APIClientTest {
     }
 
     @Test
-    public void testGetPoolServers() throws APIException {
+    public void testGetPoolServers() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
-        List<Server> servers = pool.getServerList();
+        List<Server> servers = pool.getServerList().join();
         Assertions.assertNotNull(servers);
         Assertions.assertEquals(1, servers.size());
         Assertions.assertEquals(TEST_SERVER_ID, servers.get(0).getId());

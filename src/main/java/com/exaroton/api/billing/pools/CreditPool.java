@@ -2,17 +2,21 @@ package com.exaroton.api.billing.pools;
 
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.Initializable;
 import com.exaroton.api.request.billing.pools.GetCreditPoolMembersRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolServersRequest;
 import com.exaroton.api.server.Server;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
-public class CreditPool {
+public final class CreditPool implements Initializable {
     /**
      * Has this pool been fetched from the API yet
      */
@@ -66,27 +70,24 @@ public class CreditPool {
     /**
      * The client used to create this pool
      */
-    private @NotNull transient ExarotonClient client;
-
-    /**
-     * Gson instance used for (de-)serialization
-     */
-    private @NotNull transient Gson gson;
+    @NotNull
+    private transient ExarotonClient client;
 
     /**
      * Create a new Credit Pool
+     *
      * @param client exaroton client
-     * @param gson gson instance
-     * @param id unique pool id
+     * @param id     unique pool id
      */
-    public CreditPool(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
+    @ApiStatus.Internal
+    public CreditPool(@NotNull ExarotonClient client, @NotNull String id) {
         this.client = Objects.requireNonNull(client);
-        this.gson = Objects.requireNonNull(gson);
         this.id = Objects.requireNonNull(id);
     }
 
     /**
      * Get the unique id of the pool
+     *
      * @return unique pool id
      */
     public @NotNull String getId() {
@@ -95,6 +96,7 @@ public class CreditPool {
 
     /**
      * Get the display name of the pool
+     *
      * @return pool display name
      */
     public String getName() {
@@ -103,6 +105,7 @@ public class CreditPool {
 
     /**
      * Get the current amount of credits in the pool
+     *
      * @return amount of credits in the pool
      */
     public double getCredits() {
@@ -111,6 +114,7 @@ public class CreditPool {
 
     /**
      * Get the number of servers in the pool
+     *
      * @return number of servers in the pool
      */
     public int getServers() {
@@ -119,6 +123,7 @@ public class CreditPool {
 
     /**
      * Get the id of the user that owns the pool
+     *
      * @return pool owner id
      */
     public String getOwner() {
@@ -127,6 +132,7 @@ public class CreditPool {
 
     /**
      * Is the current user the owner of the pool
+     *
      * @return is the current user the owner of the pool
      */
     public boolean isOwner() {
@@ -135,6 +141,7 @@ public class CreditPool {
 
     /**
      * Get the number of members in the pool
+     *
      * @return number of members in the pool
      */
     public int getMembers() {
@@ -143,6 +150,7 @@ public class CreditPool {
 
     /**
      * Get the share of credits in the pool that belong to the current user
+     *
      * @return share of credits in the pool that belong to the current user
      */
     public double getOwnShare() {
@@ -151,6 +159,7 @@ public class CreditPool {
 
     /**
      * Get the amount of credits in the pool that belong to the current user
+     *
      * @return amount of credits in the pool that belong to the current user
      */
     public double getOwnCredits() {
@@ -159,72 +168,67 @@ public class CreditPool {
 
     /**
      * Set the exaroton client used for further requests
+     *
      * @param client exaroton client
      * @return updated pool object
      */
-    public CreditPool setClient(ExarotonClient client) {
+    @ApiStatus.Internal
+    @Override
+    public void initialize(ExarotonClient client, Gson gson) {
         this.client = client;
-        return this;
-    }
-
-    /**
-     * Mark this pool as fetched from the API
-     * @return updated pool object
-     */
-    public CreditPool setFetched() {
         this.fetched = true;
-        return this;
     }
 
     /**
      * Fetch the Credit Pool from the API
-     * @return full credit pool
-     * @throws APIException connection or API errors
+     *
+     * @return the credit pool with the fetched data
+     * @throws IOException connection errors
      */
-    public CreditPool get() throws APIException {
-        this.fetched = true;
-        GetCreditPoolRequest request = new GetCreditPoolRequest(this.client, this.gson, this.id);
-        return this.setFromObject(request.request().getData());
+    public CompletableFuture<CreditPool> get() throws IOException {
+        return client.request(new GetCreditPoolRequest(this.id))
+                .thenApply(response -> {
+                    this.fetched = true;
+                    return this.setFromObject(response);
+                });
     }
 
     /**
      * Fetch the Credit Pool from the API if it hasn't been fetched yet
+     *
      * @return full credit pool
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public CreditPool getIfNotFetched() throws APIException {
+    public CompletableFuture<CreditPool> getIfNotFetched() throws IOException {
         if (!this.fetched) {
             return this.get();
         }
-        return this;
+        return CompletableFuture.completedFuture(this);
     }
 
     /**
      * Get a list of members in this pool
-     * @return array of pool members
-     * @throws APIException connection or API errors
+     *
+     * @return list of pool members
+     * @throws IOException connection errors
      */
-    public List<CreditPoolMember> getMemberList() throws APIException {
-        GetCreditPoolMembersRequest request = new GetCreditPoolMembersRequest(this.client, this.gson, this.id);
-        return request.request().getData();
+    public CompletableFuture<List<CreditPoolMember>> getMemberList() throws IOException {
+        return client.request(new GetCreditPoolMembersRequest(this.id));
     }
 
     /**
      * Get a list of servers in this pool
-     * @return array of pool servers
-     * @throws APIException connection or API errors
+     *
+     * @return list of pool servers
+     * @throws IOException connection errors
      */
-    public List<Server> getServerList() throws APIException {
-        GetCreditPoolServersRequest request = new GetCreditPoolServersRequest(this.client, this.gson, this.id);
-        List<Server> servers = request.request().getData();
-        for (Server server: servers) {
-            server.init(this.client, gson);
-        }
-        return servers;
+    public CompletableFuture<List<Server>> getServerList() throws IOException {
+        return client.request(new GetCreditPoolServersRequest(this.id));
     }
 
     /**
      * update properties from fetched object
+     *
      * @param pool pool fetched from the API
      * @return updated pool object
      */

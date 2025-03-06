@@ -1,5 +1,4 @@
 import com.exaroton.api.APIException;
-import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerFile;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +9,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,7 +21,7 @@ public class FileTest extends APIClientTest {
         ServerFile whitelist = server.getFile("whitelist.json");
         whitelist.putContent("[{\"name\":\"JulianVennen\", \"uuid\": \"abcd9e56-5ac2-490c-8bc9-6c1cad18f506\"}]");
         assertNotNull(whitelist);
-        assertNotNull(whitelist.getInfo());
+        assertNotNull(whitelist.get().join());
         assertFalse(whitelist.isConfigFile());
         assertTrue(whitelist.isTextFile());
         assertFalse(whitelist.isDirectory());
@@ -28,23 +29,25 @@ public class FileTest extends APIClientTest {
         assertTrue(whitelist.isReadable());
         assertTrue(whitelist.isWritable());
 
-        String content = whitelist.getContent();
+        String content = whitelist.getContent().join();
         assertNotNull(content);
 
         Path path = Paths.get("whitelist.json");
-        whitelist.download(path);
+        whitelist.download(path).join();
         try (FileInputStream input = new FileInputStream("whitelist.json")) {
             assertEquals(content,
                     new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.joining("\n")));
         }
 
-        whitelist.delete();
-        assertThrows(APIException.class, whitelist::getInfo);
-        whitelist.putContent("[]");
-        assertEquals("[]", whitelist.getContent());
+        whitelist.delete().join();
+        ExecutionException exception = assertThrows(ExecutionException.class, whitelist.get()::get);
+        assertInstanceOf(APIException.class, exception.getCause());
 
-        whitelist.upload(path);
-        assertEquals(content, whitelist.getContent());
+        whitelist.putContent("[]").join();
+        assertEquals("[]", whitelist.getContent().join());
+
+        whitelist.upload(path).join();
+        assertEquals(content, whitelist.getContent().join());
 
         Files.delete(path);
     }

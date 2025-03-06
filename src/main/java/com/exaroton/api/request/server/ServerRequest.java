@@ -13,7 +13,7 @@ public abstract class ServerRequest<Datatype> extends APIRequest<Datatype> {
     private final String serverId;
 
     public ServerRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String serverId) {
-        super(client, gson);
+        super();
         this.serverId = ParameterValidator.requireValidId(serverId);
     }
 

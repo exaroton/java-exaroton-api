@@ -1,5 +1,7 @@
 package com.exaroton.api.billing.pools;
 
+import org.jetbrains.annotations.ApiStatus;
+
 public class CreditPoolMember {
     /**
      * Unique ID of the account
@@ -23,6 +25,7 @@ public class CreditPoolMember {
      */
     private final boolean isOwner;
 
+    @ApiStatus.Internal
     public CreditPoolMember(String account, String name, double share, double credits, boolean isOwner) {
         this.account = account;
         this.name = name;

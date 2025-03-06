@@ -2,6 +2,7 @@ package com.exaroton.api.server.config.options;
 
 import com.exaroton.api.server.config.ConfigOption;
 import com.exaroton.api.server.config.OptionType;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Set;
 
@@ -9,6 +10,7 @@ import java.util.Set;
  * Base class for select and multi-select options
  * @param <T> value type (String or Set<String>)
  */
+@ApiStatus.NonExtendable
 public class BaseSelectOption<T> extends ConfigOption<T> {
     /**
      * List of all available options

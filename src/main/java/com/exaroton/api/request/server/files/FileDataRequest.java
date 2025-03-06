@@ -6,7 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
-public class FileDataRequest extends FileRequest<Object> {
+public class FileDataRequest extends FileRequest<Void> {
     public FileDataRequest(
             @NotNull ExarotonClient client,
             @NotNull Gson gson,
@@ -21,7 +21,7 @@ public class FileDataRequest extends FileRequest<Object> {
     }
 
     @Override
-    protected TypeToken<APIResponse<Object>> getType() {
-        return new TypeToken<APIResponse<Object>>(){};
+    protected TypeToken<APIResponse<Void>> getType() {
+        return new TypeToken<APIResponse<Void>>(){};
     }
 }

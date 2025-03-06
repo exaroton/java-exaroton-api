@@ -2,6 +2,7 @@ package com.exaroton.api.server;
 
 import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.Initializable;
 import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketManager;
 import com.exaroton.api.ws.stream.StreamName;
@@ -10,11 +11,13 @@ import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
-public final class Server {
+public final class Server implements Initializable {
 
     /**
      * has this server been fetched from the API yet
@@ -96,6 +99,7 @@ public final class Server {
      * @param gson   gson instance
      * @param id     server id
      */
+    @ApiStatus.Internal
     public Server(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String id) {
         this.fetched = false;
         this.client = Objects.requireNonNull(client);
@@ -181,13 +185,14 @@ public final class Server {
      * To retrieve the cached MOTD use {@link #getMotd()}
      *
      * @return server MOTD
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public ServerMOTDInfo fetchMotd() throws APIException {
-        GetServerMOTDRequest request = new GetServerMOTDRequest(this.client, this.gson, this.id);
-        ServerMOTDInfo motd = request.request().getData();
-        this.motd = motd.getMotd();
-        return motd;
+    public CompletableFuture<ServerMOTDInfo> fetchMotd() throws IOException {
+        return client.request(new GetServerMOTDRequest(this.client, this.gson, this.id))
+                .thenApply(data -> {
+                    this.motd = data.getMotd();
+                    return data;
+                });
     }
 
     /**
@@ -195,11 +200,14 @@ public final class Server {
      *
      * @param motd new server MOTD
      * @return updated server MOTD
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public ServerMOTDInfo setMotd(String motd) throws APIException {
-        SetServerMOTDRequest request = new SetServerMOTDRequest(this.client, this.gson, this.id, motd);
-        return request.request().getData();
+    public CompletableFuture<ServerMOTDInfo> setMotd(String motd) throws IOException {
+        return client.request(new SetServerMOTDRequest(this.client, this.gson, this.id, motd))
+                .thenApply(data -> {
+                    this.motd = data.getMotd();
+                    return data;
+                });
     }
 
     /**
@@ -265,46 +273,45 @@ public final class Server {
      * Fetch the server from the API
      *
      * @return full server
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public Server get() throws APIException {
-        this.fetched = true;
-        GetServerRequest request = new GetServerRequest(this.client, this.gson, this.id);
-        this.setFromObject(request.request().getData());
-        return this;
+    public CompletableFuture<Server> get() throws IOException {
+        return client.request(new GetServerRequest(this.client, this.gson, this.id))
+                .thenApply(data -> {
+                    this.fetched = true;
+                    this.setFromObject(data);
+                    return this;
+                });
     }
 
     /**
      * Get the current server log
      *
      * @return server log
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public ServerLog getLog() throws APIException {
-        GetServerLogsRequest request = new GetServerLogsRequest(this.client, this.gson, this.id);
-        return request.request().getData();
+    public CompletableFuture<ServerLog> getLog() throws IOException {
+        return client.request(new GetServerLogsRequest(this.client, this.gson, this.id));
     }
 
     /**
      * Share the server log to mclo.gs
      *
      * @return mclogs response
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public MclogsData shareLog() throws APIException {
-        ShareServerLogsRequest request = new ShareServerLogsRequest(this.client, this.gson, this.id);
-        return request.request().getData();
+    public CompletableFuture<MclogsData> shareLog() throws IOException {
+        return client.request(new ShareServerLogsRequest(this.client, this.gson, this.id));
     }
 
     /**
      * Get the server RAM
      *
      * @return ram info
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public ServerRAMInfo getRAM() throws APIException {
-        GetServerRAMRequest request = new GetServerRAMRequest(this.client, this.gson, this.id);
-        return request.request().getData();
+    public CompletableFuture<ServerRAMInfo> getRAM() throws IOException {
+        return client.request(new GetServerRAMRequest(this.client, this.gson, this.id));
     }
 
     /**
@@ -312,21 +319,20 @@ public final class Server {
      *
      * @param ram new RAM in GB
      * @return new ram info
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public ServerRAMInfo setRAM(int ram) throws APIException {
-        SetServerRAMRequest request = new SetServerRAMRequest(this.client, this.gson, this.id, ram);
-        return request.request().getData();
+    public CompletableFuture<ServerRAMInfo> setRAM(int ram) throws IOException {
+        return client.request(new SetServerRAMRequest(this.client, this.gson, this.id, ram));
     }
 
     /**
-     * Start the server
-     * Equivalent to {@link #start(boolean)} with useOwnCredits = false
+     * Start the server. Equivalent to {@link #start(boolean)} with useOwnCredits = false.
      *
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
+     * @return Completable future with an updated server object. This future completes after the request, not once the server has started.
      */
-    public void start() throws APIException {
-        this.start(false);
+    public CompletableFuture<Server> start() throws IOException {
+        return this.start(false);
     }
 
 
@@ -334,72 +340,84 @@ public final class Server {
      * Start the server
      *
      * @param useOwnCredits use the credits of the account that created the API key instead of the server owner's credits
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
+     * @return Completable future with an updated server object. This future completes after the request, not once the server has started.
      */
-    public void start(boolean useOwnCredits) throws APIException {
-        StartServerRequest request = new StartServerRequest(this.client, this.gson, this.id, useOwnCredits);
-        request.request();
+    public CompletableFuture<Server> start(boolean useOwnCredits) throws IOException {
+        return client.request(new StartServerRequest(this.client, this.gson, this.id, useOwnCredits))
+                .thenApply(data -> {;
+                    this.setFromObject(data);
+                    return this;
+                });
     }
 
     /**
      * Stop the server
      *
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
+     * @return Completable future with an updated server object. This future completes after the request, not once the server has stopped.
      */
-    public void stop() throws APIException {
-        StopServerRequest request = new StopServerRequest(this.client, this.gson, this.id);
-        request.request();
+    public CompletableFuture<Server> stop() throws IOException {
+        return client.request(new StopServerRequest(this.client, this.gson, this.id))
+                .thenApply(server -> {
+                    this.setFromObject(server);
+                    return this;
+                });
     }
 
     /**
      * Restart the server
      *
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
+     * @return Completable future with an updated server object. This future completes after the request, not once the server has restarted.
      */
-    public void restart() throws APIException {
-        RestartServerRequest request = new RestartServerRequest(this.client, this.gson, this.id);
-        request.request();
+    public CompletableFuture<Server> restart() throws IOException {
+        return client.request(new RestartServerRequest(this.client, this.gson, this.id))
+                .thenApply(server -> {
+                    this.setFromObject(server);
+                    return this;
+                });
     }
 
     /**
-     * Execute a server command
+     * Execute a server command. If a websocket connection with the console stream is active the command will be sent via the websocket.
      *
      * @param command command that will be sent to the console
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public void executeCommand(String command) throws APIException {
-        if (this.webSocket == null || !this.webSocket.executeCommand(command)) {
-            ExecuteCommandRequest request = new ExecuteCommandRequest(this.client, this.gson, this.id, command);
-            request.request();
+    public CompletableFuture<Void> executeCommand(String command) throws IOException {
+        if (this.webSocket != null && this.webSocket.executeCommand(command)) {
+            return CompletableFuture.completedFuture(null);
         }
+        return client.request(new ExecuteCommandRequest(this.client, this.gson, this.id, command));
     }
 
     /**
      * Get a list of available player lists
      *
      * @return available player lists
-     * @throws APIException connection or API errors
+     * @throws IOException connection errors
      */
-    public List<String> getPlayerLists() throws APIException {
-        GetPlayerListsRequest request = new GetPlayerListsRequest(this.client, this.gson, this.id);
-        return request.request().getData();
+    public CompletableFuture<List<String>> getPlayerLists() throws IOException {
+        return client.request(new GetPlayerListsRequest(this.client, this.gson, this.id));
     }
 
     /**
-     * get a file
+     * Get a file. This method does not request any data of the file.
      *
      * @param path file path
-     * @return octet stream
+     * @return empty ServerFile object
+     * @see ServerFile#get()
      */
     public ServerFile getFile(String path) {
         return new ServerFile(this.client, this.gson, this, path);
     }
 
     /**
-     * get a player list
+     * Get a player list.
      *
-     * @param name player list name (see getPlayerLists())
-     * @return empty player list
+     * @param name player list name (see {@link #getPlayerLists()})
+     * @return player list
      */
     public PlayerList getPlayerList(String name) {
         return new PlayerList(this.client, this.gson, this.id, name);
@@ -432,7 +450,8 @@ public final class Server {
      * @param gson   gson instance used for (de-)serialization
      */
     @ApiStatus.Internal
-    public void init(@NotNull ExarotonClient client, @NotNull Gson gson) {
+    @Override
+    public void initialize(@NotNull ExarotonClient client, @NotNull Gson gson) {
         this.client = Objects.requireNonNull(client);
         this.gson = Objects.requireNonNull(gson);
         this.fetched = true;

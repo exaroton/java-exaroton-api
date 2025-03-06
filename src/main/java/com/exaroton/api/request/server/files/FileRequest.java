@@ -14,7 +14,7 @@ public abstract class FileRequest<T> extends APIRequest<T> {
     protected final String path;
 
     public FileRequest(@NotNull ExarotonClient client, @NotNull Gson gson, @NotNull String serverId, @NotNull String path) {
-        super(client, gson);
+        super();
         this.serverId = ParameterValidator.requireValidId(serverId);
         this.path = Objects.requireNonNull(path, "path can not be null");
     }
