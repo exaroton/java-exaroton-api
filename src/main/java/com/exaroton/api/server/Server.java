@@ -452,6 +452,10 @@ public final class Server implements Initializable {
      * subscribe to websocket events
      */
     public void subscribe() {
+        if (this.webSocket != null) {
+            throw new IllegalStateException("Websocket connection already active.");
+        }
+
         String protocol = this.client.getProtocol().equals("https") ? "wss" : "ws";
         String uri = protocol + "://" + this.client.getHost() + this.client.getBasePath() + "servers/" + this.id + "/websocket";
         this.webSocket = new WebSocketManager(gson, uri, this.client.getApiToken(), this);

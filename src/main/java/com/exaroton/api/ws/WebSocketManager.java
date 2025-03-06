@@ -8,13 +8,19 @@ import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-@ApiStatus.Internal
 public final class WebSocketManager {
+    /**
+     * logger
+     */
+    private final Logger logger =  LoggerFactory.getLogger("java-exaroton-api");
+
     private final Gson gson;
 
     private final WebSocketClient client;
@@ -43,10 +49,14 @@ public final class WebSocketManager {
      */
     private final Server server;
 
-    private ErrorListener errorListener = null;
-
-    private DebugListener debugListener = null;
-
+    /**
+     * To obtain a websocket connection use {@link Server#subscribe()} and {@link Server#getWebSocket()}
+     * @param gson gson instance
+     * @param uri websocket uri
+     * @param apiToken exaroton api token
+     * @param server exaroton server
+     */
+    @ApiStatus.Internal
     public WebSocketManager(
             @NotNull Gson gson,
             @NotNull String uri,
@@ -56,7 +66,7 @@ public final class WebSocketManager {
         this.gson = Objects.requireNonNull(gson);
         try {
             URI u = new URI(Objects.requireNonNull(uri));
-            this.client = new WebSocketClient(u, this, gson);
+            this.client = new WebSocketClient(u, logger, this);
         } catch (URISyntaxException e) {
             throw new RuntimeException("Failed to connect to websocket", e);
         }
@@ -73,6 +83,7 @@ public final class WebSocketManager {
      * @param type    message type
      * @param message raw message
      */
+    @ApiStatus.Internal
     public void handleData(String type, String message) {
         final StreamName name = StreamName.get(type);
         final Stream stream = streams.get(name);
@@ -140,14 +151,13 @@ public final class WebSocketManager {
      * handle closed websocket connection
      * reconnect if enabled
      *
-     * @param code   disconnect code
-     * @param reason disconnect reason
      * @param remote closing side
      */
-    public void handleClose(int code, String reason, boolean remote) {
+    @ApiStatus.Internal
+    public void handleClose(boolean remote) {
         if (remote && this.shouldAutoReconnect()) {
             reconnectTimer = new Timer();
-            this.sendDebug("Reconnecting in 5s");
+            logger.debug("Reconnecting in 5s");
             reconnectTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -160,6 +170,7 @@ public final class WebSocketManager {
     /**
      * handle an opened connection
      */
+    @ApiStatus.Internal
     public void handleOpen() {
         if (this.reconnectTimer != null) this.reconnectTimer.cancel();
     }
@@ -273,6 +284,7 @@ public final class WebSocketManager {
      *
      * @param data web socket message
      */
+    @ApiStatus.Internal
     public void sendWhenReady(String data) {
         if (this.ready) {
             this.client.send(data);
@@ -329,39 +341,5 @@ public final class WebSocketManager {
             }
         }
         return this.server.hasStatus(status);
-    }
-
-    /**
-     * Listen to websocket errors
-     *
-     * @param errorListener the only error listener
-     */
-    public void setErrorListener(ErrorListener errorListener) {
-        this.errorListener = errorListener;
-    }
-
-    /**
-     * listen to websocket debug information
-     *
-     * @param debugListener the only debug listener
-     */
-    public void setDebugListener(DebugListener debugListener) {
-        this.debugListener = debugListener;
-    }
-
-    /**
-     * send debug information to listeners
-     */
-    void sendDebug(String message) {
-        if (this.debugListener != null) {
-            this.debugListener.onDebug(message);
-        }
-    }
-
-    /**
-     * send error to listeners
-     */
-    void onError(String error, Throwable throwable) {
-        this.errorListener.onError(error, throwable);
     }
 }

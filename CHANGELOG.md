@@ -47,6 +47,8 @@ string or object.
 - Removed `ExarotonClient#getBaseUrl()` and `ExarotonClient#createConnection(String, String)`
 - Many classes are now final
 - Added `ApiStatus` annotations to many classes and methods
+- Removed debug/error handler from `WebsocketManager` and `WebsocketClient`. Errors and debug messages are now
+  exclusively logged using SLF4J
 
 ## Improvements
 - Update dependencies

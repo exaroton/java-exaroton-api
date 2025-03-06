@@ -1,18 +1,18 @@
 package com.exaroton.api.ws;
 
-import com.exaroton.api.ExarotonClient;
-import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import org.java_websocket.handshake.ServerHandshake;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
-public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
+@ApiStatus.Internal
+public final class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     /**
      * logger
      */
-    private final Logger logger =  LoggerFactory.getLogger("java-exaroton-api");
+    private final Logger logger;
 
     /**
      * WebSocketManager
@@ -20,50 +20,46 @@ public class WebSocketClient extends org.java_websocket.client.WebSocketClient {
     private final WebSocketManager manager;
 
     /**
-     * Gson instance for (de-)serialization
-     */
-    private final Gson gson;
-
-    /**
      * @param uri websocket uri
      * @param manager websocket manager
      */
-    public WebSocketClient(URI uri, WebSocketManager manager, Gson gson) {
+    public WebSocketClient(URI uri, Logger logger, WebSocketManager manager) {
         super(uri);
+        this.logger = logger;
         this.manager = manager;
-        this.gson = gson;
     }
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        manager.sendDebug("Websocket opened with status " + handshakedata.getHttpStatus() + ": " + handshakedata.getHttpStatusMessage());
+        logger.debug("Websocket opened with status {}: {}", handshakedata.getHttpStatus(), handshakedata.getHttpStatusMessage());
         manager.handleOpen();
     }
 
     @Override
     public void onMessage(String message) {
-        WSMessage m = gson.fromJson(message, WSMessage.class);
-        switch (m.getType()) {
-
+        var type = JsonParser.parseString(message)
+                .getAsJsonObject()
+                .get("type")
+                .getAsString();
+        switch (type) {
             case "connected":
             case "keep-alive":
             case "disconnected":
                 break;
 
             default:
-                manager.handleData(m.getType(), message);
+                manager.handleData(type, message);
         }
     }
 
     @Override
     public void onError(Exception ex) {
         logger.error("A websocket error ocurred", ex);
-        manager.onError("A websocket error ocurred: " + ex.getMessage(), ex);
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        manager.sendDebug("Websocket closed with code " + code + ": " + reason);
-        manager.handleClose(code, reason, remote);
+        logger.debug("Websocket closed with code {}: {}", code, reason);
+        manager.handleClose(remote);
     }
 }
