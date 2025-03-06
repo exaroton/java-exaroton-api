@@ -40,8 +40,12 @@ string or object.
 The `java-websocket` library has been replaced by the built-in Java 11 websocket implementation. Unless you were using
 the `WebSocketClient` or `WebSocketManager` classes directly this shouldn't require any changes to your code.
 
+`Server#subscribe` and `Server#unsubscribe` now accept the `StreamName` enum instead of any string
+
+The debug/error handler methods have been removed. Errors and debug messages are now  exclusively logged using SLF4J
+
+
 ### Other
-- `Server#subscribe` and `Server#unsubscribe` now accept the `StreamName` enum instead of any string
 - Arrays have been Replaced by Collection's in almost all places
 - Config options now return a generic type instead of `Object`
 - Renamed `ServerFile#getInfo` to `ServerFile#get`
@@ -50,8 +54,6 @@ the `WebSocketClient` or `WebSocketManager` classes directly this shouldn't requ
 - Removed `ExarotonClient#getBaseUrl()` and `ExarotonClient#createConnection(String, String)`
 - Many classes are now final
 - Added `ApiStatus` annotations to many classes and methods
-- Removed debug/error handler from `WebsocketManager` and `WebsocketClient`. Errors and debug messages are now
-  exclusively logged using SLF4J
 - Removed `ExarotonClient#getApiToken()`
 
 ## Improvements

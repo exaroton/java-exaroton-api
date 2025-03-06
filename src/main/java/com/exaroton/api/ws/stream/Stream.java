@@ -5,51 +5,64 @@ import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.data.StreamData;
 import com.exaroton.api.ws.subscriber.Subscriber;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.NonExtendable
-public class Stream {
+public abstract class Stream<T extends Subscriber> {
 
+    /**
+     * Has this stream been started?
+     */
+    private boolean started;
+
+    /**
+     * Should this stream be started when the server is ready?
+     */
     private boolean shouldStart;
 
     /**
      * subscribers of this stream
      */
-    public final List<Subscriber> subscribers = new ArrayList<>();
+    protected final List<T> subscribers = new ArrayList<>();
 
     /**
      * web socket client
      */
-    private final WebSocketConnection ws;
+    protected final WebSocketConnection ws;
 
     /**
      * Gson instance for (de-)serialization
      */
-    private final Gson gson;
-
-    /**
-     * stream name
-     */
-    private final StreamName name;
+    protected final Gson gson;
 
     @ApiStatus.Internal
-    public Stream(@NotNull WebSocketConnection ws, @NotNull Gson gson, @NotNull StreamName name) {
+    public Stream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
         this.ws = Objects.requireNonNull(ws);
         this.gson = Objects.requireNonNull(gson);
-        this.name = name;
+    }
+
+    /**
+     * Add a subscriber to this stream
+     * @param subscriber subscriber
+     */
+    public void addSubscriber(T subscriber) {
+        this.subscribers.add(subscriber);
     }
 
     /**
      * send stream data through the websocket
      * @param type message type
      */
+    @ApiStatus.Internal
     public void send(String type) {
-        ws.sendWhenReady(gson.toJson(new StreamData<>(this.name.getValue(), type)));
+        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type)));
     }
 
     /**
@@ -57,31 +70,53 @@ public class Stream {
      * @param type message type
      * @param data message data
      */
+    @ApiStatus.Internal
     public void send(String type, String data) {
-        ws.sendWhenReady(gson.toJson(new StreamData<>(this.name.getValue(), type, data)));
+        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type, data)));
     }
 
     /**
-     * start stream
+     * Handle a message of this stream
+     * @param type message type
+     * @param message message data
      */
-    public void start() {
-        this.shouldStart = true;
-        this.tryToStart();
-    }
+    @ApiStatus.Internal
+    public void onMessage(String type, JsonObject message) {
+        switch (type) {
+            case "started":
+                this.started = true;
+                break;
 
-    public void tryToStart() {
-        if (shouldBeStarted()) {
-            this.send("start");
+            case "stopped":
+                this.started = false;
+                break;
+
+            default:
+                this.onDataMessage(type, message);
         }
     }
 
-    public void onStatusChange() {
-        this.tryToStart();
-        this.tryToStop();
+    protected abstract void onDataMessage(String type, JsonObject message);
+
+    protected abstract StreamType getType();
+
+    @ApiStatus.Internal
+    public void onDisconnected() {
+        this.started = false;
     }
 
-    protected boolean shouldBeStarted() {
-        return this.shouldStart && ws.serverHasStatus(
+    @ApiStatus.Internal
+    public void onStatusChange() {
+        this.tryToStart().thenCompose(x -> this.tryToStop());
+    }
+
+    @ApiStatus.Internal
+    protected CompletableFuture<Boolean> shouldBeStarted() {
+        if (!this.shouldStart) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        return ws.serverHasStatus(
                 ServerStatus.ONLINE,
                 ServerStatus.STARTING,
                 ServerStatus.STOPPING,
@@ -90,16 +125,46 @@ public class Stream {
     }
 
     /**
+     * start stream
+     */
+    @ApiStatus.Internal
+    public void start() {
+        this.shouldStart = true;
+        this.tryToStart();
+    }
+
+    @ApiStatus.Internal
+    public CompletableFuture<Void> tryToStart() {
+        if (started || !ws.isReady()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return shouldBeStarted().thenAccept(shouldBeStarted -> {
+            if (shouldBeStarted) {
+                this.send("start");
+            }
+        });
+    }
+
+    /**
      * stop stream
      */
+    @ApiStatus.Internal
     public void stop() {
         this.shouldStart = false;
         this.tryToStop();
     }
 
-    public void tryToStop() {
-        if (!shouldBeStarted()) {
-            this.send("stop");
+    @ApiStatus.Internal
+    public CompletableFuture<Void> tryToStop() {
+        if (!this.started) {
+            return CompletableFuture.completedFuture(null);
         }
+
+        return this.shouldBeStarted().thenAccept(shouldBeStarted -> {
+            if (!shouldBeStarted) {
+                this.send("stop");
+            }
+        });
     }
 }

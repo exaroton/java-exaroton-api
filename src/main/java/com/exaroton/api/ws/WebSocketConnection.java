@@ -2,11 +2,9 @@ package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerStatus;
-import com.exaroton.api.ws.data.*;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +55,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
     /**
      * active streams
      */
-    private final Map<StreamName, Stream> streams = new HashMap<>();
+    private final Map<Class<? extends Stream<?>>, Stream<?>> streams = new HashMap<>();
 
     @NotNull
     private final String apiToken;
@@ -88,7 +86,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         this.uri = uri;
         this.apiToken = apiToken;
         this.server = Objects.requireNonNull(server);
-        this.streams.put(StreamName.STATUS, new Stream(this, this.gson, StreamName.STATUS));
+        this.streams.put(ServerStatusStream.class, new ServerStatusStream(this, this.gson).setServer(server));
 
         connect();
     }
@@ -98,21 +96,15 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      *
      * @param name stream name
      */
-    public void subscribe(@NotNull StreamName name) {
+    public void subscribe(@NotNull StreamType name) {
         Objects.requireNonNull(name);
 
-        if (streams.containsKey(name)) {
+        if (streams.containsKey(name.getStreamClass())) {
             return;
         }
 
-        Stream stream;
-        if (name == StreamName.CONSOLE) {
-            stream = new ConsoleStream(this, this.gson);
-        } else {
-            stream = new Stream(this, this.gson, name);
-        }
-
-        this.streams.put(name, stream);
+        Stream<?> stream = name.construct(this, gson);
+        this.streams.put(name.getStreamClass(), stream);
         stream.start();
     }
 
@@ -121,13 +113,13 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      *
      * @param name stream name
      */
-    public void unsubscribe(@NotNull StreamName name) {
+    public void unsubscribe(@NotNull StreamType name) {
         Objects.requireNonNull(name);
 
-        Stream stream = this.streams.get(name);
+        Stream<?> stream = this.streams.get(name.getStreamClass());
         if (stream != null) {
             stream.stop();
-            this.streams.remove(name);
+            this.streams.remove(name.getStreamClass());
         }
     }
 
@@ -137,7 +129,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      * @param subscriber instance of class handling server status changes
      */
     public void addServerStatusSubscriber(ServerStatusSubscriber subscriber) {
-        this.streams.get(StreamName.STATUS).subscribers.add(subscriber);
+        this.addStreamSubscriber(ServerStatusStream.class, subscriber);
     }
 
     /**
@@ -146,7 +138,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      * @param subscriber instance of class handling new console lines
      */
     public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        this.addStreamSubscriber(StreamName.CONSOLE, subscriber);
+        this.addStreamSubscriber(ConsoleStream.class, subscriber);
     }
 
     /**
@@ -155,7 +147,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      * @param subscriber instance of class handling heap data
      */
     public void addHeapSubscriber(HeapSubscriber subscriber) {
-        this.addStreamSubscriber(StreamName.HEAP, subscriber);
+        this.addStreamSubscriber(HeapStream.class, subscriber);
     }
 
     /**
@@ -164,7 +156,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      * @param subscriber instance of class handling stats
      */
     public void addStatsSubscriber(StatsSubscriber subscriber) {
-        this.addStreamSubscriber(StreamName.STATS, subscriber);
+        this.addStreamSubscriber(StatsStream.class, subscriber);
     }
 
     /**
@@ -173,7 +165,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      * @param subscriber instance of class handling stats
      */
     public void addTickSubscriber(TickSubscriber subscriber) {
-        this.addStreamSubscriber(StreamName.TICK, subscriber);
+        this.addStreamSubscriber(TickStream.class, subscriber);
     }
 
     /**
@@ -183,9 +175,9 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
      * @return was the command executed
      */
     public boolean executeCommand(String command) {
-        Stream s = this.streams.get(StreamName.CONSOLE);
-        if (s instanceof ConsoleStream) {
-            ((ConsoleStream) s).executeCommand(command);
+        ConsoleStream stream = this.getStream(ConsoleStream.class);
+        if (stream != null) {
+            stream.executeCommand(command);
             return true;
         }
 
@@ -236,9 +228,17 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         return future.thenApply(s -> s.hasStatus(status));
     }
 
-    private void addStreamSubscriber(StreamName name, Subscriber subscriber) {
-        if (!this.streams.containsKey(name)) throw new RuntimeException("There is no active stream for: " + name);
-        this.streams.get(name).subscribers.add(subscriber);
+    private <T extends Subscriber> void addStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
+        if (!this.streams.containsKey(c)) {
+            throw new IllegalStateException("There is no active stream for: " + c);
+        }
+
+        getStream(c).addSubscriber(subscriber);
+    }
+
+    private <T extends Stream<?>> T getStream(Class<T> c) {
+        @SuppressWarnings("unchecked") T stream = (T) this.streams.get(c);
+        return stream;
     }
 
     private void connect() {
@@ -284,78 +284,21 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
                 this.messages.clear();
 
             default:
-                handleData(type, message);
+                final StreamType name = StreamType.get(message.get("stream").getAsString());
+                final Stream<?> stream = streams.get(name.getStreamClass());
+                if (stream != null) {
+                    stream.onMessage(type, message);
+                }
         }
 
         return null;
     }
 
-    /**
-     * handle websocket data
-     *
-     * @param type    message type
-     * @param message raw message
-     */
-    private void handleData(String type, JsonObject message) {
-        final StreamName name = StreamName.get(type);
-        final Stream stream = streams.get(name);
-
-        if (stream == null) {
-            return;
-        }
-
-        switch (type) {
-            case "status":
-                Server oldServer = new Server(server.getClient(), gson, server.getId()).setFromObject(server);
-                this.server.setFromObject(gson.fromJson(message, ServerStatusStreamData.class).getData());
-
-                //start/stop streams based on status
-                for (Stream s : streams.values()) {
-                    s.onStatusChange();
-                }
-
-                for (Subscriber subscriber : stream.subscribers) {
-                    if (subscriber instanceof ServerStatusSubscriber) {
-                        ((ServerStatusSubscriber) subscriber).statusUpdate(oldServer, this.server);
-                    }
-                }
-                break;
-
-            case "line":
-                String line = gson.fromJson(message, ConsoleStreamData.class).getData();
-                for (Subscriber subscriber : stream.subscribers) {
-                    if (subscriber instanceof ConsoleSubscriber) {
-                        ((ConsoleSubscriber) subscriber).line(line);
-                    }
-                }
-                break;
-
-            case "heap":
-                HeapUsage usage = gson.fromJson(message, HeapStreamData.class).getData();
-                for (Subscriber subscriber : stream.subscribers) {
-                    if (subscriber instanceof HeapSubscriber) {
-                        ((HeapSubscriber) subscriber).heap(usage);
-                    }
-                }
-                break;
-
-            case "stats":
-                StatsData stats = gson.fromJson(message, StatsStreamData.class).getData();
-                for (Subscriber subscriber : stream.subscribers) {
-                    if (subscriber instanceof StatsSubscriber) {
-                        ((StatsSubscriber) subscriber).stats(stats);
-                    }
-                }
-                break;
-
-            case "tick":
-                TickData tick = gson.fromJson(message, TickStreamData.class).getData();
-                for (Subscriber subscriber : stream.subscribers) {
-                    if (subscriber instanceof TickSubscriber) {
-                        ((TickSubscriber) subscriber).tick(tick);
-                    }
-                }
-                break;
+    @ApiStatus.Internal
+    public void onStatusChange() {
+        // start/stop streams based on status
+        for (Stream<?> s : streams.values()) {
+            s.onStatusChange();
         }
     }
 
@@ -363,6 +306,10 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
     @Override
     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
         logger.info("Websocket connection to {} closed: {} {}", uri, statusCode, reason);
+
+        for (Stream<?> stream : streams.values()) {
+            stream.onDisconnected();
+        }
 
         if (this.shouldAutoReconnect()) {
             reconnectTimer = new Timer();
@@ -404,5 +351,9 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         if (this.client != null) {
             this.client.sendClose(0, "unsubscribe");
         }
+    }
+
+    public boolean isReady() {
+        return ready;
     }
 }
