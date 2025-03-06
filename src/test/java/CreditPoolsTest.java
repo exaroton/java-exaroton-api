@@ -39,6 +39,22 @@ public class CreditPoolsTest extends APIClientTest {
     }
 
     @Test
+    public void testGetPoolCache() throws IOException {
+        CreditPool pool = client.getCreditPool(TEST_POOL_ID);
+
+        var future = pool.fetch(false);
+        Assertions.assertFalse(future.isDone());
+        Assertions.assertNull(future.getNow(null));
+
+        checkTestPool(pool.fetch().join());
+        checkTestPool(pool);
+
+        future = pool.fetch(false);
+        Assertions.assertTrue(future.isDone());
+        checkTestPool(future.getNow(null));
+    }
+
+    @Test
     public void testGetPoolMembers() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
         List<CreditPoolMember> members = pool.getMemberList().join();
@@ -48,6 +64,7 @@ public class CreditPoolsTest extends APIClientTest {
         Optional<CreditPoolMember> owner = members.stream().filter(CreditPoolMember::isOwner).findFirst();
         Assertions.assertTrue(owner.isPresent());
         Assertions.assertNotNull(owner.get().getAccount());
+        Assertions.assertNotNull(owner.get().getName());
         Assertions.assertTrue(owner.get().isOwner());
         Assertions.assertTrue(owner.get().getCredits() > 100, "Expected owner to have more than 100 credits, got " + owner.get().getCredits());
         Assertions.assertEquals(1, owner.get().getShare());

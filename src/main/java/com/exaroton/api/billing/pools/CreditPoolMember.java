@@ -1,38 +1,28 @@
 package com.exaroton.api.billing.pools;
 
-import org.jetbrains.annotations.ApiStatus;
-
+@SuppressWarnings("unused")
 public class CreditPoolMember {
     /**
      * Unique ID of the account
      */
-    private final String account;
+    private String account;
     /**
      * Unique (but changeable) display name of the account.
      */
-    private final String name;
+    private String name;
     /**
      * The share of credits in the pool that belong to the account.
      * e.g. 0.5 means the account owns 50% of the credits in the pool.
      */
-    private final double share;
+    private double share;
     /**
      * The amount of credits in the pool that belong to the account.
      */
-    private final double credits;
+    private double credits;
     /**
      * Is the account the owner of the pool
      */
-    private final boolean isOwner;
-
-    @ApiStatus.Internal
-    public CreditPoolMember(String account, String name, double share, double credits, boolean isOwner) {
-        this.account = account;
-        this.name = name;
-        this.share = share;
-        this.credits = credits;
-        this.isOwner = isOwner;
-    }
+    private boolean isOwner;
 
     /**
      * @return unique ID of the account
