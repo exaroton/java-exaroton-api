@@ -279,8 +279,7 @@ public final class Server implements Initializable {
         return client.request(new GetServerRequest(this.client, this.gson, this.id))
                 .thenApply(data -> {
                     this.fetched = true;
-                    this.setFromObject(data);
-                    return this;
+                    return this.setFromObject(data);
                 });
     }
 
@@ -345,10 +344,7 @@ public final class Server implements Initializable {
      */
     public CompletableFuture<Server> start(boolean useOwnCredits) throws IOException {
         return client.request(new StartServerRequest(this.client, this.gson, this.id, useOwnCredits))
-                .thenApply(data -> {;
-                    this.setFromObject(data);
-                    return this;
-                });
+                .thenApply(this::setFromObject);
     }
 
     /**
@@ -359,10 +355,7 @@ public final class Server implements Initializable {
      */
     public CompletableFuture<Server> stop() throws IOException {
         return client.request(new StopServerRequest(this.client, this.gson, this.id))
-                .thenApply(server -> {
-                    this.setFromObject(server);
-                    return this;
-                });
+                .thenApply(this::setFromObject);
     }
 
     /**
@@ -373,10 +366,7 @@ public final class Server implements Initializable {
      */
     public CompletableFuture<Server> restart() throws IOException {
         return client.request(new RestartServerRequest(this.client, this.gson, this.id))
-                .thenApply(server -> {
-                    this.setFromObject(server);
-                    return this;
-                });
+                .thenApply(this::setFromObject);
     }
 
     /**
@@ -429,6 +419,7 @@ public final class Server implements Initializable {
      * @param server server fetched from the API
      * @return updated server object
      */
+    @ApiStatus.Internal
     public Server setFromObject(Server server) {
         this.id = server.getId();
         this.name = server.getName();

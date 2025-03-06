@@ -89,8 +89,7 @@ public final class WebSocketManager {
                 break;
 
             case "status":
-                Server oldServer = new Server(server.getClient(), gson, server.getId())
-                        .setFromObject(server);
+                Server oldServer = new Server(server.getClient(), gson, server.getId()).setFromObject(server);
                 this.server.setFromObject(gson.fromJson(message, ServerStatusStreamData.class).getData());
 
                 //start/stop streams based on status

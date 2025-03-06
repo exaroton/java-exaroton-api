@@ -67,10 +67,7 @@ public final class ServerFile {
      */
     public CompletableFuture<ServerFile> get() throws IOException {
         return client.request(new GetFileInfoRequest(this.client, this.gson, this.server.getId(), this.path))
-                .thenApply(data -> {
-                    this.setFromObject(data);
-                    return this;
-                });
+                .thenApply(this::setFromObject);
     }
 
     /**
@@ -269,7 +266,7 @@ public final class ServerFile {
      * @param file file fetched from the API
      * @return updated file object
      */
-    public ServerFile setFromObject(ServerFile file) {
+    private ServerFile setFromObject(ServerFile file) {
         if (file.path != null) {
             this.setPath(path);
         }
