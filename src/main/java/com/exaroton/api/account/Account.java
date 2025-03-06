@@ -1,36 +1,27 @@
 package com.exaroton.api.account;
 
-import org.jetbrains.annotations.ApiStatus;
-
+@SuppressWarnings("unused")
 public class Account {
 
     /**
      * Username
      */
-    public final String name;
+    private String name;
 
     /**
      * email address
      */
-    public final String email;
+    private String email;
 
     /**
      * is the email address verified
      */
-    public final boolean verified;
+    private boolean verified;
 
     /**
      * credit count
      */
-    private final double credits;
-
-    @ApiStatus.Internal
-    public Account(String name, String email, boolean verified, int credits) {
-        this.name = name;
-        this.email = email;
-        this.verified = verified;
-        this.credits = credits;
-    }
+    private double credits;
 
     public String getName() {
         return name;

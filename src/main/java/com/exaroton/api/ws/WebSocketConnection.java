@@ -220,7 +220,7 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         CompletableFuture<Server> future = CompletableFuture.completedFuture(server);
         if (!this.server.isFetched()) {
             try {
-                future = this.server.get();
+                future = this.server.fetch();
             } catch (IOException e) {
                 logger.error("Failed to fetch server status", e);
             }

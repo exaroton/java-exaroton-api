@@ -9,6 +9,7 @@ import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,7 +22,7 @@ public final class Server implements Initializable {
     /**
      * has this server been fetched from the API yet
      */
-    private boolean fetched = false;
+    private boolean fetched;
 
     /**
      * Unique server ID
@@ -84,6 +85,7 @@ public final class Server implements Initializable {
     /**
      * web socket client
      */
+    @Nullable
     private transient WebSocketConnection webSocket;
 
     /**
@@ -106,21 +108,22 @@ public final class Server implements Initializable {
     }
 
     /**
-     * Check if this server has been fetched from the API.
-     * If not, some methods may not work as expected.
-     * @return true if the server has been fetched
-     */
-    public boolean isFetched() {
-        return fetched;
-    }
-
-    /**
      * Get the server id
      *
      * @return unique server id (tgkm731xO7GiHt76)
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Check if this server has been fetched from the API.
+     * If not, some methods may not work as expected.
+     *
+     * @return true if the server has been fetched
+     */
+    public boolean isFetched() {
+        return fetched;
     }
 
     /**
@@ -162,6 +165,7 @@ public final class Server implements Initializable {
 
     /**
      * check if the server has one of the given statuses
+     *
      * @param status status
      * @return true if the status matches
      */
@@ -270,12 +274,21 @@ public final class Server implements Initializable {
     /**
      * Fetch the server from the API
      *
-     * @return full server
+     * @param force always fetch the server even if it has already been fetched
+     * @return the server object with updated properties
      * @throws IOException connection errors
      */
-    public CompletableFuture<Server> get() throws IOException {
+    public CompletableFuture<Server> fetch(boolean force) throws IOException {
+        if (!force && isFetched()) {
+            return CompletableFuture.completedFuture(this);
+        }
+
         return client.request(new GetServerRequest(this.client, this.gson, this.id))
                 .thenApply(this::setFromObject);
+    }
+
+    public CompletableFuture<Server> fetch() throws IOException {
+        return fetch(true);
     }
 
     /**
@@ -322,8 +335,8 @@ public final class Server implements Initializable {
     /**
      * Start the server. Equivalent to {@link #start(boolean)} with useOwnCredits = false.
      *
-     * @throws IOException connection errors
      * @return Completable future with an updated server object. This future completes after the request, not once the server has started.
+     * @throws IOException connection errors
      */
     public CompletableFuture<Server> start() throws IOException {
         return this.start(false);
@@ -334,8 +347,8 @@ public final class Server implements Initializable {
      * Start the server
      *
      * @param useOwnCredits use the credits of the account that created the API key instead of the server owner's credits
-     * @throws IOException connection errors
      * @return Completable future with an updated server object. This future completes after the request, not once the server has started.
+     * @throws IOException connection errors
      */
     public CompletableFuture<Server> start(boolean useOwnCredits) throws IOException {
         return client.request(new StartServerRequest(this.client, this.gson, this.id, useOwnCredits))
@@ -345,8 +358,8 @@ public final class Server implements Initializable {
     /**
      * Stop the server
      *
-     * @throws IOException connection errors
      * @return Completable future with an updated server object. This future completes after the request, not once the server has stopped.
+     * @throws IOException connection errors
      */
     public CompletableFuture<Server> stop() throws IOException {
         return client.request(new StopServerRequest(this.client, this.gson, this.id))
@@ -356,8 +369,8 @@ public final class Server implements Initializable {
     /**
      * Restart the server
      *
-     * @throws IOException connection errors
      * @return Completable future with an updated server object. This future completes after the request, not once the server has restarted.
+     * @throws IOException connection errors
      */
     public CompletableFuture<Server> restart() throws IOException {
         return client.request(new RestartServerRequest(this.client, this.gson, this.id))
@@ -393,7 +406,7 @@ public final class Server implements Initializable {
      *
      * @param path file path
      * @return empty ServerFile object
-     * @see ServerFile#get()
+     * @see ServerFile#fetch()
      */
     public ServerFile getFile(String path) {
         return new ServerFile(this.client, this.gson, this, path);
@@ -543,9 +556,10 @@ public final class Server implements Initializable {
     }
 
     /**
-     * @return web socket manager
+     * Get the current WebSocketConnection
+     * @return web socket connection or null
      */
-    public WebSocketConnection getWebSocket() {
+    public @Nullable WebSocketConnection getWebSocket() {
         return webSocket;
     }
 }

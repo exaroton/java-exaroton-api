@@ -13,6 +13,11 @@ This also changes where exceptions are thrown. Now the following rules apply:
 
 If you use `join()` or `get()` a `CompletionException` containing the `APIException` will be thrown.
 
+## Fetch methods
+Many objects can be obtained from the API client without fetching their data (e.g. Server, CreditPool, ServerFile, ...).
+The method to fetch their data has been renamed from `get` to `fetch`. It now also offers an override with a boolean 
+parameter that can be used to only fetch the object once `server.fetch(false)`.
+
 ## ServerStatus
 The `ServerStatus` class is now an enum instead of a class with static `int` fields. Each status has a numeric
 value (`getValue`), a display name (`getName`) and a brand color (`getColor`).

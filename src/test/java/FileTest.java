@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,7 @@ public class FileTest extends APIClientTest {
         ServerFile whitelist = server.getFile("whitelist.json");
         whitelist.putContent("[{\"name\":\"JulianVennen\", \"uuid\": \"abcd9e56-5ac2-490c-8bc9-6c1cad18f506\"}]");
         assertNotNull(whitelist);
-        assertNotNull(whitelist.get().join());
+        assertNotNull(whitelist.fetch().join());
         assertFalse(whitelist.isConfigFile());
         assertTrue(whitelist.isTextFile());
         assertFalse(whitelist.isDirectory());
@@ -40,7 +39,7 @@ public class FileTest extends APIClientTest {
         }
 
         whitelist.delete().join();
-        ExecutionException exception = assertThrows(ExecutionException.class, whitelist.get()::get);
+        ExecutionException exception = assertThrows(ExecutionException.class, whitelist.fetch()::get);
         assertInstanceOf(APIException.class, exception.getCause());
 
         whitelist.putContent("[]").join();

@@ -1,4 +1,3 @@
-import com.exaroton.api.APIException;
 import com.exaroton.api.billing.pools.CreditPool;
 import com.exaroton.api.billing.pools.CreditPoolMember;
 import com.exaroton.api.server.Server;
@@ -7,7 +6,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +34,7 @@ public class CreditPoolsTest extends APIClientTest {
     @Test
     public void testGetPool() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
-        checkTestPool(pool.get().join());
+        checkTestPool(pool.fetch().join());
         checkTestPool(pool);
     }
 

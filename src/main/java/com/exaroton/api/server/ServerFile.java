@@ -1,6 +1,5 @@
 package com.exaroton.api.server;
 
-import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.request.server.files.*;
 import com.exaroton.api.server.config.ServerConfig;
@@ -21,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public final class ServerFile {
+    private boolean fetched;
+
     private transient final ExarotonClient client;
 
     private transient final Gson gson;
@@ -61,19 +62,126 @@ public final class ServerFile {
     }
 
     /**
-     * update this file with file information fetched from the API
+     * Get the path of this file on the server.
+     * @return file path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Has this file been fetched from the API yet. If this is false only the path is known.
+     * @return has this file been fetched from the API yet
+     */
+    public boolean isFetched() {
+        return fetched;
+    }
+
+    /**
+     * Get the file name of this file.
+     * @return file name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Is this file a text file.
+     * @return is this file a text file
+     */
+    public boolean isTextFile() {
+        return isTextFile;
+    }
+
+    /**
+     * Is this file a config file. Config files can be parsed and updated with the {@link ServerConfig} class.
+     * @return is this file a config file
+     * @see #getConfig()
+     */
+    public boolean isConfigFile() {
+        return isConfigFile;
+    }
+
+    /**
+     * Is this file a directory.
+     * @return is this file a directory
+     */
+    public boolean isDirectory() {
+        return isDirectory;
+    }
+
+    /**
+     * Is this file a log file.
+     * @return is this file a log file
+     */
+    public boolean isLog() {
+        return isLog;
+    }
+
+    /**
+     * Is this file readable.
+     * @return is this file readable
+     */
+    public boolean isReadable() {
+        return isReadable;
+    }
+
+    /**
+     * Is this file writable.
+     * @return is this file writable
+     */
+    public boolean isWritable() {
+        return isWritable;
+    }
+
+    /**
+     * Get the size of this file in bytes.
+     * @return file size
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
+     * Get the children of this directory.
+     * @return children of this directory
+     */
+    public Collection<ServerFile> getChildren() {
+        return children;
+    }
+
+    /**
+     * get a ServerConfig object for this file
+     * @return server config object
+     */
+    public ServerConfig getConfig() {
+        return new ServerConfig(this.client, this.gson, this.server, this.path);
+    }
+
+    /**
+     * Fetch this file from the API
+     *
+     * @param force force fetching the file even if it has already been fetched
      * @return this file object
      * @throws IOException connection errors
      */
-    public CompletableFuture<ServerFile> get() throws IOException {
+    public CompletableFuture<ServerFile> fetch(boolean force) throws IOException {
+        if (!force && isFetched()) {
+            return CompletableFuture.completedFuture(this);
+        }
+
         return client.request(new GetFileInfoRequest(this.client, this.gson, this.server.getId(), this.path))
                 .thenApply(this::setFromObject);
     }
 
+    public CompletableFuture<ServerFile> fetch() throws IOException {
+        return fetch(true);
+    }
+
     /**
-     * get the contents of this text file
-     * to read a different file use {@link #downloadStream()}
-     * to download a file use {@link #download(Path)}
+     * Get the contents of this text file. For other file types use {@link #downloadStream()}. To download a file use
+     * {@link #download(Path)}.
+     *
      * @return file content
      * @throws IOException connection errors
      */
@@ -89,9 +197,9 @@ public final class ServerFile {
     }
 
     /**
-     * save this file to a path
-     * to read a text different file use {@link #getContent()}
-     * to read a different file use {@link #downloadStream()}
+     * Download this file to a path. To read a text file use {@link #getContent()}. For other file types use
+     * {@link #downloadStream()}
+     *
      * @param path output file path
      * @return future for download completion
      * @throws IOException connection errors
@@ -107,9 +215,9 @@ public final class ServerFile {
     }
 
     /**
-     * get the download stream of this file
-     * to read a text different file use {@link #getContent()}
-     * to download a file use {@link #download(Path)}
+     * Get the download stream of this file. For reading a text file use {@link #getContent()}. To download a file use
+     * {@link #download(Path)}
+     *
      * @throws IOException connection errors
      * @return input stream for file data
      */
@@ -126,9 +234,8 @@ public final class ServerFile {
     }
 
     /**
-     * write content to a text file
-     * to upload a file from a path use {@link #upload(Path)}
-     * to upload from an input stream use {@link #upload(InputStream)}
+     * Write content to a text file. To upload a file from a path use {@link #upload(Path)}. To upload from an input
+     * stream use {@link #upload(InputStream)}.
      *
      * @param content file content
      * @return future for upload completion
@@ -142,9 +249,9 @@ public final class ServerFile {
     }
 
     /**
-     * upload a file
-     * to write text content use {@link #putContent(String)}
-     * to upload from an input stream use {@link #upload(InputStream)}
+     * Upload a local file. To write text content use {@link #putContent(String)}. To upload from an input stream use
+     * {@link #upload(InputStream)}.
+     *
      * @param path path to file
      * @return future for upload completion
      * @throws IOException if the API returns an error
@@ -157,9 +264,9 @@ public final class ServerFile {
     }
 
     /**
-     * upload a file
-     * to write text content use {@link #putContent(String)}
-     * to upload a file from a path use {@link #upload(Path)}
+     * Write an input stream to this file. To write text content use {@link #putContent(String)}. To upload a local file
+     * from a path use {@link #upload(Path)}
+     *
      * @param stream input stream
      * @return future for upload completion
      * @throws IOException if the API returns an error
@@ -172,7 +279,8 @@ public final class ServerFile {
     }
 
     /**
-     * upload a file
+     * Write an input stream to this file. To write text content use {@link #putContent(String)}. To upload a local file
+     * from a path use {@link #upload(Path)}
      *
      * @param stream input stream supplier
      * @return future for upload completion
@@ -186,7 +294,7 @@ public final class ServerFile {
     }
 
     /**
-     * delete this file
+     * Delete this file
      *
      * @return future for deletion completion
      * @throws IOException connection errors
@@ -196,7 +304,7 @@ public final class ServerFile {
     }
 
     /**
-     * create this file as a directory
+     * Create this file as a directory
      *
      * @return future for creation completion
      * @throws IOException connection errors
@@ -206,67 +314,20 @@ public final class ServerFile {
     }
 
     /**
-     * get a ServerConfig object for this file
-     * @return server config object
-     */
-    public ServerConfig getConfig() {
-        return new ServerConfig(this.client, this.gson, this.server, this.path);
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean isTextFile() {
-        return isTextFile;
-    }
-
-    public boolean isConfigFile() {
-        return isConfigFile;
-    }
-
-    public boolean isDirectory() {
-        return isDirectory;
-    }
-
-    public boolean isLog() {
-        return isLog;
-    }
-
-    public boolean isReadable() {
-        return isReadable;
-    }
-
-    public boolean isWritable() {
-        return isWritable;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public Collection<ServerFile> getChildren() {
-        return children;
-    }
-
-    /**
-     * set file path
+     * Set file path
      * @param path new path
      */
-    public void setPath(String path) {
+    private void setPath(String path) {
         this.path = path.replaceAll("^/+", "");
     }
 
     /**
-     * update properties from fetched object
+     * Update properties from fetched object
      * @param file file fetched from the API
      * @return updated file object
      */
     private ServerFile setFromObject(ServerFile file) {
+        fetched = true;
         if (file.path != null) {
             this.setPath(path);
         }

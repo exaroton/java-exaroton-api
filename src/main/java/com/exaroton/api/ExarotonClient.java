@@ -244,7 +244,7 @@ public class ExarotonClient {
      *
      * @param id credit pool id
      * @return empty credit pool object
-     * @see CreditPool#get()
+     * @see CreditPool#fetch()
      */
     public CreditPool getCreditPool(String id) {
         return new CreditPool(this, id);
@@ -255,7 +255,7 @@ public class ExarotonClient {
      * is not set returns null. This method does not fetch the server from the API.
      *
      * @return the exaroton server running this code
-     * @see Server#get()
+     * @see Server#fetch()
      */
     public Server getCurrentServer() {
         String id = System.getenv("EXAROTON_SERVER_ID");

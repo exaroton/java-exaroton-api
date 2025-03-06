@@ -1,4 +1,3 @@
-import com.exaroton.api.APIException;
 import com.exaroton.api.server.PlayerList;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerLog;
@@ -25,7 +24,7 @@ public class ServerTest extends APIClientTest {
 
     @Test
     void testGetServer() throws IOException {
-        server.get();
+        server.fetch();
     }
 
     @Test

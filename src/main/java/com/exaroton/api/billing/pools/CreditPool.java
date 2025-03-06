@@ -1,6 +1,5 @@
 package com.exaroton.api.billing.pools;
 
-import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.Initializable;
 import com.exaroton.api.request.billing.pools.GetCreditPoolMembersRequest;
@@ -95,6 +94,14 @@ public final class CreditPool implements Initializable {
     }
 
     /**
+     * Has this pool been fetched from the API yet. If this is false only the id is known.
+     * @return has this pool been fetched from the API yet
+     */
+    public boolean isFetched() {
+        return fetched;
+    }
+
+    /**
      * Get the display name of the pool
      *
      * @return pool display name
@@ -181,28 +188,28 @@ public final class CreditPool implements Initializable {
     /**
      * Fetch the Credit Pool from the API
      *
+     * @param force always fetch the pool even if it has already been fetched
      * @return the credit pool with the fetched data
      * @throws IOException connection errors
      */
-    public CompletableFuture<CreditPool> get() throws IOException {
+    public CompletableFuture<CreditPool> fetch(boolean force) throws IOException {
+        if (!force && this.isFetched()) {
+            return CompletableFuture.completedFuture(this);
+        }
+
         return client.request(new GetCreditPoolRequest(this.id))
-                .thenApply(response -> {
-                    this.fetched = true;
-                    return this.setFromObject(response);
-                });
+                .thenApply(this::setFromObject);
     }
 
     /**
-     * Fetch the Credit Pool from the API if it hasn't been fetched yet
+     * Fetch the Credit Pool from the API. This method is equivalent to fetch(true)
      *
-     * @return full credit pool
+     * @return the credit pool with the fetched data
      * @throws IOException connection errors
+     * @see #fetch()
      */
-    public CompletableFuture<CreditPool> getIfNotFetched() throws IOException {
-        if (!this.fetched) {
-            return this.get();
-        }
-        return CompletableFuture.completedFuture(this);
+    public CompletableFuture<CreditPool> fetch() throws IOException {
+        return fetch(true);
     }
 
     /**
@@ -232,6 +239,7 @@ public final class CreditPool implements Initializable {
      * @return updated pool object
      */
     private CreditPool setFromObject(CreditPool pool) {
+        this.fetched = true;
         this.name = pool.getName();
         this.credits = pool.getCredits();
         this.servers = pool.getServers();
