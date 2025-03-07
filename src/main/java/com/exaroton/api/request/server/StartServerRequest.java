@@ -2,7 +2,6 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.server.Server;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.http.HttpRequest;
 import java.util.HashMap;
 
-public class StartServerRequest extends ServerRequest<Server> {
+public class StartServerRequest extends ServerRequest<Void> {
     private final boolean useOwnCredits;
 
     public StartServerRequest(
@@ -34,8 +33,8 @@ public class StartServerRequest extends ServerRequest<Server> {
     }
 
     @Override
-    protected TypeToken<APIResponse<Server>> getType() {
-        return new TypeToken<APIResponse<Server>>(){};
+    protected TypeToken<APIResponse<Void>> getType() {
+        return new TypeToken<APIResponse<Void>>(){};
     }
 
     @Override

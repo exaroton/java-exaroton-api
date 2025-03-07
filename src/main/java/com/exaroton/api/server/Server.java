@@ -335,7 +335,7 @@ public final class Server implements Initializable {
      * @return Completable future with an updated server object. This future completes after the request, not once the server has started.
      * @throws IOException connection errors
      */
-    public CompletableFuture<Server> start() throws IOException {
+    public CompletableFuture<Void> start() throws IOException {
         return this.start(false);
     }
 
@@ -346,9 +346,8 @@ public final class Server implements Initializable {
      * @return Completable future with an updated server object. This future completes after the request, not once the server has started.
      * @throws IOException connection errors
      */
-    public CompletableFuture<Server> start(boolean useOwnCredits) throws IOException {
-        return client.request(new StartServerRequest(this.client, this.gson, this.id, useOwnCredits))
-                .thenApply(this::setFromObject);
+    public CompletableFuture<Void> start(boolean useOwnCredits) throws IOException {
+        return client.request(new StartServerRequest(this.client, this.gson, this.id, useOwnCredits));
     }
 
     /**
@@ -357,9 +356,8 @@ public final class Server implements Initializable {
      * @return Completable future with an updated server object. This future completes after the request, not once the server has stopped.
      * @throws IOException connection errors
      */
-    public CompletableFuture<Server> stop() throws IOException {
-        return client.request(new StopServerRequest(this.client, this.gson, this.id))
-                .thenApply(this::setFromObject);
+    public CompletableFuture<Void> stop() throws IOException {
+        return client.request(new StopServerRequest(this.client, this.gson, this.id));
     }
 
     /**
@@ -368,9 +366,8 @@ public final class Server implements Initializable {
      * @return Completable future with an updated server object. This future completes after the request, not once the server has restarted.
      * @throws IOException connection errors
      */
-    public CompletableFuture<Server> restart() throws IOException {
-        return client.request(new RestartServerRequest(this.client, this.gson, this.id))
-                .thenApply(this::setFromObject);
+    public CompletableFuture<Void> restart() throws IOException {
+        return client.request(new RestartServerRequest(this.client, this.gson, this.id));
     }
 
     /**
