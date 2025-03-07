@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -56,16 +57,16 @@ public final class Server implements Initializable {
     private PlayerInfo players;
 
     /**
-     * Host address
-     * Only available if the server is online
+     * Host address. Only available if the server is online
      */
+    @Nullable
     private String host;
 
     /**
-     * Server port
-     * Only available if the server is online
+     * Server port. This might not be available if the server was just created.
      */
-    private int port;
+    @Nullable
+    private Integer port;
 
     /**
      * Information about the installed server software
@@ -227,20 +228,18 @@ public final class Server implements Initializable {
      *
      * @return host server address
      */
-    public String getHost() {
-        return host;
+    public Optional<String> getHost() {
+        return Optional.ofNullable(host);
     }
 
     /**
-     * Get the port
-     * (Only available if the server is online)
+     * Get the Server port. This might not be available if the server was just created.
      *
      * @return server port
      */
-    public int getPort() {
-        return port;
+    public Optional<Integer> getPort() {
+        return Optional.ofNullable(port);
     }
-
 
     /**
      * Get the server software
@@ -250,7 +249,6 @@ public final class Server implements Initializable {
     public ServerSoftware getSoftware() {
         return software;
     }
-
 
     /**
      * Is the server shared
@@ -269,7 +267,6 @@ public final class Server implements Initializable {
     public ExarotonClient getClient() {
         return client;
     }
-
 
     /**
      * Fetch the server from the API
@@ -341,7 +338,6 @@ public final class Server implements Initializable {
     public CompletableFuture<Server> start() throws IOException {
         return this.start(false);
     }
-
 
     /**
      * Start the server
@@ -437,8 +433,8 @@ public final class Server implements Initializable {
         this.motd = server.getMotd();
         this.status = server.getStatus().getValue();
         this.players = server.getPlayerInfo();
-        this.host = server.getHost();
-        this.port = server.getPort();
+        this.host = server.getHost().orElse(null);
+        this.port = server.getPort().orElse(null);
         this.software = server.getSoftware();
         this.shared = server.isShared();
         return this;

@@ -55,6 +55,8 @@ the chance of conflicts with other overrides.
 
 ### Other
 - Arrays have been Replaced by Collection's in almost all places
+- Nullable return types have been replaced by Optional's
+- Public final properties have been replaced by getters
 - Config options now return a generic type instead of `Object`
 - Renamed `ServerFile#getInfo` to `ServerFile#get`
 - Removed `ExarotonClient#getGson()` and `WebsocketClient#getGson()`

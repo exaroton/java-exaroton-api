@@ -1,17 +1,11 @@
 package com.exaroton.api.server;
 
-import org.jetbrains.annotations.ApiStatus;
-
+@SuppressWarnings("unused")
 public final class ServerRAMInfo {
     /**
      * Server RAM in GB
      */
-    private final int ram;
-
-    @ApiStatus.Internal
-    public ServerRAMInfo(int ram) {
-        this.ram = ram;
-    }
+    private int ram;
 
     /**
      * @return Server RAM in GB

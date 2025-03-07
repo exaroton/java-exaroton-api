@@ -1,6 +1,5 @@
 package com.exaroton.api.request.server;
 
-
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.server.Server;

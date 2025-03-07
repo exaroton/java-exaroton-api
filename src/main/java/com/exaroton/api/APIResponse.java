@@ -82,7 +82,6 @@ public class APIResponse<Datatype> {
         return data;
     }
 
-
     private static final class BodySubscriber<T> implements HttpResponse.BodySubscriber<APIResponse<T>> {
         private final ExarotonClient client;
         private final Gson gson;
@@ -100,11 +99,14 @@ public class APIResponse<Datatype> {
             this.parent = HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
         }
 
-
         @Override
         public CompletionStage<APIResponse<T>> getBody() {
             return parent.getBody().thenCompose(json -> {
                 APIResponse<T> response = gson.fromJson(json, token);
+                if (response == null) {
+                    return CompletableFuture.failedFuture(new APIException("Invalid response: " + json));
+                }
+
                 if (!response.isSuccess()) {
                     return CompletableFuture.failedFuture(new APIException(response.getError()));
                 }

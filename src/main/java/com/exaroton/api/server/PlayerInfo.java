@@ -2,28 +2,22 @@ package com.exaroton.api.server;
 
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public final class PlayerInfo {
     /**
      * Maximum player count (slots)
      */
-    private final int max;
+    private int max;
 
     /**
      * Current player count
      */
-    private final int count;
+    private int count;
 
     /**
      * Current player list (not always available)
      */
-    private final Set<String> list;
-
-
-    public PlayerInfo(int max, int count, Set<String> list) {
-        this.max = max;
-        this.count = count;
-        this.list = list;
-    }
+    private Set<String> list;
 
     /**
      * Get the maximum player count

@@ -1,27 +1,40 @@
 package com.exaroton.api.server;
 
-import org.jetbrains.annotations.ApiStatus;
-
+@SuppressWarnings("unused")
 public final class ServerSoftware {
     /**
-     * Unique software ID
+     * Unique ID of the software version
      */
-    public final String id;
+    private String id;
 
     /**
      * Software name
      */
-    public final String name;
+    private String name;
 
     /**
      * Software version
      */
-    public final String version;
+    private String version;
 
-    @ApiStatus.Internal
-    public ServerSoftware(String id, String name, String version) {
-        this.id = id;
-        this.name = name;
-        this.version = version;
+    /**
+     * @return unique ID of the software version
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @return name of the software
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return version of the software
+     */
+    public String getVersion() {
+        return version;
     }
 }

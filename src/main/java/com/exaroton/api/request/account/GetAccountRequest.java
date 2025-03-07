@@ -1,6 +1,5 @@
 package com.exaroton.api.request.account;
 
-
 import com.exaroton.api.APIRequest;
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.account.Account;

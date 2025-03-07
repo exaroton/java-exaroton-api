@@ -324,7 +324,6 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         return null;
     }
 
-
     /**
      * send data once connection is ready
      *

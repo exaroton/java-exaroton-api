@@ -1,18 +1,10 @@
 package com.exaroton.api.server;
 
-import org.jetbrains.annotations.ApiStatus;
-
+@SuppressWarnings("unused")
 public final class MclogsData {
-    private final String id;
-    private final String url;
-    private final String raw;
-
-    @ApiStatus.Internal
-    public MclogsData(String id, String url, String raw) {
-        this.id = id;
-        this.url = url;
-        this.raw = raw;
-    }
+    private String id;
+    private String url;
+    private String raw;
 
     /**
      * @return mclo.gs log ID
