@@ -104,7 +104,7 @@ public class APIResponse<Datatype> {
             return parent.getBody().thenCompose(json -> {
                 APIResponse<T> response = gson.fromJson(json, token);
                 if (response == null) {
-                    return CompletableFuture.failedFuture(new APIException("Invalid response: " + json));
+                    return CompletableFuture.completedFuture(null);
                 }
 
                 if (!response.isSuccess()) {
