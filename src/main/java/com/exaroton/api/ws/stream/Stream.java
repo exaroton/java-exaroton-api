@@ -78,19 +78,23 @@ public abstract class Stream<T> {
 
     /**
      * send stream data through the websocket
+     *
      * @param type message type
+     * @return future that completes when the message is actually sent
      */
-    public void send(String type) {
-        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type)));
+    public CompletableFuture<Void> send(String type) {
+        return send(type, null);
     }
 
     /**
      * send stream data through the websocket
+     *
      * @param type message type
      * @param data message data
+     * @return future that completes when the message is actually sent
      */
-    public void send(String type, String data) {
-        ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type, data)));
+    public CompletableFuture<Void> send(String type, String data) {
+        return ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type, data)));
     }
 
     /**
@@ -134,10 +138,11 @@ public abstract class Stream<T> {
             return CompletableFuture.completedFuture(null);
         }
 
-        return shouldBeStarted().thenAccept(shouldBeStarted -> {
+        return shouldBeStarted().thenCompose(shouldBeStarted -> {
             if (shouldBeStarted) {
-                this.send("start");
+                return this.send("start");
             }
+            return CompletableFuture.completedFuture(null);
         });
     }
 
@@ -154,10 +159,11 @@ public abstract class Stream<T> {
             return CompletableFuture.completedFuture(null);
         }
 
-        return this.shouldBeStarted().thenAccept(shouldBeStarted -> {
+        return this.shouldBeStarted().thenCompose(shouldBeStarted -> {
             if (!shouldBeStarted) {
-                this.send("stop");
+                return this.send("stop");
             }
+            return CompletableFuture.completedFuture(null);
         });
     }
 

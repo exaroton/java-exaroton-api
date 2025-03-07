@@ -8,6 +8,8 @@ import com.google.gson.JsonObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 @ApiStatus.Internal
 public final class ConsoleStream extends Stream<ConsoleSubscriber> {
     public ConsoleStream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
@@ -16,10 +18,12 @@ public final class ConsoleStream extends Stream<ConsoleSubscriber> {
 
     /**
      * execute a command using the websocket
+     *
      * @param command minecraft command
+     * @return a future that completes when the websocket message was sent
      */
-    public void executeCommand(String command) {
-        this.send("command", command);
+    public CompletableFuture<Void> executeCommand(String command) {
+        return this.send("command", command);
     }
 
     @Override

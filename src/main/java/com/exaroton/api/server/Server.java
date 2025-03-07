@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+@SuppressWarnings("unused")
 public final class Server implements Initializable {
 
     /**
@@ -403,8 +404,8 @@ public final class Server implements Initializable {
      * @throws IOException connection errors
      */
     public CompletableFuture<Void> executeCommand(String command) throws IOException {
-        if (this.webSocket != null && this.webSocket.executeCommand(command)) {
-            return CompletableFuture.completedFuture(null);
+        if (this.webSocket != null) {
+            return this.webSocket.executeCommand(command);
         }
         return client.request(new ExecuteCommandRequest(this.client, this.gson, this.id, command));
     }

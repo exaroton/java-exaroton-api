@@ -1,12 +1,11 @@
 import com.exaroton.api.server.*;
+import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Random;
+import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -134,27 +133,78 @@ public class ServerTest extends APIClientTest {
         }
     }
 
+    /**
+     * Perform a series of tests that require the server to be online
+     */
     @Test
-    void testStartRestartStopServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+    void testStartServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         server.fetch().join();
-        assertTrue(server.hasStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED));
 
-        // Start server
+        startServer();
+        testExecuteCommand();
+        restartServer();
+        stopServer();
+    }
+
+    void testExecuteCommand() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        var flagA = new FlagSubscriber();
+        var flagB = new FlagSubscriber();
+
+        server.addConsoleSubscriber(flagA);
+        server.addConsoleSubscriber(flagB);
+
+        server.executeCommand("say " + flagA.value).join();
+
+        Server serverWithoutWS = client.getServer(TEST_SERVER_ID);
+        serverWithoutWS.executeCommand("say " + flagB.value).join();
+
+        flagA.future.get(10, TimeUnit.SECONDS);
+        flagB.future.get(10, TimeUnit.SECONDS);
+
+        server.removeConsoleSubscriber(flagA);
+        server.removeConsoleSubscriber(flagB);
+    }
+
+
+    void startServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        assertTrue(server.hasStatus(ServerStatus.GROUP_OFFLINE));
         server.start().join();
         server.waitForStatus(ServerStatus.ONLINE).get(3, TimeUnit.MINUTES);
         assertEquals(ServerStatus.ONLINE, server.getStatus());
+    }
 
-        // Restart Server
+    void restartServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        assertEquals(ServerStatus.ONLINE, server.getStatus());
         server.restart().join();
         server.waitForStatus(ServerStatus.RESTARTING).get(1, TimeUnit.MINUTES);
         assertEquals(ServerStatus.RESTARTING, server.getStatus());
 
         server.waitForStatus(ServerStatus.ONLINE).get(3, TimeUnit.MINUTES);
         assertEquals(ServerStatus.ONLINE, server.getStatus());
+    }
 
-        // Stop Server
+    void stopServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        assertFalse(server.hasStatus(ServerStatus.GROUP_OFFLINE));
+        assertFalse(server.hasStatus(ServerStatus.GROUP_STOPPING));
+
         server.stop().join();
-        server.waitForStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED).get(3, TimeUnit.MINUTES);
-        assertTrue(server.hasStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED), "Expected server to be offline or crashed");
+        server.waitForStatus(ServerStatus.GROUP_OFFLINE).get(3, TimeUnit.MINUTES);
+        assertTrue(server.hasStatus(ServerStatus.GROUP_OFFLINE), "Expected server to be offline or crashed");
+    }
+
+    private static class FlagSubscriber implements ConsoleSubscriber {
+        final String value;
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+
+        public FlagSubscriber() {
+            this.value = "exaroton-api-tests-" + new Random().nextInt();
+        }
+
+        @Override
+        public void handleLine(String message) {
+            if (message.contains(value)) {
+                future.complete(null);
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -21,7 +22,7 @@ public abstract class APIClientTest {
         server = client.getServer(TEST_SERVER_ID);
 
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -32,13 +33,17 @@ public abstract class APIClientTest {
         server.fetch().join();
 
         if (server.hasStatus(ServerStatus.RESTARTING, ServerStatus.LOADING, ServerStatus.PREPARING)) {
-            server.waitForStatus(ServerStatus.STARTING, ServerStatus.ONLINE, ServerStatus.OFFLINE, ServerStatus.CRASHED)
+            var stoppableOrStopped = new HashSet<>(ServerStatus.GROUP_OFFLINE);
+            stoppableOrStopped.add(ServerStatus.STARTING);
+            stoppableOrStopped.add(ServerStatus.ONLINE);
+
+            server.waitForStatus(stoppableOrStopped)
                     .get(1, TimeUnit.MINUTES);
         }
 
-        if (server.hasStatus(ServerStatus.ONLINE, ServerStatus.STARTING)) {
+        if (!server.hasStatus(ServerStatus.GROUP_OFFLINE)) {
             server.stop().join();
-            server.waitForStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED).get(1, TimeUnit.MINUTES);
+            server.waitForStatus(ServerStatus.GROUP_OFFLINE).get(1, TimeUnit.MINUTES);
         }
 
         server.unsubscribe();

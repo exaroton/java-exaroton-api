@@ -2,11 +2,12 @@ package com.exaroton.api.server;
 
 import com.exaroton.api.BrandColor;
 
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Server status
  */
+@SuppressWarnings("unused")
 public enum ServerStatus {
     OFFLINE(0, "Offline", BrandColor.DANGER),
     ONLINE(1, "Online", BrandColor.SUCCESS),
@@ -20,6 +21,18 @@ public enum ServerStatus {
     TRANSFERRING(9, "Transferring", BrandColor.LOADING),
     PREPARING(10, "Preparing", BrandColor.LOADING),
     ;
+
+    /**
+     * Group of statuses that are considered offline. The server files are stored in the storage system and
+     * transferring to/from the host machine has not started yet.
+     */
+    public static final Set<ServerStatus> GROUP_OFFLINE = Set.of(OFFLINE, PREPARING, CRASHED);
+
+    /**
+     * Group of statuses that are considered stopping. It is expected that these will eventually lead to the server
+     * being offline or crashed.
+     */
+    public static final Set<ServerStatus> GROUP_STOPPING = Set.of(SAVING, STOPPING);
 
     private final int value;
     private final String name;
