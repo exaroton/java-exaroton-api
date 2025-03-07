@@ -14,7 +14,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -234,11 +237,7 @@ public class ExarotonClient {
      */
     @ApiStatus.Internal
     public WebSocketConnection connectToWebSocket(Server server, String path) {
-        try {
-            URL url = new URL("wss", getHost(), getBasePath());
-            return new WebSocketConnection(httpClient, gson, url.toURI().resolve(path), apiToken, server);
-        } catch (URISyntaxException | MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        URI uri = URI.create("wss://" + getHost() + "/" + getBasePath()).resolve(path);
+        return new WebSocketConnection(httpClient, gson, uri, apiToken, server);
     }
 }
