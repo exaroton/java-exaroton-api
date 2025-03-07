@@ -1,10 +1,12 @@
 import com.exaroton.api.server.*;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -133,8 +135,26 @@ public class ServerTest extends APIClientTest {
     }
 
     @Test
-    void testStartServer() throws IOException {
-        assertEquals(ServerStatus.OFFLINE, server.getStatus());
+    void testStartRestartStopServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
+        server.fetch().join();
+        assertTrue(server.hasStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED));
+
+        // Start server
         server.start().join();
+        server.waitForStatus(ServerStatus.ONLINE).get(3, TimeUnit.MINUTES);
+        assertEquals(ServerStatus.ONLINE, server.getStatus());
+
+        // Restart Server
+        server.restart().join();
+        server.waitForStatus(ServerStatus.RESTARTING).get(1, TimeUnit.MINUTES);
+        assertEquals(ServerStatus.RESTARTING, server.getStatus());
+
+        server.waitForStatus(ServerStatus.ONLINE).get(3, TimeUnit.MINUTES);
+        assertEquals(ServerStatus.ONLINE, server.getStatus());
+
+        // Stop Server
+        server.stop().join();
+        server.waitForStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED).get(3, TimeUnit.MINUTES);
+        assertTrue(server.hasStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED), "Expected server to be offline or crashed");
     }
 }

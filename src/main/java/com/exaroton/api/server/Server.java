@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 public final class Server implements Initializable {
 
@@ -379,10 +380,7 @@ public final class Server implements Initializable {
      * @return a future that completes when the server has reached one of the given statuses
      */
     public Future<Server> waitForStatus(Set<ServerStatus> statuses) {
-        if (this.webSocket == null) {
-            this.subscribe();
-        }
-        return webSocket.waitForStatus(statuses);
+        return this.subscribe().waitForStatus(statuses);
     }
 
     /**

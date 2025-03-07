@@ -1,7 +1,6 @@
 package com.exaroton.api.ws.stream;
 
 import com.exaroton.api.server.ServerStatus;
-import com.exaroton.api.ws.WaitForStatusSubscriber;
 import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.data.StreamData;
 import com.google.gson.Gson;
@@ -73,8 +72,8 @@ public abstract class Stream<T> {
      * Check if this stream has subscribers
      * @return has subscribers?
      */
-    public boolean hasSubscribers() {
-        return !this.subscribers.isEmpty();
+    public boolean hasNoSubscribers() {
+        return this.subscribers.isEmpty();
     }
 
     /**

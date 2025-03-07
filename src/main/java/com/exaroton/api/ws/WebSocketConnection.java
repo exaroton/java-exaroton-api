@@ -2,8 +2,11 @@ package com.exaroton.api.ws;
 
 import com.exaroton.api.server.Server;
 import com.exaroton.api.server.ServerStatus;
-import com.exaroton.api.ws.stream.*;
-import com.exaroton.api.ws.subscriber.*;
+import com.exaroton.api.ws.stream.ConsoleStream;
+import com.exaroton.api.ws.stream.ServerStatusStream;
+import com.exaroton.api.ws.stream.Stream;
+import com.exaroton.api.ws.stream.StreamType;
+import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.ApiStatus;
@@ -17,7 +20,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Future;
 
 public final class WebSocketConnection implements WebSocket.Listener {
     /**
@@ -88,23 +93,6 @@ public final class WebSocketConnection implements WebSocket.Listener {
         this.streams.put(ServerStatusStream.class, new ServerStatusStream(this, this.gson).setServer(server));
 
         connect();
-    }
-
-    /**
-     * subscribe to a stream if it is not already active
-     *
-     * @param name stream name
-     */
-    public void subscribe(@NotNull StreamType name) {
-        Objects.requireNonNull(name);
-
-        if (streams.containsKey(name.getStreamClass())) {
-            return;
-        }
-
-        Stream<?> stream = name.construct(this, gson);
-        this.streams.put(name.getStreamClass(), stream);
-        stream.start();
     }
 
     /**
@@ -252,13 +240,13 @@ public final class WebSocketConnection implements WebSocket.Listener {
     @ApiStatus.Internal
     public void unsubscribeFromEmptyStreams() {
         for (Stream<?> stream : streams.values()) {
-            if (!stream.hasSubscribers()) {
+            if (stream.hasNoSubscribers()) {
                 this.unsubscribe(stream.getType());
             }
         }
 
         // server status stream is always active
-        if (streams.size() == 1 && !getStream(ServerStatusStream.class).hasSubscribers()) {
+        if (streams.size() == 1 && getStream(ServerStatusStream.class).hasNoSubscribers()) {
             this.server.unsubscribe();
         }
     }
@@ -294,6 +282,7 @@ public final class WebSocketConnection implements WebSocket.Listener {
                     webSocket.sendText(x, true);
                 }
                 this.messages.clear();
+                break;
 
             default:
                 final StreamType name = StreamType.get(message.get("stream").getAsString());
@@ -334,6 +323,12 @@ public final class WebSocketConnection implements WebSocket.Listener {
             }, 5000, 5000);
         }
         return null;
+    }
+
+    @Override
+    @ApiStatus.Internal
+    public void onError(WebSocket webSocket, Throwable error) {
+        logger.error("Websocket connection to {} failed", uri, error);
     }
 
     /**
