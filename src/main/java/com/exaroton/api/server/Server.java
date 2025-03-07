@@ -4,7 +4,7 @@ import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.Initializable;
 import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketConnection;
-import com.exaroton.api.ws.stream.StreamType;
+import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 public final class Server implements Initializable {
 
@@ -374,6 +374,33 @@ public final class Server implements Initializable {
     }
 
     /**
+     * Wait until the server has reached a certain status. It is highly recommended to attach a timeout to the future
+     * returned by this method and/or adding the crashed status to the set of statuses to prevent the future from
+     * hanging indefinitely if the server fails to start/stop.
+     *
+     * @param statuses the statuses to wait for
+     * @return a future that completes when the server has reached one of the given statuses
+     */
+    public Future<Server> waitForStatus(Set<ServerStatus> statuses) {
+        if (this.webSocket == null) {
+            this.subscribe();
+        }
+        return webSocket.waitForStatus(statuses);
+    }
+
+    /**
+     * Wait until the server has reached a certain status. It is highly recommended to attach a timeout to the future
+     * returned by this method and/or adding the crashed status to the set of statuses to prevent the future from
+     * hanging indefinitely if the server fails to start/stop.
+     *
+     * @param statuses the statuses to wait for
+     * @return a future that completes when the server has reached one of the given statuses
+     */
+    public Future<Server> waitForStatus(ServerStatus... statuses) {
+        return waitForStatus(Set.of(statuses));
+    }
+
+    /**
      * Execute a server command. If a websocket connection with the console stream is active the command will be sent via the websocket.
      *
      * @param command command that will be sent to the console
@@ -419,6 +446,137 @@ public final class Server implements Initializable {
     }
 
     /**
+     * Subscribe to server status changes
+     *
+     * @param subscriber status change handler
+     */
+    public void addStatusSubscriber(ServerStatusSubscriber subscriber) {
+        this.subscribe().addStreamSubscriber(ServerStatusStream.class, subscriber);
+    }
+
+    /**
+     * Unsubscribe from server status changes
+     *
+     * @param subscriber status change handler
+     */
+    public void removeStatusSubscriber(ServerStatusSubscriber subscriber) {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.subscribe().removeStreamSubscriber(ServerStatusStream.class, subscriber);
+    }
+
+    /**
+     * Subscribe to console messages
+     *
+     * @param subscriber console message handler
+     */
+    public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
+        this.subscribe().addStreamSubscriber(ConsoleStream.class, subscriber);
+    }
+
+    /**
+     * Unsubscribe from console messages
+     *
+     * @param subscriber console message handler
+     */
+    public void removeConsoleSubscriber(ConsoleSubscriber subscriber) {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.subscribe().removeStreamSubscriber(ConsoleStream.class, subscriber);
+    }
+
+    /**
+     * Subscribe to heap data
+     *
+     * @param subscriber heap data handler
+     */
+    public void addHeapSubscriber(HeapSubscriber subscriber) {
+        this.subscribe().addStreamSubscriber(HeapStream.class, subscriber);
+    }
+
+    /**
+     * Unsubscribe from heap data
+     *
+     * @param subscriber heap data handler
+     */
+    public void removeHeapSubscriber(HeapSubscriber subscriber) {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.subscribe().removeStreamSubscriber(HeapStream.class, subscriber);
+    }
+
+    /**
+     * Subscribe to stats
+     *
+     * @param subscriber stats handler
+     */
+    public void addStatsSubscriber(StatsSubscriber subscriber) {
+        this.subscribe().addStreamSubscriber(StatsStream.class, subscriber);
+    }
+
+    /**
+     * Unsubscribe from stats
+     *
+     * @param subscriber stats handler
+     */
+    public void removeStatsSubscriber(StatsSubscriber subscriber) {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.subscribe().removeStreamSubscriber(StatsStream.class, subscriber);
+    }
+
+    /**
+     * Subscribe to tick events
+     *
+     * @param subscriber tick data handler
+     */
+    public void addTickSubscriber(TickSubscriber subscriber) {
+        this.subscribe().addStreamSubscriber(TickStream.class, subscriber);
+    }
+
+    /**
+     * Unsubscribe from tick events
+     *
+     * @param subscriber tick data handler
+     */
+    public void removeTickSubscriber(TickSubscriber subscriber) {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.subscribe().removeStreamSubscriber(TickStream.class, subscriber);
+    }
+
+    /**
+     * Get the current WebSocketConnection. A new connection will be created automatically if a subscriber is added.
+     * @return web socket connection or null
+     */
+    public @Nullable WebSocketConnection getWebSocket() {
+        return webSocket;
+    }
+
+    /**
+     * Unsubscribe from websocket events. This happens automatically when there are no registered subscribers, but you
+     * might still want to call this method explicitly as a cleanup step.
+     */
+    public void unsubscribe() {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.webSocket.close();
+        this.webSocket = null;
+    }
+
+    /**
      * update properties from fetched object
      *
      * @param server server fetched from the API
@@ -455,107 +613,13 @@ public final class Server implements Initializable {
     }
 
     /**
-     * subscribe to websocket events
+     * Subscribe to websocket events.
      */
-    public void subscribe() {
+    private WebSocketConnection subscribe() {
         if (this.webSocket != null) {
-            throw new IllegalStateException("Websocket connection already active.");
+            return this.webSocket;
         }
 
-        this.webSocket = client.connectToWebSocket(this, "servers/" + this.id + "/websocket");
-    }
-
-    /**
-     * subscribe to one or more streams
-     *
-     * @param streams stream names
-     */
-    public void subscribe(StreamType... streams) {
-        for (StreamType stream : streams) {
-            if (this.webSocket == null) {
-                this.subscribe();
-            }
-
-            this.webSocket.subscribe(stream);
-        }
-    }
-
-    /**
-     * unsubscribe from websocket events
-     */
-    public void unsubscribe() {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.close();
-        this.webSocket = null;
-    }
-
-    /**
-     * unsubscribe from one or more streams
-     *
-     * @param streams stream names
-     */
-    public void unsubscribe(StreamType... streams) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        for (StreamType stream : streams) {
-            this.webSocket.unsubscribe(stream);
-        }
-    }
-
-    /**
-     * subscribe to server status changes
-     *
-     * @param subscriber status change handler
-     */
-    public void addStatusSubscriber(ServerStatusSubscriber subscriber) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.addServerStatusSubscriber(subscriber);
-    }
-
-    /**
-     * subscribe to console messages
-     *
-     * @param subscriber console message handler
-     */
-    public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.addConsoleSubscriber(subscriber);
-    }
-
-    /**
-     * subscribe to heap data
-     *
-     * @param subscriber heap data handler
-     */
-    public void addHeapSubscriber(HeapSubscriber subscriber) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.addHeapSubscriber(subscriber);
-    }
-
-    /**
-     * subscribe to stats
-     *
-     * @param subscriber stats handler
-     */
-    public void addStatsSubscriber(StatsSubscriber subscriber) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.addStatsSubscriber(subscriber);
-    }
-
-    /**
-     * subscribe to ticks
-     *
-     * @param subscriber tick data handler
-     */
-    public void addTickSubscriber(TickSubscriber subscriber) {
-        if (this.webSocket == null) throw new RuntimeException("No websocket connection active.");
-        this.webSocket.addTickSubscriber(subscriber);
-    }
-
-    /**
-     * Get the current WebSocketConnection
-     * @return web socket connection or null
-     */
-    public @Nullable WebSocketConnection getWebSocket() {
-        return webSocket;
+        return this.webSocket = client.connectToWebSocket(this, "servers/" + this.id + "/websocket");
     }
 }

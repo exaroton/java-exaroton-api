@@ -9,8 +9,8 @@ import com.google.gson.JsonObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+@ApiStatus.Internal
 public final class StatsStream extends Stream<StatsSubscriber> {
-    @ApiStatus.Internal
     public StatsStream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
         super(ws, gson);
     }
@@ -29,7 +29,7 @@ public final class StatsStream extends Stream<StatsSubscriber> {
     }
 
     @Override
-    protected StreamType getType() {
+    public StreamType getType() {
         return StreamType.STATS;
     }
 }

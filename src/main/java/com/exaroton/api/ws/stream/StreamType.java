@@ -3,8 +3,10 @@ package com.exaroton.api.ws.stream;
 import com.exaroton.api.ws.WebSocketConnection;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 public enum StreamType {
@@ -39,10 +41,14 @@ public enum StreamType {
         return constructor.apply(ws, gson);
     }
 
-    public static StreamType get(String x) {
-        if (x == null) {
-            return null;
-        }
+    /**
+     * Get a stream by its name
+     * @param x stream name
+     * @return stream type
+     */
+    @ApiStatus.Internal
+    public static StreamType get(@NotNull String x) {
+        Objects.requireNonNull(x);
 
         for (StreamType name : values()) {
             if (name.getName().equals(x.toLowerCase(Locale.ROOT))) {
@@ -51,5 +57,23 @@ public enum StreamType {
         }
 
         throw new IllegalArgumentException("Unknown stream name: " + x);
+    }
+
+    /**
+     * Get a stream by its class
+     * @param clazz stream class
+     * @return stream type
+     */
+    @ApiStatus.Internal
+    public static StreamType get(@NotNull Class<? extends Stream<?>> clazz) {
+        Objects.requireNonNull(clazz);
+
+        for (StreamType name : values()) {
+            if (name.getStreamClass().equals(clazz)) {
+                return name;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown stream class: " + clazz.getName());
     }
 }

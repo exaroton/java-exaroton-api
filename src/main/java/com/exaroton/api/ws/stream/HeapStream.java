@@ -29,7 +29,7 @@ public final class HeapStream extends Stream<HeapSubscriber> {
     }
 
     @Override
-    protected StreamType getType() {
+    public StreamType getType() {
         return StreamType.HEAP;
     }
 }

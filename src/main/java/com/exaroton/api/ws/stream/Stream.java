@@ -1,6 +1,7 @@
 package com.exaroton.api.ws.stream;
 
 import com.exaroton.api.server.ServerStatus;
+import com.exaroton.api.ws.WaitForStatusSubscriber;
 import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.data.StreamData;
 import com.google.gson.Gson;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-@ApiStatus.NonExtendable
+@ApiStatus.Internal
 public abstract class Stream<T> {
 
     /**
@@ -41,11 +42,16 @@ public abstract class Stream<T> {
      */
     protected final Gson gson;
 
-    @ApiStatus.Internal
     public Stream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
         this.ws = Objects.requireNonNull(ws);
         this.gson = Objects.requireNonNull(gson);
     }
+
+    /**
+     * Get the stream type
+     * @return stream type
+     */
+    public abstract StreamType getType();
 
     /**
      * Add a subscriber to this stream
@@ -56,10 +62,25 @@ public abstract class Stream<T> {
     }
 
     /**
+     * Remove a subscriber from this stream
+     * @param subscriber subscriber
+     */
+    public void removeSubscriber(T subscriber) {
+        this.subscribers.remove(subscriber);
+    }
+
+    /**
+     * Check if this stream has subscribers
+     * @return has subscribers?
+     */
+    public boolean hasSubscribers() {
+        return !this.subscribers.isEmpty();
+    }
+
+    /**
      * send stream data through the websocket
      * @param type message type
      */
-    @ApiStatus.Internal
     public void send(String type) {
         ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type)));
     }
@@ -69,7 +90,6 @@ public abstract class Stream<T> {
      * @param type message type
      * @param data message data
      */
-    @ApiStatus.Internal
     public void send(String type, String data) {
         ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type, data)));
     }
@@ -79,7 +99,6 @@ public abstract class Stream<T> {
      * @param type message type
      * @param message message data
      */
-    @ApiStatus.Internal
     public void onMessage(String type, JsonObject message) {
         switch (type) {
             case "started":
@@ -95,44 +114,22 @@ public abstract class Stream<T> {
         }
     }
 
-    protected abstract void onDataMessage(String type, JsonObject message);
-
-    protected abstract StreamType getType();
-
-    @ApiStatus.Internal
     public void onDisconnected() {
         this.started = false;
     }
 
-    @ApiStatus.Internal
     public void onStatusChange() {
         this.tryToStart().thenCompose(x -> this.tryToStop());
-    }
-
-    @ApiStatus.Internal
-    protected CompletableFuture<Boolean> shouldBeStarted() {
-        if (!this.shouldStart) {
-            return CompletableFuture.completedFuture(false);
-        }
-
-        return ws.serverHasStatus(
-                ServerStatus.ONLINE,
-                ServerStatus.STARTING,
-                ServerStatus.STOPPING,
-                ServerStatus.RESTARTING
-        );
     }
 
     /**
      * start stream
      */
-    @ApiStatus.Internal
     public void start() {
         this.shouldStart = true;
         this.tryToStart();
     }
 
-    @ApiStatus.Internal
     public CompletableFuture<Void> tryToStart() {
         if (started || !ws.isReady()) {
             return CompletableFuture.completedFuture(null);
@@ -148,13 +145,11 @@ public abstract class Stream<T> {
     /**
      * stop stream
      */
-    @ApiStatus.Internal
     public void stop() {
         this.shouldStart = false;
         this.tryToStop();
     }
 
-    @ApiStatus.Internal
     public CompletableFuture<Void> tryToStop() {
         if (!this.started) {
             return CompletableFuture.completedFuture(null);
@@ -165,5 +160,20 @@ public abstract class Stream<T> {
                 this.send("stop");
             }
         });
+    }
+
+    protected abstract void onDataMessage(String type, JsonObject message);
+
+    protected CompletableFuture<Boolean> shouldBeStarted() {
+        if (!this.shouldStart) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        return ws.serverHasStatus(
+                ServerStatus.ONLINE,
+                ServerStatus.STARTING,
+                ServerStatus.STOPPING,
+                ServerStatus.RESTARTING
+        );
     }
 }

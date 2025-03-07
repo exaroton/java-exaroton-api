@@ -131,4 +131,10 @@ public class ServerTest extends APIClientTest {
             assertNotNull(list.getEntries());
         }
     }
+
+    @Test
+    void testStartServer() throws IOException {
+        assertEquals(ServerStatus.OFFLINE, server.getStatus());
+        server.start().join();
+    }
 }

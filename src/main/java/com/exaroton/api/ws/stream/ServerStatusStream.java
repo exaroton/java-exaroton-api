@@ -9,10 +9,12 @@ import com.google.gson.JsonObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
+@ApiStatus.Internal
 public final class ServerStatusStream extends Stream<ServerStatusSubscriber> {
     private Server server;
 
-    @ApiStatus.Internal
     public ServerStatusStream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
         super(ws, gson);
     }
@@ -39,7 +41,17 @@ public final class ServerStatusStream extends Stream<ServerStatusSubscriber> {
     }
 
     @Override
-    protected StreamType getType() {
+    public StreamType getType() {
         return StreamType.STATUS;
+    }
+
+    @Override
+    public CompletableFuture<Void> tryToStart() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> tryToStop() {
+        return CompletableFuture.completedFuture(null);
     }
 }

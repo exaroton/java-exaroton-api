@@ -8,8 +8,8 @@ import com.google.gson.JsonObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+@ApiStatus.Internal
 public final class ConsoleStream extends Stream<ConsoleSubscriber> {
-    @ApiStatus.Internal
     public ConsoleStream(@NotNull WebSocketConnection ws, @NotNull Gson gson) {
         super(ws, gson);
     }
@@ -34,7 +34,7 @@ public final class ConsoleStream extends Stream<ConsoleSubscriber> {
     }
 
     @Override
-    protected StreamType getType() {
+    public StreamType getType() {
         return StreamType.CONSOLE;
     }
 }

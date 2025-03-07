@@ -12,16 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.*;
 
-public final class WebSocketConnection implements WebSocket.Listener, Closeable {
+public final class WebSocketConnection implements WebSocket.Listener {
     /**
      * logger
      */
@@ -65,7 +63,8 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
     private final Server server;
 
     /**
-     * To obtain a websocket connection use {@link Server#subscribe()} and {@link Server#getWebSocket()}
+     * To obtain a websocket connection use {@link Server#addStatusSubscriber(ServerStatusSubscriber)} and
+     * {@link Server#getWebSocket()}
      *
      * @param http     http client
      * @param gson     gson instance
@@ -111,61 +110,21 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
     /**
      * unsubscribe from a stream
      *
-     * @param name stream name
+     * @param type stream type
      */
-    public void unsubscribe(@NotNull StreamType name) {
-        Objects.requireNonNull(name);
+    public void unsubscribe(@NotNull StreamType type) {
+        Objects.requireNonNull(type);
 
-        Stream<?> stream = this.streams.get(name.getStreamClass());
+        if (type == StreamType.STATUS) {
+            // Status stream can't be unsubscribed
+            return;
+        }
+
+        Stream<?> stream = this.streams.get(type.getStreamClass());
         if (stream != null) {
             stream.stop();
-            this.streams.remove(name.getStreamClass());
+            this.streams.remove(type.getStreamClass());
         }
-    }
-
-    /**
-     * subscribe to server status changes
-     *
-     * @param subscriber instance of class handling server status changes
-     */
-    public void addServerStatusSubscriber(ServerStatusSubscriber subscriber) {
-        this.addStreamSubscriber(ServerStatusStream.class, subscriber);
-    }
-
-    /**
-     * subscribe to new console lines
-     *
-     * @param subscriber instance of class handling new console lines
-     */
-    public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
-        this.addStreamSubscriber(ConsoleStream.class, subscriber);
-    }
-
-    /**
-     * subscribe to heap data
-     *
-     * @param subscriber instance of class handling heap data
-     */
-    public void addHeapSubscriber(HeapSubscriber subscriber) {
-        this.addStreamSubscriber(HeapStream.class, subscriber);
-    }
-
-    /**
-     * subscribe to stats
-     *
-     * @param subscriber instance of class handling stats
-     */
-    public void addStatsSubscriber(StatsSubscriber subscriber) {
-        this.addStreamSubscriber(StatsStream.class, subscriber);
-    }
-
-    /**
-     * subscribe to stats
-     *
-     * @param subscriber instance of class handling stats
-     */
-    public void addTickSubscriber(TickSubscriber subscriber) {
-        this.addStreamSubscriber(TickStream.class, subscriber);
     }
 
     /**
@@ -228,12 +187,20 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
         return future.thenApply(s -> s.hasStatus(status));
     }
 
-    private <T> void addStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
-        if (!this.streams.containsKey(c)) {
-            throw new IllegalStateException("There is no active stream for: " + c);
+    /**
+     * Wait until the server has reached a certain status. It is highly recommended to attach a timeout to the future
+     * returned by this method and/or adding the crashed status to the set of statuses to prevent the future from
+     * hanging indefinitely if the server fails to start/stop.
+     *
+     * @param statuses the statuses to wait for
+     * @return a future that completes when the server has reached one of the given statuses
+     */
+    public Future<Server> waitForStatus(Set<ServerStatus> statuses) {
+        if (server.hasStatus(statuses)) {
+            return CompletableFuture.completedFuture(server);
         }
 
-        getStream(c).addSubscriber(subscriber);
+        return new WaitForStatusSubscriber(statuses, this.getStream(ServerStatusStream.class));
     }
 
     private <T extends Stream<?>> T getStream(Class<T> c) {
@@ -249,6 +216,51 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
                     this.logger.debug("Connected to {}", uri);
                     this.client = ws;
                 });
+    }
+
+    /**
+     * Add a subscriber to a stream
+     * @param c stream class
+     * @param subscriber subscriber
+     * @param <T> subscriber type
+     */
+    @ApiStatus.Internal
+    public <T> void addStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
+        if (!this.streams.containsKey(c)) {
+            this.streams.put(c, StreamType.get(c).construct(this, gson));
+        }
+
+        getStream(c).addSubscriber(subscriber);
+    }
+
+    /**
+     * Remove a subscriber from a stream
+     * @param c stream class
+     * @param subscriber subscriber
+     * @param <T> subscriber type
+     */
+    @ApiStatus.Internal
+    public <T> void removeStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
+        if (!this.streams.containsKey(c)) {
+            return;
+        }
+
+        getStream(c).removeSubscriber(subscriber);
+        unsubscribeFromEmptyStreams();
+    }
+
+    @ApiStatus.Internal
+    public void unsubscribeFromEmptyStreams() {
+        for (Stream<?> stream : streams.values()) {
+            if (!stream.hasSubscribers()) {
+                this.unsubscribe(stream.getType());
+            }
+        }
+
+        // server status stream is always active
+        if (streams.size() == 1 && !getStream(ServerStatusStream.class).hasSubscribers()) {
+            this.server.unsubscribe();
+        }
     }
 
     @ApiStatus.Internal
@@ -339,9 +351,9 @@ public final class WebSocketConnection implements WebSocket.Listener, Closeable 
     }
 
     /**
-     * close websocket connection
+     * close websocket connection. This should be called automatically when there are no remaining subscribers
      */
-    @Override
+    @ApiStatus.Internal
     public void close() {
         if (this.reconnectTimer != null) {
             this.reconnectTimer.cancel();
