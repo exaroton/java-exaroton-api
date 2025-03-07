@@ -65,6 +65,7 @@ the chance of conflicts with other overrides.
 - Many classes are now final
 - Added `ApiStatus` annotations to many classes and methods
 - Removed `ExarotonClient#getApiToken()`
+- `ExarotonClient#setProtocol` and `ExarotonClient#getProtocol` have been removed as HTTP is not supported by the API
 
 ## Improvements
 - Update dependencies

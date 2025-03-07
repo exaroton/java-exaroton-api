@@ -19,7 +19,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -33,11 +32,6 @@ public class ExarotonClient {
      * Gson instance used for (de-)serialization
      */
     private final Gson gson;
-
-    /**
-     * Request protocol
-     */
-    private String protocol = "https";
 
     /**
      * API host
@@ -63,7 +57,7 @@ public class ExarotonClient {
      * @param apiToken exaroton API token
      */
     public ExarotonClient(String apiToken) {
-        this.httpClient = HttpClient.newBuilder().build();
+        this.httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
         this.apiToken = apiToken;
         this.gson = new GsonBuilder()
                 .registerTypeAdapterFactory(new ConfigOptionTypeAdapterFactory())
@@ -101,13 +95,6 @@ public class ExarotonClient {
     }
 
     /**
-     * @return request protocol
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-
-    /**
      * @return API host
      */
     public String getHost() {
@@ -121,32 +108,8 @@ public class ExarotonClient {
         return basePath;
     }
 
-    /**
-     * Change the protocol used for API requests
-     * Supported values: http, https
-     *
-     * @param protocol the new protocol
-     * @return the updated client
-     * @throws UnsupportedProtocolException protocol is not supported
-     */
-    public ExarotonClient setProtocol(String protocol) throws UnsupportedProtocolException {
-        if (protocol == null) throw new IllegalArgumentException("No protocol specified");
-
-        switch (protocol.toLowerCase(Locale.ROOT)) {
-            case "http":
-                this.protocol = "http";
-                break;
-            case "https":
-                this.protocol = "https";
-                break;
-            default:
-                throw new UnsupportedProtocolException(protocol + " is not a supported protocol");
-        }
-        return this;
-    }
-
     protected URL baseUrl() throws MalformedURLException {
-        return new URL(protocol, host, basePath);
+        return new URL("https", host, basePath);
     }
 
     /**
@@ -271,9 +234,8 @@ public class ExarotonClient {
      */
     @ApiStatus.Internal
     public WebSocketConnection connectToWebSocket(Server server, String path) {
-        String protocol = this.getProtocol().equals("http") ? "ws" : "wss";
         try {
-            URL url = new URL(protocol, getHost(), getBasePath());
+            URL url = new URL("wss", getHost(), getBasePath());
             return new WebSocketConnection(httpClient, gson, url.toURI().resolve(path), apiToken, server);
         } catch (URISyntaxException | MalformedURLException e) {
             throw new RuntimeException(e);
