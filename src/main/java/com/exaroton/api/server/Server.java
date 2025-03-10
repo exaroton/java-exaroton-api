@@ -162,8 +162,8 @@ public final class Server implements Initializable {
      * @param status status
      * @return true if the status matches
      */
-    public boolean hasStatus(ServerStatus... status) {
-        return hasStatus(Set.of(status));
+    public boolean hasStatus(@NotNull ServerStatus... status) {
+        return hasStatus(Set.of(Objects.requireNonNull(status)));
     }
 
     /**
@@ -172,7 +172,7 @@ public final class Server implements Initializable {
      * @param status status
      * @return true if the status matches
      */
-    public boolean hasStatus(Set<ServerStatus> status) {
+    public boolean hasStatus(@NotNull Set<ServerStatus> status) {
         return Objects.requireNonNull(status).contains(this.getStatus());
     }
 
@@ -207,8 +207,8 @@ public final class Server implements Initializable {
      * @return updated server MOTD
      * @throws IOException connection errors
      */
-    public CompletableFuture<ServerMOTDInfo> setMotd(String motd) throws IOException {
-        return client.request(new SetServerMOTDRequest(this.client, this.gson, this.id, motd))
+    public CompletableFuture<ServerMOTDInfo> setMotd(@NotNull String motd) throws IOException {
+        return client.request(new SetServerMOTDRequest(this.client, this.gson, this.id, Objects.requireNonNull(motd)))
                 .thenApply(data -> {
                     this.motd = data.getMotd();
                     return data;
@@ -380,8 +380,8 @@ public final class Server implements Initializable {
      * @param statuses the statuses to wait for
      * @return a future that completes when the server has reached one of the given statuses
      */
-    public Future<Server> waitForStatus(Set<ServerStatus> statuses) {
-        return this.subscribe().waitForStatus(statuses);
+    public Future<Server> waitForStatus(@NotNull Set<ServerStatus> statuses) {
+        return this.subscribe().waitForStatus(Objects.requireNonNull(statuses));
     }
 
     /**
@@ -392,8 +392,8 @@ public final class Server implements Initializable {
      * @param statuses the statuses to wait for
      * @return a future that completes when the server has reached one of the given statuses
      */
-    public Future<Server> waitForStatus(ServerStatus... statuses) {
-        return waitForStatus(Set.of(statuses));
+    public Future<Server> waitForStatus(@NotNull ServerStatus... statuses) {
+        return waitForStatus(Set.of(Objects.requireNonNull(statuses)));
     }
 
     /**
@@ -403,10 +403,13 @@ public final class Server implements Initializable {
      * @return completable future that completes once the command has been sent
      * @throws IOException connection errors
      */
-    public CompletableFuture<Void> executeCommand(String command) throws IOException {
+    public CompletableFuture<Void> executeCommand(@NotNull String command) throws IOException {
+        Objects.requireNonNull(command);
+
         if (this.webSocket != null) {
             return this.webSocket.executeCommand(command);
         }
+
         return client.request(new ExecuteCommandRequest(this.client, this.gson, this.id, command));
     }
 
@@ -427,7 +430,7 @@ public final class Server implements Initializable {
      * @return empty ServerFile object
      * @see ServerFile#fetch()
      */
-    public ServerFile getFile(String path) {
+    public ServerFile getFile(@NotNull String path) {
         return new ServerFile(this.client, this.gson, this, path);
     }
 
@@ -437,7 +440,7 @@ public final class Server implements Initializable {
      * @param name player list name (see {@link #getPlayerLists()})
      * @return player list
      */
-    public PlayerList getPlayerList(String name) {
+    public PlayerList getPlayerList(@NotNull String name) {
         return new PlayerList(this.client, this.gson, this.id, name);
     }
 
@@ -446,7 +449,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber status change handler
      */
-    public void addStatusSubscriber(ServerStatusSubscriber subscriber) {
+    public void addStatusSubscriber(@NotNull ServerStatusSubscriber subscriber) {
         this.subscribe().addStreamSubscriber(ServerStatusStream.class, subscriber);
     }
 
@@ -455,7 +458,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber status change handler
      */
-    public void removeStatusSubscriber(ServerStatusSubscriber subscriber) {
+    public void removeStatusSubscriber(@NotNull ServerStatusSubscriber subscriber) {
         if (this.webSocket == null) {
             return;
         }
@@ -468,7 +471,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber console message handler
      */
-    public void addConsoleSubscriber(ConsoleSubscriber subscriber) {
+    public void addConsoleSubscriber(@NotNull ConsoleSubscriber subscriber) {
         this.subscribe().addStreamSubscriber(ConsoleStream.class, subscriber);
     }
 
@@ -477,7 +480,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber console message handler
      */
-    public void removeConsoleSubscriber(ConsoleSubscriber subscriber) {
+    public void removeConsoleSubscriber(@NotNull ConsoleSubscriber subscriber) {
         if (this.webSocket == null) {
             return;
         }
@@ -490,7 +493,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber heap data handler
      */
-    public void addHeapSubscriber(HeapSubscriber subscriber) {
+    public void addHeapSubscriber(@NotNull HeapSubscriber subscriber) {
         this.subscribe().addStreamSubscriber(HeapStream.class, subscriber);
     }
 
@@ -499,7 +502,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber heap data handler
      */
-    public void removeHeapSubscriber(HeapSubscriber subscriber) {
+    public void removeHeapSubscriber(@NotNull HeapSubscriber subscriber) {
         if (this.webSocket == null) {
             return;
         }
@@ -512,7 +515,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber stats handler
      */
-    public void addStatsSubscriber(StatsSubscriber subscriber) {
+    public void addStatsSubscriber(@NotNull StatsSubscriber subscriber) {
         this.subscribe().addStreamSubscriber(StatsStream.class, subscriber);
     }
 
@@ -521,7 +524,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber stats handler
      */
-    public void removeStatsSubscriber(StatsSubscriber subscriber) {
+    public void removeStatsSubscriber(@NotNull StatsSubscriber subscriber) {
         if (this.webSocket == null) {
             return;
         }
@@ -534,7 +537,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber tick data handler
      */
-    public void addTickSubscriber(TickSubscriber subscriber) {
+    public void addTickSubscriber(@NotNull TickSubscriber subscriber) {
         this.subscribe().addStreamSubscriber(TickStream.class, subscriber);
     }
 
@@ -543,7 +546,7 @@ public final class Server implements Initializable {
      *
      * @param subscriber tick data handler
      */
-    public void removeTickSubscriber(TickSubscriber subscriber) {
+    public void removeTickSubscriber(@NotNull TickSubscriber subscriber) {
         if (this.webSocket == null) {
             return;
         }

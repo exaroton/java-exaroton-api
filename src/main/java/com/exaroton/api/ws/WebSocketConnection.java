@@ -219,24 +219,29 @@ public final class WebSocketConnection implements WebSocket.Listener {
 
     /**
      * Add a subscriber to a stream
-     * @param c stream class
+     * @param clazz stream class
      * @param subscriber subscriber
      * @param <T> subscriber type
      */
     @ApiStatus.Internal
-    public <T> void addStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
-        getOrCreateStream(c).addSubscriber(subscriber);
+    public <T> void addStreamSubscriber(@NotNull Class<? extends Stream<T>> clazz, @NotNull T subscriber) {
+        Objects.requireNonNull(clazz);
+        Objects.requireNonNull(subscriber);
+        getOrCreateStream(clazz).addSubscriber(subscriber);
     }
 
     /**
      * Remove a subscriber from a stream
-     * @param c stream class
+     * @param clazz stream class
      * @param subscriber subscriber
      * @param <T> subscriber type
      */
     @ApiStatus.Internal
-    public <T> void removeStreamSubscriber(Class<? extends Stream<T>> c, T subscriber) {
-        var stream = getStream(c);
+    public <T> void removeStreamSubscriber(@NotNull Class<? extends Stream<T>> clazz, @NotNull T subscriber) {
+        Objects.requireNonNull(clazz);
+        Objects.requireNonNull(subscriber);
+
+        var stream = getStream(clazz);
         if (stream == null) {
             return;
         }
