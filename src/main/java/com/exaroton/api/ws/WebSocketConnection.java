@@ -401,7 +401,7 @@ public final class WebSocketConnection implements WebSocket.Listener {
         }
 
         if (this.client != null) {
-            this.client.sendClose(0, "unsubscribe");
+            this.client.sendClose(WebSocket.NORMAL_CLOSURE, "unsubscribe");
         }
     }
 }
