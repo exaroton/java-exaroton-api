@@ -155,6 +155,8 @@ public class ServerTest extends APIClientTest {
         testExecuteCommand();
         restartServer();
         stopServer();
+
+        assertNull(server.getWebSocket());
     }
 
     void testExecuteCommand() throws IOException, ExecutionException, InterruptedException, TimeoutException {
