@@ -42,7 +42,9 @@ public abstract class APIClientTest {
         }
 
         if (!server.hasStatus(ServerStatus.GROUP_OFFLINE)) {
-            server.stop().join();
+            if (!server.hasStatus(ServerStatus.GROUP_STOPPING)) {
+                server.stop().join();
+            }
             server.waitForStatus(ServerStatus.GROUP_OFFLINE).get(1, TimeUnit.MINUTES);
         }
 
