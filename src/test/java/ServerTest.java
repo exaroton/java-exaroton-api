@@ -1,11 +1,13 @@
 import com.exaroton.api.server.*;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
+import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -133,6 +135,15 @@ public class ServerTest extends APIClientTest {
         }
     }
 
+    @Test
+    void testRemoveSubscribersWithoutWebsocket() {
+        server.removeStatusSubscriber((oldServer, newServer) -> {});
+        server.removeConsoleSubscriber(x -> {});
+        server.removeHeapSubscriber(x -> {});
+        server.removeStatsSubscriber(x -> {});
+        server.removeTickSubscriber(x -> {});
+    }
+
     /**
      * Perform a series of tests that require the server to be online
      */
@@ -165,12 +176,25 @@ public class ServerTest extends APIClientTest {
         server.removeConsoleSubscriber(flagB);
     }
 
-
     void startServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         assertTrue(server.hasStatus(ServerStatus.GROUP_OFFLINE));
+
+        AtomicBoolean receivedStatusUpdate = new AtomicBoolean(false);
+        var statusSubscriber = new ServerStatusSubscriber() {
+            @Override
+            public void handleStatusUpdate(Server oldServer, Server newServer) {
+                receivedStatusUpdate.set(true);
+                assertSame(server, newServer);
+            }
+        };
+        server.addStatusSubscriber(statusSubscriber);
+
         server.start().join();
         server.waitForStatus(ServerStatus.ONLINE).get(3, TimeUnit.MINUTES);
         assertEquals(ServerStatus.ONLINE, server.getStatus());
+
+        server.removeStatusSubscriber(statusSubscriber);
+        assertTrue(receivedStatusUpdate.get());
     }
 
     void restartServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
