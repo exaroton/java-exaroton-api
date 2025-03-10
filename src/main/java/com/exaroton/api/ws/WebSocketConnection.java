@@ -187,6 +187,14 @@ public final class WebSocketConnection implements WebSocket.Listener {
         return new WaitForStatusSubscriber(statuses, this.getStream(ServerStatusStream.class));
     }
 
+    /**
+     * Is this connection ready
+     * @return is the connection ready
+     */
+    public boolean isReady() {
+        return ready;
+    }
+
     private <T extends Stream<?>> @NotNull T getOrCreateStream(Class<T> clazz) {
         synchronized (streams) {
             @SuppressWarnings("unchecked") T stream = (T) this.streams.computeIfAbsent(clazz, this::createAndStartStream);
@@ -247,22 +255,35 @@ public final class WebSocketConnection implements WebSocket.Listener {
         }
 
         stream.removeSubscriber(subscriber);
-        unsubscribeFromEmptyStreams();
     }
 
     @ApiStatus.Internal
     public void unsubscribeFromEmptyStreams() {
-        synchronized (streams) {
-            for (Stream<?> stream : new ArrayList<>(streams.values())) {
-                if (stream.hasNoSubscribers()) {
-                    this.unsubscribe(stream.getType());
-                }
+        Collection<Stream<?>> streams;
+        synchronized (this.streams) {
+            streams = new ArrayList<>(this.streams.values());
+        }
+        for (Stream<?> stream : streams) {
+            if (stream.hasNoSubscribers()) {
+                this.unsubscribe(stream.getType());
             }
+        }
 
-            // server status stream is always active
-            if (streams.size() == 1 && getOrCreateStream(ServerStatusStream.class).hasNoSubscribers()) {
-                this.server.unsubscribe();
+        synchronized (this.messages) {
+            if (!this.messages.isEmpty()) {
+                return;
             }
+        }
+
+        synchronized (this.streams) {
+            // server status stream is always active
+            if (this.streams.size() > 1) {
+                return;
+            }
+        }
+
+        if (getOrCreateStream(ServerStatusStream.class).hasNoSubscribers()) {
+            this.server.unsubscribe();
         }
     }
 
@@ -293,10 +314,12 @@ public final class WebSocketConnection implements WebSocket.Listener {
 
             case "ready":
                 ready = true;
-                for (String x : this.messages) {
-                    webSocket.sendText(x, true);
+                synchronized (this.messages) {
+                    for (String x : this.messages) {
+                        webSocket.sendText(x, true);
+                    }
+                    this.messages.clear();
                 }
-                this.messages.clear();
                 this.messageQueueCleared.complete(null);
                 this.messageQueueCleared = new CompletableFuture<>();
                 break;
@@ -360,7 +383,9 @@ public final class WebSocketConnection implements WebSocket.Listener {
     @ApiStatus.Internal
     public CompletableFuture<Void> sendWhenReady(String data) {
         if (this.client == null || !this.ready) {
-            this.messages.add(data);
+            synchronized (this.messages) {
+                this.messages.add(data);
+            }
             return messageQueueCleared;
         }
         return this.client.sendText(data, true).thenAccept(x -> {});
@@ -378,9 +403,5 @@ public final class WebSocketConnection implements WebSocket.Listener {
         if (this.client != null) {
             this.client.sendClose(0, "unsubscribe");
         }
-    }
-
-    public boolean isReady() {
-        return ready;
     }
 }

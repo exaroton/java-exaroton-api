@@ -66,6 +66,7 @@ public abstract class Stream<T> {
      */
     public void removeSubscriber(T subscriber) {
         this.subscribers.remove(subscriber);
+        ws.unsubscribeFromEmptyStreams();
     }
 
     /**
