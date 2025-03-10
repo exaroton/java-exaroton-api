@@ -21,7 +21,7 @@ public final class HeapStream extends Stream<HeapSubscriber> {
             case "heap":
                 HeapUsage usage = gson.fromJson(message, HeapStreamData.class).getData();
 
-                for (HeapSubscriber subscriber : subscribers) {
+                for (HeapSubscriber subscriber : getSubscribers()) {
                     subscriber.handleHeapUsage(usage);
                 }
                 break;

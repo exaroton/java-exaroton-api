@@ -29,7 +29,7 @@ public abstract class Stream<T> {
     /**
      * subscribers of this stream
      */
-    protected final List<T> subscribers = new ArrayList<>();
+    private final List<T> subscribers = new ArrayList<>();
 
     /**
      * web socket client
@@ -165,6 +165,10 @@ public abstract class Stream<T> {
             }
             return CompletableFuture.completedFuture(null);
         });
+    }
+
+    protected List<T> getSubscribers() {
+        return new ArrayList<>(this.subscribers);
     }
 
     protected abstract void onDataMessage(String type, JsonObject message);

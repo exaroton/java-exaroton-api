@@ -21,7 +21,7 @@ public final class StatsStream extends Stream<StatsSubscriber> {
             case "stats":
                 StatsData stats = gson.fromJson(message, StatsStreamData.class).getData();
 
-                for (StatsSubscriber subscriber : subscribers) {
+                for (StatsSubscriber subscriber : getSubscribers()) {
                     subscriber.handleStats(stats);
                 }
                 break;

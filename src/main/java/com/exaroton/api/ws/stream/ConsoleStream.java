@@ -31,7 +31,7 @@ public final class ConsoleStream extends Stream<ConsoleSubscriber> {
         switch (type) {
             case "line":
                 String line = gson.fromJson(message, ConsoleStreamData.class).getData();
-                for (ConsoleSubscriber subscriber : subscribers) {
+                for (ConsoleSubscriber subscriber : getSubscribers()) {
                     subscriber.handleLine(line);
                 }
         }

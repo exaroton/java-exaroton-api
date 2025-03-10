@@ -33,7 +33,7 @@ public final class ServerStatusStream extends Stream<ServerStatusSubscriber> {
 
                 ws.onStatusChange();
 
-                for (ServerStatusSubscriber subscriber : subscribers) {
+                for (ServerStatusSubscriber subscriber : getSubscribers()) {
                     subscriber.handleStatusUpdate(oldServer, this.server);
                 }
                 break;
