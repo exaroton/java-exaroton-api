@@ -64,6 +64,7 @@ public class ExarotonClient {
         this.apiToken = apiToken;
         this.gson = new GsonBuilder()
                 .registerTypeAdapterFactory(new ConfigOptionTypeAdapterFactory())
+                .registerTypeAdapter(Void.class, new VoidTypeAdapter())
                 .create();
     }
 
