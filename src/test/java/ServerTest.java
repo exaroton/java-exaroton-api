@@ -1,4 +1,5 @@
 import com.exaroton.api.server.*;
+import com.exaroton.api.ws.WaitForStatusSubscriber;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import org.junit.jupiter.api.Test;
@@ -201,9 +202,15 @@ public class ServerTest extends APIClientTest {
 
     void restartServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {
         assertEquals(ServerStatus.ONLINE, server.getStatus());
+
+        var restartingFuture = server.waitForStatus(ServerStatus.RESTARTING);
+        assertNotNull(server.getWebSocket());
+        server.getWebSocket().waitForReady().get(1, TimeUnit.MINUTES);
+
         server.restart().join();
-        server.waitForStatus(ServerStatus.RESTARTING).get(1, TimeUnit.MINUTES);
+        restartingFuture.get(1, TimeUnit.MINUTES);
         assertEquals(ServerStatus.RESTARTING, server.getStatus());
+
 
         server.waitForStatus(ServerStatus.ONLINE).get(3, TimeUnit.MINUTES);
         assertEquals(ServerStatus.ONLINE, server.getStatus());

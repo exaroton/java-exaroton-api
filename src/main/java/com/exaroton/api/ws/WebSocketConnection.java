@@ -195,6 +195,17 @@ public final class WebSocketConnection implements WebSocket.Listener {
         return ready;
     }
 
+    /**
+     * Wait until the websocket connection is ready
+     * @return a future that completes when the connection is ready
+     */
+    public CompletableFuture<Void> waitForReady() {
+        if (this.ready) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return readyFuture;
+    }
+
     private <T extends Stream<?>> @NotNull T getOrCreateStream(Class<T> clazz) {
         synchronized (streams) {
             @SuppressWarnings("unchecked") T stream = (T) this.streams.computeIfAbsent(clazz, this::createAndStartStream);
