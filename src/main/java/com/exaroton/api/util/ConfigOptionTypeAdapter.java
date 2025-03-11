@@ -1,5 +1,7 @@
-package com.exaroton.api.server.config;
+package com.exaroton.api.util;
 
+import com.exaroton.api.server.config.ConfigOption;
+import com.exaroton.api.server.config.OptionType;
 import com.exaroton.api.server.config.options.*;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;

@@ -1,13 +1,12 @@
-package com.exaroton.api;
+package com.exaroton.api.util;
 
+import com.exaroton.api.ExarotonClient;
 import com.google.gson.Gson;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface for objects that can be initialized
  */
-@ApiStatus.NonExtendable
 public interface Initializable {
     /**
      * Initialize the object

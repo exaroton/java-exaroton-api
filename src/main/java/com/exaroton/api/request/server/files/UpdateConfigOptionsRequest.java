@@ -2,7 +2,7 @@ package com.exaroton.api.request.server.files;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.ParameterValidator;
+import com.exaroton.api.util.ParameterValidator;
 import com.exaroton.api.server.config.ConfigOption;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

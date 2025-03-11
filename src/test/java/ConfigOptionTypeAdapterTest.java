@@ -1,5 +1,5 @@
 import com.exaroton.api.server.config.ConfigOption;
-import com.exaroton.api.server.config.ConfigOptionTypeAdapterFactory;
+import com.exaroton.api.util.ConfigOptionTypeAdapterFactory;
 import com.exaroton.api.server.config.OptionType;
 import com.exaroton.api.server.config.options.*;
 import com.google.gson.Gson;

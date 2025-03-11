@@ -2,8 +2,7 @@ package com.exaroton.api.request.server;
 
 import com.exaroton.api.APIResponse;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.ParameterValidator;
-import com.exaroton.api.server.ServerRAMInfo;
+import com.exaroton.api.util.ParameterValidator;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;

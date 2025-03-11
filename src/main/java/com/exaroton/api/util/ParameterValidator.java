@@ -1,11 +1,8 @@
-package com.exaroton.api;
-
-import org.jetbrains.annotations.ApiStatus;
+package com.exaroton.api.util;
 
 import java.util.Collection;
 import java.util.Map;
 
-@ApiStatus.Internal
 public class ParameterValidator {
     /**
      * Require that the argument is a valid (server/account/credit pool) id

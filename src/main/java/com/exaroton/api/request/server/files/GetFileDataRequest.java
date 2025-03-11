@@ -1,7 +1,7 @@
 package com.exaroton.api.request.server.files;
 
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.ParameterValidator;
+import com.exaroton.api.util.ParameterValidator;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 

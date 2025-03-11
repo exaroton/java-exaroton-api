@@ -1,7 +1,7 @@
 package com.exaroton.api.server;
 
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.Initializable;
+import com.exaroton.api.util.Initializable;
 import com.exaroton.api.request.server.*;
 import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.stream.*;

@@ -1,8 +1,7 @@
 package com.exaroton.api.server.config;
 
-import com.exaroton.api.APIException;
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.ParameterValidator;
+import com.exaroton.api.util.ParameterValidator;
 import com.exaroton.api.request.server.files.GetConfigOptionsRequest;
 import com.exaroton.api.request.server.files.UpdateConfigOptionsRequest;
 import com.exaroton.api.server.Server;

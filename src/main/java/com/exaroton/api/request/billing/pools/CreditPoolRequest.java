@@ -1,7 +1,7 @@
 package com.exaroton.api.request.billing.pools;
 
 import com.exaroton.api.APIRequest;
-import com.exaroton.api.ParameterValidator;
+import com.exaroton.api.util.ParameterValidator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

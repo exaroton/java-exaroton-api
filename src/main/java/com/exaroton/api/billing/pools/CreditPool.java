@@ -1,7 +1,7 @@
 package com.exaroton.api.billing.pools;
 
 import com.exaroton.api.ExarotonClient;
-import com.exaroton.api.Initializable;
+import com.exaroton.api.util.Initializable;
 import com.exaroton.api.request.billing.pools.GetCreditPoolMembersRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolServersRequest;
