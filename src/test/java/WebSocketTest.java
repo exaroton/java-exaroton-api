@@ -47,7 +47,7 @@ public class WebSocketTest extends APIClientTest {
         restartServer();
         stopServer();
 
-        assertNull(server.getWebSocket());
+        assertTrue(server.getWebSocket().isEmpty(), "Expected websocket to be closed");
     }
 
     void testHeapSubscriber() throws ExecutionException, InterruptedException, TimeoutException {
@@ -134,8 +134,8 @@ public class WebSocketTest extends APIClientTest {
         assertEquals(ServerStatus.ONLINE, server.getStatus());
 
         var restartingFuture = server.waitForStatus(ServerStatus.RESTARTING);
-        assertNotNull(server.getWebSocket());
-        server.getWebSocket().waitForReady().get(1, TimeUnit.MINUTES);
+        assertTrue(server.getWebSocket().isPresent());
+        server.getWebSocket().get().waitForReady().get(1, TimeUnit.MINUTES);
 
         server.restart().join();
         restartingFuture.get(1, TimeUnit.MINUTES);

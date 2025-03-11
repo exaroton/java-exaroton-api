@@ -558,8 +558,8 @@ public final class Server implements Initializable {
      * Get the current WebSocketConnection. A new connection will be created automatically if a subscriber is added.
      * @return web socket connection or null
      */
-    public @Nullable WebSocketConnection getWebSocket() {
-        return webSocket;
+    public Optional<WebSocketConnection> getWebSocket() {
+        return Optional.ofNullable(webSocket);
     }
 
     /**
