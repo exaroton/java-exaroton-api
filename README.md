@@ -1,7 +1,7 @@
-## Java exaroton API Client
+# Java exaroton API Client
 
 ---
-### About
+## About
 The official java library for the [exaroton API](https://developers.exaroton.com/) 
 that can be used to automatically manage Minecraft servers (e.g. starting or stopping them).
 
@@ -9,7 +9,7 @@ Required Java Version: 11+
 
 If you're creating a plugin/mod that runs on an exaroton server, you can get the current server using client.getCurrentServer().
 
-### Installing
+## Installing
 Gradle:
 ```gradle
 dependencies {
@@ -26,7 +26,7 @@ Maven:
 </dependency>
 ```
 
-### Usage 
+## Usage 
 You need an API key to use the API. You can generate an api key in the [account options](https://exaroton.com/account/).
 
 
@@ -274,6 +274,23 @@ server.addStatusSubscriber(new ServerStatusSubscriber() {
 This event is not only triggered when the status itself changes but also when other events happen, 
 e.g. a player joins the server.
 
+It's also possible to wait until your server reaches a specific status using the websocket API:
+```jshelllanguage
+server.waitForStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED).join();
+```
+
+It is highly recommended to consider all possible status changes and/or configure a timeout to prevent your application
+from hanging e.g. if starting the server fails or the server crashes while stopping. To set a timeout just use
+`Future#get(long,TimeUnit)`:
+
+```jshelllanguage
+try {
+    server.waitForStatus(ServerStatus.OFFLINE, ServerStatus.CRASHED).get(5, TimeUnit.MINUTES);
+} catch (TimeoutException e) {
+    System.out.println("Server did not reach the desired status in time!");
+}
+```
+
 #### Console messages
 The console stream emits an event for every new console line.
 ```jshelllanguage
@@ -343,3 +360,7 @@ the process stops even if there are dangling event handlers.
 ```jshelllanguage
 server.unsubscribe(); // closes websocket connection
 ```
+
+### Logging
+This library uses `slf4j` for logging, but does not include any provider on its own. See the SLF4J docs for more
+information on which providers are available or how to install them: https://www.slf4j.org/manual.html#swapping
