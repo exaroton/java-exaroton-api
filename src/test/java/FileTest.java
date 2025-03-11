@@ -18,7 +18,7 @@ public class FileTest extends APIClientTest {
     @Test
     void getFile() throws IOException {
         ServerFile whitelist = server.getFile("whitelist.json");
-        whitelist.putContent("[{\"name\":\"JulianVennen\", \"uuid\": \"abcd9e56-5ac2-490c-8bc9-6c1cad18f506\"}]").join();
+        whitelist.putContent("[{\"name\":\"Aternos\", \"uuid\": \"d6a91995-04bf-4f11-823f-5b18d412062a\"}]").join();
         assertNotNull(whitelist);
         assertNotNull(whitelist.fetch().join());
         assertFalse(whitelist.isConfigFile());

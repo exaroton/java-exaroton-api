@@ -10,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -64,12 +65,36 @@ public final class PlayerList {
      * @return completable future with all players in the list
      * @throws IOException Connection errors
      */
-    public CompletableFuture<List<String>> add(List<String> entries) throws IOException {
+    public CompletableFuture<List<String>> add(String... entries) throws IOException {
+        ParameterValidator.requireNonEmpty(entries, "entries");
+        return add(List.of(entries));
+    }
+
+    /**
+     * add players to list
+     *
+     * @param entries player names
+     * @return completable future with all players in the list
+     * @throws IOException Connection errors
+     */
+    public CompletableFuture<List<String>> add(Collection<String> entries) throws IOException {
         if (entries.isEmpty()) {
             throw new IllegalArgumentException("Can't add empty list");
         }
 
         return client.request(new AddPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries));
+    }
+
+    /**
+     * remove players from list
+     *
+     * @param entries player names
+     * @return completable future with all players in the list
+     * @throws IOException Connection errors
+     */
+    public CompletableFuture<List<String>> remove(String... entries) throws IOException {
+        ParameterValidator.requireNonEmpty(entries, "entries");
+        return remove(List.of(entries));
     }
 
     /**

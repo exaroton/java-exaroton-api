@@ -8,6 +8,8 @@ import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.http.HttpRequest;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -20,10 +22,10 @@ public class AddPlayerListEntriesRequest extends ServerListRequest<List<String>>
             @NotNull Gson gson,
             @NotNull String id,
             @NotNull String list,
-            @NotNull List<@NotNull String> entries
+            @NotNull Collection<@NotNull String> entries
     ) {
         super(client, gson, id, list);
-        this.entries = ParameterValidator.requireNonEmpty(entries, "entries");
+        this.entries = new ArrayList<>(ParameterValidator.requireNonEmpty(entries, "entries"));
     }
 
     @Override

@@ -42,7 +42,7 @@ public class ParameterValidator {
      * @param name       name of the parameter
      * @param <C>        collection type
      * @param <I>        item type
-     * @return the string
+     * @return the collection
      * @throws IllegalArgumentException if the array is null or empty
      */
     public static <C extends Collection<I>, I> C requireNonEmpty(C collection, String name) {
@@ -69,7 +69,7 @@ public class ParameterValidator {
      * @param <M>  map type
      * @param <K>  key type
      * @param <V>  value type
-     * @return the string
+     * @return the map
      * @throws IllegalArgumentException if the array is null or empty
      */
     public static <M extends Map<K, V>, K, V> M requireNonEmpty(M map, String name) {
@@ -89,6 +89,30 @@ public class ParameterValidator {
 
         return map;
     }
+
+    /**
+     * Require that the argument is not null or empty
+     *
+     * @param array array to validate
+     * @param name name of the parameter
+     * @param <I>  item type
+     * @return the array
+     * @throws IllegalArgumentException if the array is null or empty
+     */
+    public static <I> I[] requireNonEmpty(I[] array, String name) {
+        if (array == null || array.length == 0) {
+            throw new IllegalArgumentException(name + " must not be empty");
+        }
+
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == null) {
+                throw new IllegalArgumentException(name + " must not contain null values (index: " + i + ")");
+            }
+        }
+
+        return array;
+    }
+
 
     /**
      * Require that a number is not null and positive (&gt; 0)
