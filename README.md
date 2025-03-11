@@ -5,7 +5,7 @@
 The official java library for the [exaroton API](https://developers.exaroton.com/) 
 that can be used to automatically manage Minecraft servers (e.g. starting or stopping them).
 
-Required Java Version: 8+
+Required Java Version: 11+
 
 If you're creating a plugin/mod that runs on an exaroton server, you can get the current server using client.getCurrentServer().
 
@@ -13,7 +13,7 @@ If you're creating a plugin/mod that runs on an exaroton server, you can get the
 Gradle:
 ```gradle
 dependencies {
-    implementation 'com.exaroton:api:1.6.2'
+    implementation 'com.exaroton:api:2.0.0'
 }
 ```
 
@@ -22,7 +22,7 @@ Maven:
 <dependency>
   <groupId>com.exaroton</groupId>
   <artifactId>api</artifactId>
-  <version>1.6.2</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
@@ -37,17 +37,15 @@ ExarotonClient client = new ExarotonClient("example-api-token");
 ```
 
 ### REST API
+All rest methods are async and return a CompletableFuture. Use `CompletableFuture#join()`, `CompletableFuture#get()`
+or `CompletableFuture#thenAccept()` to get the result.
 
 #### Show account info
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
-try {
-    Account account = client.getAccount();
-    System.out.println("My account " + account.getName() + " has " + account.getCredits() + "!");
-} catch (APIException e) {
-    e.printStackTrace();
-}
+Account account = client.getAccount().join();
+System.out.println("My account " + account.getName() + " has " + account.getCredits() + "!");
 ```
 Objects of the Account class contain getters for each field in the [API docs](https://developers.exaroton.com/#account-get). 
 
@@ -55,13 +53,9 @@ Objects of the Account class contain getters for each field in the [API docs](ht
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
-try {
-    List<Server> servers = client.getServers();
-    for (Server server: servers) {
-        System.out.println(server.getId() + ":" + server.getAddress());
-    }
-} catch (APIException e){
-    e.printStackTrace();
+List<Server> servers = client.getServers().join();
+for (Server server: servers) {
+    System.out.println(server.getId() + ":" + server.getAddress());
 }
 ```
 Objects of the Server class contain getters for each field in the [API docs](https://developers.exaroton.com/#servers-get-1).
@@ -71,17 +65,17 @@ Objects of the Server class contain getters for each field in the [API docs](htt
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
+// This method does not fetch the server, it just creates an empty object with the id
 Server server = client.getServer("tgkm731xO7GiHt76");
-try {
-    server.get();
-    System.out.println(server.getAddress());
-    server.start();
-    server.restart();
-    server.stop();
-    server.executeCommand("say hello world");
-} catch (APIException e) {
-    e.printStackTrace();
-}
+
+// This method actually fetches the server from the API
+server.fetch().join();
+
+System.out.println(server.getAddress());
+server.start().join();
+server.restart().join();
+server.stop().join();
+server.executeCommand("say hello world").join();
 ```
 
 #### Check the server status
@@ -89,54 +83,34 @@ try {
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-try {
-    server.get();
-    System.out.println(server.getStatus());
+server.fetch().join();
+System.out.println(server.getStatus());
+// getStatus returns an instance of the ServerStatus enum with a numeric value, display name and color.
 
-    if (server.hasStatus(ServerStatus.ONLINE)) {
-        System.out.println("Server is online!");
-    }
-    else if (server.hasStatus(ServerStatus.OFFLINE)) {
-        System.out.println("Server is offline!");
-    }
-    else if (server.hasStatus(ServerStatus.PREPARING, ServerStatus.LOADING, ServerStatus.STARTING)) {
-        System.out.println("Server is starting!");
-    }
-} catch (APIException e) {
-    e.printStackTrace();
+if (server.hasStatus(ServerStatus.ONLINE)) {
+    System.out.println("Server is online!");
+}
+else if (server.hasStatus(ServerStatus.OFFLINE)) {
+    System.out.println("Server is offline!");
+}
+else if (server.hasStatus(ServerStatus.PREPARING, ServerStatus.LOADING, ServerStatus.STARTING)) {
+    System.out.println("Server is starting!");
 }
 ```
-The server status is an integer.
-Status codes:
-- 0 = OFFLINE
-- 1 = ONLINE
-- 2 = STARTING
-- 3 = STOPPING
-- 4 = RESTARTING
-- 5 = SAVING
-- 6 = LOADING
-- 7 = CRASHED
-- 8 = PENDING
-- 10 = PREPARING
 
-You can use the ServerStatus class to easily get the value of any status.
 
 #### Get/Share your server log
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-try {
-    // Get your log
-    ServerLog log = server.getLog();
-    System.out.println(log.getContent());
+// Get your log
+ServerLog log = server.getLog().join();
+System.out.println(log.getContent());
 
-    // Send your log to the mclogs API
-    MclogsData mclogs = server.shareLog();
-    System.out.println(mclogs.getUrl());
-} catch (APIException e) {
-    e.printStackTrace();
-}
+// Send your log to the mclogs API
+MclogsData mclogs = server.shareLog().join();
+System.out.println(mclogs.getUrl());
 ```
 The result is cached and will not return the latest updates immediately. It's not possible to get the server logs while the server is loading, stopping or saving.
 
@@ -146,16 +120,12 @@ The result is cached and will not return the latest updates immediately. It's no
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-try {
-    ServerRAMInfo ram = server.getRAM();
-    System.out.println("Current RAM: " + ram.getRam() + "GiB");
-    ram = server.setRAM(8);
-    System.out.println("New RAM: " + ram.getRam() + "GiB");
-} catch (APIException e) {
-    e.printStackTrace();
-}
+ServerRAMInfo ram = server.getRAM().join();
+System.out.println("Current RAM: " + ram.getRam() + "GiB");
+ram = server.setRAM(8).join();
+System.out.println("New RAM: " + ram.getRam() + "GiB");
 ```
-RAM values are in full GiB and have to be between 2 and 16.
+RAM values are in full GiB and have to be between 2 and 16. Proxy servers can have as little as 1 GiB of RAM.
 
 #### Player lists
 A player list is a list of players such as the whitelist, ops or bans. 
@@ -171,16 +141,12 @@ ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
 PlayerList whitelist = server.getPlayerList("whitelist");
-try {
-    System.out.println("Whitelist:");
-    for (String entry: whitelist.getEntries()) {
-        System.out.println(entry);
-    }
-    whitelist.add("example", "example2");
-    whitelist.remove("example34");
-} catch (APIException e) {
-    e.printStackTrace();
+System.out.println("Whitelist:");
+for (String entry: whitelist.getEntries().join()) {
+    System.out.println(entry);
 }
+whitelist.add("example", "example2").join();
+whitelist.remove("example34").join();
 ```
 
 #### Files
@@ -194,25 +160,25 @@ ServerFile file = server.getFile("/whitelist.json");
 
 Now you can fetch file info, get the context of a file (if it's a text file) or download it.
 ```jshelllanguage
-file.getInfo();
+whitelist.fetch().join();
 if (file.isTextFile()) {
     System.out.println(file.getContent());
 }
 else {
-    file.download(Paths.get("whitelist.json"));    
+    file.download(Paths.get("whitelist.json")).join();    
 }
 ```
 
 You can also write to the file or upload a file:
 ```jshelllanguage
-file.putContent("I can write to a file o.O");
-file.upload(Paths.get("other-whitelist.json"));
+file.putContent("I can write to a file o.O").join();
+file.upload(Paths.get("other-whitelist.json")).join();
 ```
 
 Deleting files and creating directories is possible as well:
 ```jshelllanguage
-file.delete();
-file.createAsDirectory();
+file.delete().join();
+file.createAsDirectory().join();
 ```
 
 #### Configs
@@ -225,28 +191,30 @@ Server server = client.getServer("tgkm731xO7GiHt76");
 ServerFile file = server.getFile("/server.properties");
 ServerConfig config = file.getConfig();
 
-Map<String, ServerConfigOption> options = config.getOptions();
-for (ServerConfigOption option: options) {
-    System.out.println(option.getName() + ": " + option.getValue());
+Map<String, ConfigOption<?>> options = config.getOptions().join();
+for (ConfigOption<?> option: options.values()) {
+    System.out.println(option.getKey() + ": " + option.getValue());
 }
 
-ConfigOption option = config.getOption("level-seed");
+ConfigOption<?> option = config.getOption("level-seed").join();
 ```
 
 There are several types of options which extend the ServerConfigOption class:
 ```jshelllanguage
-for (ServerConfigOption option: options) {
+for (ConfigOption<?> option: options.values()) {
     if (option.getType() == OptionType.BOOLEAN) {
         BooleanConfigOption booleanOption = (BooleanConfigOption) option;
-        System.out.println(booleanOption.getName() + ": " + booleanOption.getValue());
+        System.out.println(booleanOption.getKey() + ": " + booleanOption.getValue());
     }
 }
 ```
 
 To save changes to a config, use the save() method:
 ```jshelllanguage
-config.getOption("level-seed").setValue("example");
-config.save();
+if (options.get("level-seed") instanceof StringConfigOption stringOption) {
+    stringOption.setValue("example");
+}
+config.save().join();
 ```
 
 #### Credit Pools
@@ -254,30 +222,30 @@ Credit pools allow you to share payments for your server with other users in a s
 You can view information about credit pools like this:
 ```jshelllanguage
 // get all credit pools
-List<CreditPool> pools = client.getCreditPools();
+List<CreditPool> pools = client.getCreditPools().join();
 for (CreditPool pool: pools) {
     System.out.println(pool.getName() + ": " + pool.getCredits());
 }
 
 // get a single credit pool
 CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
-pool.get(); // update pool info
+pool.fetch(); // update pool info
 System.out.println(pool.getName() + ": " + pool.getCredits());
 ```
 
 The API also allows you to fetch the servers in a pool:
 ```jshelllanguage
 CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
-List<Server> servers = pool.getServers();
+List<Server> servers = pool.getServerList().join();
 for (Server server: servers) {
-System.out.println(server.getName() + ": " + server.getAddress());
+    System.out.println(server.getName() + ": " + server.getAddress());
 }
 ```
 
 If you have the "View members" permission, you can even get all members of a pool:
 ```jshelllanguage
 CreditPool pool = client.getCreditPool("N2t9gWOMpzRL37FI");
-List<CreditPoolMember> members = pool.getMembers();
+List<CreditPoolMember> members = pool.getMemberList().join();
 for (CreditPoolMember member: members) {
     System.out.println(member.getName() + ": " + member.getCredits());
 }
@@ -285,22 +253,20 @@ for (CreditPoolMember member: members) {
 
 
 ## Websocket API
-The websocket API allows a constant connection to our websocket service to receive events in real time without polling 
-(e.g. trying to get the server status every few seconds).
+The websocket API allows a constant connection to our websocket service to receive events in real time without polling.
+When you attach a subscriber to a server, a websocket connection will be established automatically. This library also
+subscribes to the correct streams once you register a subscriber needing other streams.
 
-#### Server status changes
-You can simply connect to the websocket API for a server by running the subscribe() function.
-By default, you are always subscribed to server status update events, you can react to server status 
-changes by adding a subscriber: 
+#### Server status changes 
+You can react to server status changes by adding a subscriber: 
 
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe();
 server.addStatusSubscriber(new ServerStatusSubscriber() {
     @Override
-    public void statusUpdate(Server oldServer, Server newServer) {
+    public void handleStatusUpdate(Server oldServer, Server newServer) {
         System.out.printf("Server had status %s and now has status %s!%n", oldServer.getStatus(), newServer.getStatus());
     }
 });
@@ -309,16 +275,14 @@ This event is not only triggered when the status itself changes but also when ot
 e.g. a player joins the server.
 
 #### Console messages
-One of the optional streams is the console stream. You can subscribe to one or more optional streams 
-using the subscribe method. The console stream emits an event for every new console line.
+The console stream emits an event for every new console line.
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe("console");
 server.addConsoleSubscriber(new ConsoleSubscriber() {
     @Override
-    public void line(String line) {
+    public void handleLine(String line) {
         System.out.println(line);
     }
 });
@@ -337,12 +301,11 @@ and the TPS (ticks per second) of your server. This information is also availabl
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe("tick");
 server.addTickSubscriber(new TickSubscriber() {
     @Override
-    public void tick(TickData tick) {
-        System.out.printf("Average tick time: %s%nCalculated TPS: %s%n", 
-            tick.getAverageTickTime(), tick.calculateTPS());
+    public void handleTickData(TickData tick) {
+        System.out.printf("Average tick time: %s%nCalculated TPS: %s%n",
+                tick.getAverageTickTime(), tick.calculateTPS());
     }
 });
 ```
@@ -351,51 +314,32 @@ The tps are calculated by dividing 1000 by the average tick time and limiting it
 #### RAM usage
 There are two different optional streams to get RAM usage, the general stats stream and the Java specific 
 heap stream. It is recommended to use the heap stream if you are running a server software that is based 
-on Java. It is not recommended using both.
-
-You can subscribe to multiple streams at once by passing an array to the subscribe function.
+on Java. It is not recommended to use both.
 
 ```jshelllanguage
 ExarotonClient client = new ExarotonClient("example-api-token");
 
 Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe("stats", "heap");
 server.addStatsSubscriber(new StatsSubscriber() {
     @Override
-    public void stats(StatsData stats) {
+    public void handleStats(StatsData stats) {
         System.out.printf("%s (%s)%n", stats.getMemory().getUsage(), stats.getMemory().getPercent());
     }
 });
 server.addHeapSubscriber(new HeapSubscriber() {
     @Override
-    public void heap(HeapUsage heap) {
+    public void handleHeapUsage(HeapUsage heap) {
         System.out.println(heap.getUsage());
     }
 });
 ```
 
 #### Unsubscribe
-You can unsubscribe from one, multiple or all streams using the server.unsubscribe() function.
+When all subscribers for a stream are removed, this library automatically unsubscribes from events for that stream. Once
+all streams are closed the websocket connection is closed as well.
+You can manually close the websocket connection using the `Server#unsubscribe()`, e.g. as a cleanup step to make sure
+the process stops even if there are dangling event handlers.
 
 ```jshelllanguage
-ExarotonClient client = new ExarotonClient("example-api-token");
-
-Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe("console", "stats", "heap");
-server.unsubscribe("heap");
-server.unsubscribe("stats", "console");
 server.unsubscribe(); // closes websocket connection
-```
-
-### Debugging Websocket connections
-```jshelllanguage
-ExarotonClient client = new ExarotonClient("example-api-token");
-
-Server server = client.getServer("tgkm731xO7GiHt76");
-server.subscribe();
-server.getWebSocket().setErrorListener((message, throwable) -> {
-    System.out.println(message);
-    System.out.println(throwable.toString());
-});
-server.getWebSocket().setDebugListener(System.out::println);
 ```
