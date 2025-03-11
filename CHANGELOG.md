@@ -42,10 +42,10 @@ JSON body you can use `ApiRequest#jsonBodyPublisher(Object)`. This only affects 
 string or object.
 
 ### WebSockets
-The `java-websocket` library has been replaced by the built-in Java 11 websocket implementation. Unless you were using
-the `WebSocketClient` or `WebSocketManager` classes directly this shouldn't require any changes to your code.
-
-`Server#subscribe` and `Server#unsubscribe` now accept the `StreamName` enum instead of any string
+The `java-websocket` library has been replaced by the built-in Java 11 websocket implementation. Websocket connections
+are now automatically created when a subscriber is registered and closed when the last subscriber is removed. Manually
+closing a connection using `Server#unsubscribe()` is still supported. This method does not throw an exception if there
+is no connection to close.
 
 The debug/error handler methods have been removed. Errors and debug messages are now  exclusively logged using SLF4J
 

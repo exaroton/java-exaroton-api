@@ -564,7 +564,8 @@ public final class Server implements Initializable {
 
     /**
      * Unsubscribe from websocket events. This happens automatically when there are no registered subscribers, but you
-     * might still want to call this method explicitly as a cleanup step.
+     * might still want to call this method explicitly as a cleanup step. If no connection is active, this method does
+     * nothing.
      */
     public void unsubscribe() {
         if (this.webSocket == null) {

@@ -1,11 +1,10 @@
 package com.exaroton.api;
 
+/**
+ * Exception thrown by the exaroton API.
+ */
 public class APIException extends Exception {
     public APIException(String message) {
         super(message);
-    }
-
-    public APIException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

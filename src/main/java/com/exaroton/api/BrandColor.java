@@ -1,5 +1,6 @@
 package com.exaroton.api;
 
+@SuppressWarnings("unused")
 public enum BrandColor {
     DARK(0x0f0f0f),
     LIGHT(0xffffff),

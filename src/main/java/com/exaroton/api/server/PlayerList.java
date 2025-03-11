@@ -78,10 +78,7 @@ public final class PlayerList {
      * @throws IOException Connection errors
      */
     public CompletableFuture<List<String>> add(Collection<String> entries) throws IOException {
-        if (entries.isEmpty()) {
-            throw new IllegalArgumentException("Can't add empty list");
-        }
-
+        ParameterValidator.requireNonEmpty(entries, "entries");
         return client.request(new AddPlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries));
     }
 
@@ -105,10 +102,7 @@ public final class PlayerList {
      * @throws IOException Connection errors
      */
     public CompletableFuture<List<String>> remove(List<String> entries) throws IOException {
-        if (entries.isEmpty()) {
-            throw new IllegalArgumentException("Can't remove empty list");
-        }
-
+        ParameterValidator.requireNonEmpty(entries, "entries");
         return client.request(new RemovePlayerListEntriesRequest(this.client, this.gson, this.serverId, this.name, entries));
     }
 }
