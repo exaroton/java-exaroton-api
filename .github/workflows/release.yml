@@ -1,8 +1,13 @@
 name: Release
+
 on:
   push:
     tags:
       - '*.*.*'
+
+concurrency:
+  group: java-exaroton-api
+
 jobs:
   release:
     runs-on: ubuntu-latest

@@ -1,9 +1,14 @@
 name: Test
+
 on:
   push:
     branches:
       - '*'
   pull_request:
+
+concurrency:
+  group: java-exaroton-api
+
 jobs:
   test:
     runs-on: ubuntu-latest
