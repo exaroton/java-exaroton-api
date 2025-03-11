@@ -10,8 +10,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -62,11 +62,23 @@ public final class ServerConfig {
                         .thenAccept(this::setOptions);
     }
 
-    private void setOptions(List<ConfigOption<?>> options) {
+    /**
+     * Set the options of the server config
+     * @param options collection of options
+     */
+    public void setOptions(Collection<ConfigOption<?>> options) {
         this.options = new HashMap<>();
         for (ConfigOption<?> option : options) {
             this.options.put(option.getKey(), option);
         }
+    }
+
+    /**
+     * Set the options of the server config
+     * @param options map of options
+     */
+    public void setOptions(Map<String, ConfigOption<?>> options) {
+        this.options = new HashMap<>(options);
     }
 
     /**

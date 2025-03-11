@@ -1,3 +1,11 @@
+# 2.1.0
+
+## Added
+- `ServerConfig#setOptions(Collection<ConfigOption<?>>)`
+- `ServerConfig#setOptions(Map<String, ConfigOption<?>>)`
+
+# 2.0.0
+
 ## Breaking Changes
 ## Java 11
 This library now requires Java 11 or higher.
