@@ -1,11 +1,8 @@
 package com.exaroton.api.ws.data;
 
-public class StatsData {
-    private final MemoryUsage memory;
-
-    public StatsData(MemoryUsage memory) {
-        this.memory = memory;
-    }
+@SuppressWarnings("unused")
+public final class StatsData {
+    private MemoryUsage memory;
 
     /**
      * get memory info

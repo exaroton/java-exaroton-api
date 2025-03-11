@@ -1,14 +1,11 @@
 package com.exaroton.api.ws.data;
 
-public class HeapUsage {
+@SuppressWarnings("unused")
+public final class HeapUsage {
     /**
      * heap usage in bytes
      */
-    private final long usage;
-
-    public HeapUsage(long usage) {
-        this.usage = usage;
-    }
+    private long usage;
 
     /**
      * get heap usage

@@ -2,7 +2,6 @@ package com.exaroton.api.ws.stream;
 
 import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.data.TickData;
-import com.exaroton.api.ws.data.TickStreamData;
 import com.exaroton.api.ws.subscriber.TickSubscriber;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -19,7 +18,7 @@ public final class TickStream extends Stream<TickSubscriber> {
     protected void onDataMessage(String type, JsonObject message) {
         switch (type) {
             case "tick":
-                TickData tick = gson.fromJson(message, TickStreamData.class).getData();
+                TickData tick = gson.fromJson(message.get("data"), TickData.class);
 
                 for (TickSubscriber subscriber : getSubscribers()) {
                     subscriber.handleTickData(tick);

@@ -1,7 +1,6 @@
 package com.exaroton.api.ws.stream;
 
 import com.exaroton.api.ws.WebSocketConnection;
-import com.exaroton.api.ws.data.ConsoleStreamData;
 import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -30,7 +29,7 @@ public final class ConsoleStream extends Stream<ConsoleSubscriber> {
     protected void onDataMessage(String type, JsonObject message) {
         switch (type) {
             case "line":
-                String line = gson.fromJson(message, ConsoleStreamData.class).getData();
+                String line = message.get("data").getAsString();
                 for (ConsoleSubscriber subscriber : getSubscribers()) {
                     subscriber.handleLine(line);
                 }

@@ -1,6 +1,7 @@
 package com.exaroton.api.ws.data;
 
-public class TickData {
+@SuppressWarnings("unused")
+public final class TickData {
     private double averageTickTime;
 
     /**

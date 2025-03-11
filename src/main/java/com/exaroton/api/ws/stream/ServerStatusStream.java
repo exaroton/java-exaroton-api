@@ -2,7 +2,6 @@ package com.exaroton.api.ws.stream;
 
 import com.exaroton.api.server.Server;
 import com.exaroton.api.ws.WebSocketConnection;
-import com.exaroton.api.ws.data.ServerStatusStreamData;
 import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -29,7 +28,7 @@ public final class ServerStatusStream extends Stream<ServerStatusSubscriber> {
         switch (type) {
             case "status":
                 Server oldServer = new Server(server.getClient(), gson, server.getId()).setFromObject(server);
-                this.server.setFromObject(gson.fromJson(message, ServerStatusStreamData.class).getData());
+                this.server.setFromObject(gson.fromJson(message.get("data"), Server.class));
 
                 ws.autoStartStop();
 

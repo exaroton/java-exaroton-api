@@ -1,6 +1,10 @@
 package com.exaroton.api.ws.data;
 
-public class StreamData<Datatype> {
+import org.jetbrains.annotations.ApiStatus;
+
+@SuppressWarnings({"unused", "FieldCanBeLocal"})
+@ApiStatus.Internal
+public final class StreamData<Datatype> {
 
     /**
      * stream name
@@ -15,37 +19,11 @@ public class StreamData<Datatype> {
     /**
      * data
      */
-    private Datatype data;
-
-    public StreamData(String stream, String type) {
-        this.stream = stream;
-        this.type = type;
-    }
+    private final Datatype data;
 
     public StreamData(String stream, String type, Datatype data) {
         this.stream = stream;
         this.type = type;
         this.data = data;
-    }
-
-    /**
-     * @return message type
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     * @return stream name
-     */
-    public String getStream() {
-        return stream;
-    }
-
-    /**
-     * @return stream data
-     */
-    public Datatype getData() {
-        return data;
     }
 }

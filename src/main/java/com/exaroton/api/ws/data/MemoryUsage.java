@@ -1,6 +1,7 @@
 package com.exaroton.api.ws.data;
 
-public class MemoryUsage {
+@SuppressWarnings("unused")
+public final class MemoryUsage {
     private double percent;
     private long usage;
 
