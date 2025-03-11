@@ -31,7 +31,7 @@ public final class ServerStatusStream extends Stream<ServerStatusSubscriber> {
                 Server oldServer = new Server(server.getClient(), gson, server.getId()).setFromObject(server);
                 this.server.setFromObject(gson.fromJson(message, ServerStatusStreamData.class).getData());
 
-                ws.onStatusChange();
+                ws.autoStartStop();
 
                 for (ServerStatusSubscriber subscriber : getSubscribers()) {
                     subscriber.handleStatusUpdate(oldServer, this.server);

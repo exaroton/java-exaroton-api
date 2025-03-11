@@ -31,6 +31,9 @@ public abstract class Stream<T> {
      */
     private final List<T> subscribers = new ArrayList<>();
 
+    private final List<StreamData<?>> sendWhenStarted = new ArrayList<>();
+    private CompletableFuture<Void> startedFuture = new CompletableFuture<>();
+
     /**
      * web socket client
      */
@@ -83,19 +86,16 @@ public abstract class Stream<T> {
      * @param type message type
      * @return future that completes when the message is actually sent
      */
-    public CompletableFuture<Void> send(String type) {
-        return send(type, null);
+    private CompletableFuture<Void> send(String type) {
+        return send(messageData(type, null));
     }
 
-    /**
-     * send stream data through the websocket
-     *
-     * @param type message type
-     * @param data message data
-     * @return future that completes when the message is actually sent
-     */
-    public CompletableFuture<Void> send(String type, String data) {
-        return ws.sendWhenReady(gson.toJson(new StreamData<>(this.getType().getName(), type, data)));
+    private CompletableFuture<Void> send(StreamData<?> data) {
+        return ws.sendWhenReady(gson.toJson(data));
+    }
+
+    protected <MessageDataType> StreamData<MessageDataType> messageData(String type, MessageDataType data) {
+        return new StreamData<>(this.getType().getName(), type, data);
     }
 
     /**
@@ -107,6 +107,12 @@ public abstract class Stream<T> {
         switch (type) {
             case "started":
                 this.started = true;
+                synchronized (this.sendWhenStarted) {
+                    this.sendWhenStarted.forEach(this::send);
+                    this.sendWhenStarted.clear();
+                }
+                this.startedFuture.complete(null);
+                this.startedFuture = new CompletableFuture<>();
                 break;
 
             case "stopped":
@@ -122,8 +128,8 @@ public abstract class Stream<T> {
         this.started = false;
     }
 
-    public void onStatusChange() {
-        this.tryToStart().thenCompose(x -> this.tryToStop());
+    public CompletableFuture<Void> autoStartStop() {
+        return this.tryToStart().thenCompose(x -> this.tryToStop());
     }
 
     /**
@@ -170,6 +176,17 @@ public abstract class Stream<T> {
 
     protected List<T> getSubscribers() {
         return new ArrayList<>(this.subscribers);
+    }
+
+    protected CompletableFuture<Void> sendWhenStarted(StreamData<?> message) {
+        if (this.started) {
+            return this.send(message);
+        } else {
+            synchronized (this.sendWhenStarted) {
+                this.sendWhenStarted.add(message);
+            }
+            return startedFuture;
+        }
     }
 
     protected abstract void onDataMessage(String type, JsonObject message);

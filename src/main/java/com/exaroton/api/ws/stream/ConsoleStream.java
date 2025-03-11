@@ -23,7 +23,7 @@ public final class ConsoleStream extends Stream<ConsoleSubscriber> {
      * @return a future that completes when the websocket message was sent
      */
     public CompletableFuture<Void> executeCommand(String command) {
-        return this.send("command", command);
+        return this.sendWhenStarted(messageData("command", command));
     }
 
     @Override

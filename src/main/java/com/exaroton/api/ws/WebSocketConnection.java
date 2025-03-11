@@ -48,7 +48,7 @@ public final class WebSocketConnection implements WebSocket.Listener {
      */
     private final ArrayList<String> messages = new ArrayList<>();
 
-    private CompletableFuture<Void> messageQueueCleared = new CompletableFuture<>();
+    private CompletableFuture<Void> readyFuture = new CompletableFuture<>();
 
     /**
      * is the connection ready
@@ -314,14 +314,16 @@ public final class WebSocketConnection implements WebSocket.Listener {
 
             case "ready":
                 ready = true;
-                synchronized (this.messages) {
-                    for (String x : this.messages) {
-                        webSocket.sendText(x, true);
+                autoStartStop().thenRun(() -> {
+                    synchronized (this.messages) {
+                        for (String x : this.messages) {
+                            webSocket.sendText(x, true);
+                        }
+                        this.messages.clear();
                     }
-                    this.messages.clear();
-                }
-                this.messageQueueCleared.complete(null);
-                this.messageQueueCleared = new CompletableFuture<>();
+                    this.readyFuture.complete(null);
+                    this.readyFuture = new CompletableFuture<>();
+                });
                 break;
 
             default:
@@ -336,13 +338,15 @@ public final class WebSocketConnection implements WebSocket.Listener {
     }
 
     @ApiStatus.Internal
-    public void onStatusChange() {
+    public CompletableFuture<Void> autoStartStop() {
+        Collection<CompletableFuture<Void>> futures = new ArrayList<>();
         // start/stop streams based on status
         synchronized (streams) {
             for (Stream<?> s : streams.values()) {
-                s.onStatusChange();
+                futures.add(s.autoStartStop());
             }
         }
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }
 
     @ApiStatus.Internal
@@ -386,7 +390,7 @@ public final class WebSocketConnection implements WebSocket.Listener {
             synchronized (this.messages) {
                 this.messages.add(data);
             }
-            return messageQueueCleared;
+            return readyFuture;
         }
         return this.client.sendText(data, true).thenAccept(x -> {});
     }
