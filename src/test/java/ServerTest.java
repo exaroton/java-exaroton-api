@@ -1,14 +1,20 @@
 import com.exaroton.api.server.*;
-import com.exaroton.api.ws.WaitForStatusSubscriber;
-import com.exaroton.api.ws.subscriber.ConsoleSubscriber;
-import com.exaroton.api.ws.subscriber.ServerStatusSubscriber;
+import com.exaroton.api.ws.data.HeapUsage;
+import com.exaroton.api.ws.data.StatsData;
+import com.exaroton.api.ws.data.TickData;
+import com.exaroton.api.ws.subscriber.*;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +23,7 @@ public class ServerTest extends APIClientTest {
     void testGetServers() throws IOException {
         List<Server> servers = client.getServers().join();
         assertNotNull(servers);
-        for (Server server: servers) {
+        for (Server server : servers) {
             assertNotNull(server.getAddress());
             assertNotNull(server.getName());
             assertNotNull(server.getId());
@@ -127,7 +133,7 @@ public class ServerTest extends APIClientTest {
         assertNotNull(lists);
         assertFalse(lists.isEmpty(), "Expected at least one player list, got none");
 
-        for (String name: lists) {
+        for (String name : lists) {
             assertNotNull(name);
             PlayerList list = server.getPlayerList(name);
             assertNotNull(list);
@@ -138,11 +144,16 @@ public class ServerTest extends APIClientTest {
 
     @Test
     void testRemoveSubscribersWithoutWebsocket() {
-        server.removeStatusSubscriber((oldServer, newServer) -> {});
-        server.removeConsoleSubscriber(x -> {});
-        server.removeHeapSubscriber(x -> {});
-        server.removeStatsSubscriber(x -> {});
-        server.removeTickSubscriber(x -> {});
+        server.removeStatusSubscriber((oldServer, newServer) -> {
+        });
+        server.removeConsoleSubscriber(x -> {
+        });
+        server.removeHeapSubscriber(x -> {
+        });
+        server.removeStatsSubscriber(x -> {
+        });
+        server.removeTickSubscriber(x -> {
+        });
     }
 
     /**
@@ -153,11 +164,54 @@ public class ServerTest extends APIClientTest {
         server.fetch().join();
 
         startServer();
+        testHeapSubscriber();
+        testStatsSubscriber();
+        testTickSubscriber();
         testExecuteCommand();
         restartServer();
         stopServer();
 
         assertNull(server.getWebSocket());
+    }
+
+    void testHeapSubscriber() throws ExecutionException, InterruptedException, TimeoutException {
+        CompletableFuture<HeapUsage> heapFuture = new CompletableFuture<>();
+        HeapSubscriber heapSubscriber = heapFuture::complete;
+
+        server.addHeapSubscriber(heapSubscriber);
+        HeapUsage heapUsage = heapFuture.get(1, TimeUnit.MINUTES);
+        server.removeHeapSubscriber(heapSubscriber);
+
+        assertNotNull(heapUsage);
+        assertTrue(heapUsage.getUsage() > 0, "Expected heap usage to be greater than 0");
+    }
+
+    void testStatsSubscriber() throws ExecutionException, InterruptedException, TimeoutException {
+        CompletableFuture<StatsData> statsFuture = new CompletableFuture<>();
+        StatsSubscriber statsSubscriber = statsFuture::complete;
+
+        server.addStatsSubscriber(statsSubscriber);
+        StatsData stats = statsFuture.get(1, TimeUnit.MINUTES);
+        server.removeStatsSubscriber(statsSubscriber);
+
+        assertNotNull(stats);
+        assertTrue(stats.getMemory().getUsage() > 0, "Expected memory usage to be greater than 0");
+        assertTrue(stats.getMemory().getPercent() > 0, "Expected memory usage to be greater than 0%");
+        assertTrue(stats.getMemory().getPercent() < 100, "Expected memory usage to be less than 100%");
+    }
+
+    void testTickSubscriber() throws ExecutionException, InterruptedException, TimeoutException {
+        CompletableFuture<TickData> tickFuture = new CompletableFuture<>();
+        TickSubscriber tickSubscriber = tickFuture::complete;
+
+        server.addTickSubscriber(tickSubscriber);
+        TickData tick = tickFuture.get(1, TimeUnit.MINUTES);
+        server.removeTickSubscriber(tickSubscriber);
+
+        assertNotNull(tick);
+        assertTrue(tick.getAverageTickTime() > 0, "Expected tick time to be greater than 0");
+        assertTrue(tick.calculateTPS() > 0, "Expected tps to be greater than 0");
+        assertTrue(tick.calculateTPS() <= 20, "Expected memory usage to be greater than 0%");
     }
 
     void testExecuteCommand() throws IOException, ExecutionException, InterruptedException, TimeoutException {
