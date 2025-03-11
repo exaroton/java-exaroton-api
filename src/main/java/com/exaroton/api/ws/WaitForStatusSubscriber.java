@@ -15,19 +15,20 @@ import java.util.concurrent.*;
 public final class WaitForStatusSubscriber implements ServerStatusSubscriber, Future<Server> {
     private final Set<ServerStatus> statuses;
     private final CompletableFuture<Server> future;
+    private final ServerStatusStream stream;
 
     /**
      * Create a new future that will complete when the server has the specified status. This class will register itself
      * as a subscriber to the stream. Registering it externally may result in unexpected behavior.
+     *
      * @param statuses statuses to wait for
-     * @param stream stream to subscribe to
+     * @param stream   stream to subscribe to
      */
     public WaitForStatusSubscriber(Set<ServerStatus> statuses, ServerStatusStream stream) {
         this.statuses = Objects.requireNonNull(statuses);
-        ServerStatusStream stream1 = Objects.requireNonNull(stream);
-        this.future = new CompletableFuture<Server>()
-                .whenComplete((x, y) -> stream.removeSubscriber(this));
-        stream.addSubscriber(this);
+        this.future = new CompletableFuture<>();
+        this.stream = stream;
+        Objects.requireNonNull(stream).addSubscriber(this);
     }
 
     @Override
@@ -36,11 +37,13 @@ public final class WaitForStatusSubscriber implements ServerStatusSubscriber, Fu
             if (newServer.hasStatus(statuses)) {
                 synchronized (this) {
                     future.complete(newServer);
+                    stream.removeSubscriber(this);
                 }
             }
         } catch (Throwable t) {
             synchronized (this) {
                 future.completeExceptionally(t);
+                stream.removeSubscriber(this);
             }
         }
     }
@@ -48,6 +51,7 @@ public final class WaitForStatusSubscriber implements ServerStatusSubscriber, Fu
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         synchronized (this) {
+            stream.removeSubscriber(this);
             return future.cancel(mayInterruptIfRunning);
         }
     }
@@ -64,11 +68,19 @@ public final class WaitForStatusSubscriber implements ServerStatusSubscriber, Fu
 
     @Override
     public Server get() throws InterruptedException, ExecutionException {
-        return future.get();
+        try {
+            return future.get();
+        } finally {
+            stream.removeSubscriber(this);
+        }
     }
 
     @Override
     public Server get(long timeout, @NotNull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return future.get(timeout, unit);
+        try {
+            return future.get(timeout, unit);
+        } finally {
+            stream.removeSubscriber(this);
+        }
     }
 }
