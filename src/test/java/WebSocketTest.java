@@ -40,6 +40,13 @@ public class WebSocketTest extends APIClientTest {
         server.fetch().join();
 
         startServer();
+
+        assertTrue(server.getPort().isPresent());
+        assertTrue(server.getHost().isPresent());
+        assertTrue(server.getSocketAddress().isPresent());
+        assertEquals(server.getPort().get(), server.getSocketAddress().get().getPort());
+        assertEquals(server.getHost().get(), server.getSocketAddress().get().getHostString());
+
         testHeapSubscriber();
         testStatsSubscriber();
         testTickSubscriber();

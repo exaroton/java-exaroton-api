@@ -1,3 +1,8 @@
+# 2.2.0
+
+## Added
+- `Server#getSocketAddress()` which returns an `InetSocketAddress` of the server's IP and port if the server is online
+
 # 2.1.0
 
 ## Added

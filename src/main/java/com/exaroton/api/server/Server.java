@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -241,6 +242,19 @@ public final class Server implements Initializable {
      */
     public Optional<Integer> getPort() {
         return Optional.ofNullable(port);
+    }
+
+    /**
+     * Returns an InetSocketAddress with the host and port of the server or an empty optional if the server is offline.
+     *
+     * @return InetSocketAddress with the host and port of the server
+     */
+    public Optional<InetSocketAddress> getSocketAddress() {
+        if (host == null || port == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new InetSocketAddress(host, port));
     }
 
     /**

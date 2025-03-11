@@ -1,20 +1,9 @@
 import com.exaroton.api.server.*;
-import com.exaroton.api.ws.data.HeapUsage;
-import com.exaroton.api.ws.data.StatsData;
-import com.exaroton.api.ws.data.TickData;
-import com.exaroton.api.ws.subscriber.*;
-import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,6 +44,7 @@ public class ServerTest extends APIClientTest {
 
         assertTrue(server.getHost().isEmpty());
         assertEquals(52892, server.getPort().orElse(null));
+        assertTrue(server.getSocketAddress().isEmpty());
 
         var software = server.getSoftware();
         assertNotNull(software);
