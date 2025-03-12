@@ -111,12 +111,31 @@ public class APIResponse<Datatype> {
                     return CompletableFuture.failedFuture(new APIException(response.getError()));
                 }
 
-                if (response.getData() instanceof Initializable) {
-                    ((Initializable) response.getData()).initialize(client, gson);
-                }
+                initialize(response.getData());
 
                 return CompletableFuture.completedFuture(response);
             });
+        }
+
+        /**
+         * Initialize an object with the API client and gson instance. This will call initialize on object that
+         * implements Initializable or initialize all objects in an Iterable.
+         * @param object object to initialize
+         */
+        private void initialize(Object object) {
+            if (object == null) {
+                return;
+            }
+
+            if (object instanceof Iterable<?>) {
+                for (Object item : (Iterable<?>) object) {
+                    initialize(item);
+                }
+            }
+
+            if (object instanceof Initializable) {
+                ((Initializable) object).initialize(client, gson);
+            }
         }
 
         @Override

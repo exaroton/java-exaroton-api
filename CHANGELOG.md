@@ -1,3 +1,10 @@
+# 2.2.1
+## Added
+- `CreditPool#getClient()`
+
+## Fixed
+- Objects returned by `ExarotonClient#getServers` and `ExarotonClient#getCreditPools` are now correctly initialized
+
 # 2.2.0
 
 ## Added

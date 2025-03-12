@@ -69,7 +69,6 @@ public final class CreditPool implements Initializable {
     /**
      * The client used to create this pool
      */
-    @NotNull
     private transient ExarotonClient client;
 
     /**
@@ -171,6 +170,15 @@ public final class CreditPool implements Initializable {
      */
     public double getOwnCredits() {
         return ownCredits;
+    }
+
+    /**
+     * get the exaroton client used to create this server
+     *
+     * @return exaroton client used to create this server
+     */
+    public ExarotonClient getClient() {
+        return client;
     }
 
     /**

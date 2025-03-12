@@ -9,19 +9,26 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 public class CreditPoolsTest extends APIClientTest {
     private static final @NotNull String TEST_POOL_ID = System.getenv("EXAROTON_TEST_POOL");
 
     @Test
     public void testGetCreditPools() throws IOException {
         List<CreditPool> pools = client.getCreditPools().join();
-        Assertions.assertNotNull(pools);
+        assertNotNull(pools);
         Assertions.assertFalse(pools.isEmpty(), "Expected at least one pool, got none");
         checkTestPool(pools.stream().filter(pool -> pool.getId().equals(TEST_POOL_ID)).findFirst().orElse(null));
+
+        for (var pool : pools) {
+            assertNotNull(pool.getId());
+            assertNotNull(pool.getClient());
+        }
     }
 
     private void checkTestPool(CreditPool pool) {
-        Assertions.assertNotNull(pool);
+        assertNotNull(pool);
         Assertions.assertEquals(TEST_POOL_ID, pool.getId());
         Assertions.assertEquals("eAPI tests", pool.getName());
         double poolCredits = pool.getCredits();
@@ -58,20 +65,20 @@ public class CreditPoolsTest extends APIClientTest {
     public void testGetPoolMembers() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
         List<CreditPoolMember> members = pool.getMemberList().join();
-        Assertions.assertNotNull(members);
+        assertNotNull(members);
         Assertions.assertEquals(2, members.size());
 
         Optional<CreditPoolMember> owner = members.stream().filter(CreditPoolMember::isOwner).findFirst();
         Assertions.assertTrue(owner.isPresent());
-        Assertions.assertNotNull(owner.get().getAccount());
-        Assertions.assertNotNull(owner.get().getName());
+        assertNotNull(owner.get().getAccount());
+        assertNotNull(owner.get().getName());
         Assertions.assertTrue(owner.get().isOwner());
         Assertions.assertTrue(owner.get().getCredits() > 100, "Expected owner to have more than 100 credits, got " + owner.get().getCredits());
         Assertions.assertEquals(1, owner.get().getShare());
 
         Optional<CreditPoolMember> other = members.stream().filter(member -> !member.isOwner()).findFirst();
         Assertions.assertTrue(other.isPresent());
-        Assertions.assertNotNull(other.get().getAccount());
+        assertNotNull(other.get().getAccount());
         Assertions.assertFalse(other.get().isOwner());
         Assertions.assertEquals(0, other.get().getCredits());
         Assertions.assertEquals(0, other.get().getShare());
@@ -81,7 +88,7 @@ public class CreditPoolsTest extends APIClientTest {
     public void testGetPoolServers() throws IOException {
         CreditPool pool = client.getCreditPool(TEST_POOL_ID);
         List<Server> servers = pool.getServerList().join();
-        Assertions.assertNotNull(servers);
+        assertNotNull(servers);
         Assertions.assertEquals(1, servers.size());
         Assertions.assertEquals(TEST_SERVER_ID, servers.get(0).getId());
     }

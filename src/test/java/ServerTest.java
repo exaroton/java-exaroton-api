@@ -13,6 +13,7 @@ public class ServerTest extends APIClientTest {
         List<Server> servers = client.getServers().join();
         assertNotNull(servers);
         for (Server server : servers) {
+            assertNotNull(server.getClient());
             assertNotNull(server.getAddress());
             assertNotNull(server.getName());
             assertNotNull(server.getId());
