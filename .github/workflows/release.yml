@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '*.*.*'
+      - '*.*.*-SNAPSHOT'
 
 concurrency:
   group: java-exaroton-api
@@ -13,29 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 11
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 11
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: Build with Gradle
-        run: ./gradlew build -Prelease=${{  github.ref_name }} --info
-        env:
-          EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
-          EXAROTON_TEST_SERVER: "WgvSsfR8ZizUO1RQ"
-          EXAROTON_TEST_POOL: "N2t9gWOMpzRL37FI"
       - name: Publish to Maven Central
         env:
-          ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_SIGNING_PASSPHRASE: ${{ secrets.EXAROTON_GPG_SIGNING_PASSPHRASE }}
-          ORG_GRADLE_PROJECT_OSSRH_USERNAME: ${{ secrets.SONATYPE_OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_OSSRH_PASSWORD: ${{ secrets.SONATYPE_OSSRH_PASSWORD }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_KEY }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.EXAROTON_GPG_SIGNING_PUBLIC_KEY }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.EXAROTON_GPG_SIGNING_PASSPHRASE }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_NEXUS2_USERNAME: ${{ secrets.SONATYPE_OSSRH_USERNAME }}
+          JRELEASER_NEXUS2_TOKEN: ${{ secrets.SONATYPE_OSSRH_PASSWORD }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.SONATYPE_OSSRH_USERNAME }}
+          JRELEASER_MAVENCENTRAL_TOKEN: ${{ secrets.SONATYPE_OSSRH_PASSWORD }}
           EXAROTON_API_TOKEN: ${{ secrets.EXAROTON_API_KEY }}
           EXAROTON_TEST_SERVER: "WgvSsfR8ZizUO1RQ"
           EXAROTON_TEST_POOL: "N2t9gWOMpzRL37FI"
-        run: ./gradlew publish -Prelease=${{ github.ref_name }}
+        run: ./gradlew clean publish jreleaserDeploy -Prelease=${{ github.ref_name }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
