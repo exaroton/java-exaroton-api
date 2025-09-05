@@ -47,6 +47,7 @@ public class WebSocketTest extends APIClientTest {
         assertEquals(server.getPort().get(), server.getSocketAddress().get().getPort());
         assertEquals(server.getHost().get(), server.getSocketAddress().get().getHostString());
 
+        testExtendStopTime();
         testHeapSubscriber();
         testStatsSubscriber();
         testTickSubscriber();
@@ -55,6 +56,10 @@ public class WebSocketTest extends APIClientTest {
         stopServer();
 
         assertTrue(server.getWebSocket().isEmpty(), "Expected websocket to be closed");
+    }
+
+    void testExtendStopTime() throws IOException {
+        server.extendStopTime(5).join();
     }
 
     void testHeapSubscriber() throws ExecutionException, InterruptedException, TimeoutException {

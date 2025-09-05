@@ -428,6 +428,16 @@ public final class Server implements Initializable {
     }
 
     /**
+     * Extend the server stop time by the given amount of minutes. This only works if the server is currently stopping.
+     * @param time time in minutes to extend the stop time by
+     * @return completable future that completes once the request has been sent
+     * @throws IOException connection errors
+     */
+    public CompletableFuture<Void> extendStopTime(int time) throws IOException {
+        return client.request(new ExtendServerStopTimeRequest(this.client, this.gson, this.id, time));
+    }
+
+    /**
      * Get a list of available player lists
      *
      * @return available player lists

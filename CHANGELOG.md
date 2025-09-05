@@ -1,2 +1,2 @@
-## Build System
-- Migrate to new Maven Central publishing system.
+## New Features
+- Add Endpoint to extend automatic server shutdown timer
