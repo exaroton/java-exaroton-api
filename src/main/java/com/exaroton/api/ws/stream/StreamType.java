@@ -15,7 +15,8 @@ public enum StreamType {
     STATUS("status", ServerStatusStream.class, ServerStatusStream::new),
     STATS("stats", StatsStream.class, StatsStream::new),
     TICK("tick", TickStream.class, TickStream::new),
-    ;
+    @ApiStatus.AvailableSince("2.4.0")
+    MANAGEMENT("management", ServerManagementStream.class, ServerManagementStream::new);
 
     private final String name;
     private final Class<? extends Stream<?>> streamClass;

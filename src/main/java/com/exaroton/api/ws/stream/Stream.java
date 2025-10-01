@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
@@ -19,7 +20,7 @@ public abstract class Stream<T> {
     /**
      * Has this stream been started?
      */
-    private boolean started;
+    protected boolean started;
 
     /**
      * Should this stream be started when the server is ready?
@@ -196,7 +197,11 @@ public abstract class Stream<T> {
             return CompletableFuture.completedFuture(false);
         }
 
-        return ws.serverHasStatus(
+        return ws.serverHasStatus(this.getStartableStatuses());
+    }
+
+    protected Set<ServerStatus> getStartableStatuses() {
+        return Set.of(
                 ServerStatus.ONLINE,
                 ServerStatus.STARTING,
                 ServerStatus.STOPPING,

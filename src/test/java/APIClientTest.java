@@ -21,6 +21,11 @@ public abstract class APIClientTest {
         client = new ExarotonClient(System.getenv("EXAROTON_API_TOKEN"));
         server = client.getServer(TEST_SERVER_ID);
 
+        var env = System.getenv("EXAROTON_HOST");
+        if (env != null && !env.isBlank()) {
+            client.setHost(env);
+        }
+
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {

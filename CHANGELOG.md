@@ -1,3 +1,9 @@
+# 2.4.0
+## New Features
+- Allow proxying the new server management protocol added in 1.21.9 through the Exaroton API
+
+---
+
 # 2.3.0
 ## New Features
 - Add Endpoint to extend automatic server shutdown timer

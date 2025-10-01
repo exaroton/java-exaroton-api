@@ -7,6 +7,7 @@ import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -576,6 +577,41 @@ public final class Server implements Initializable {
         }
 
         this.subscribe().removeStreamSubscriber(TickStream.class, subscriber);
+    }
+
+    /**
+     * Subscribe to server management notifications
+     * @param subscriber management notification handler
+     */
+    @ApiStatus.AvailableSince("2.4.0")
+    public void addServerManagementNotificationSubscriber(@NotNull ManagementNotificationSubscriber subscriber) {
+        this.subscribe().addStreamSubscriber(ServerManagementStream.class, subscriber);
+    }
+
+    /**
+     * Unsubscribe from server management notifications
+     * @param subscriber management notification handler
+     */
+    @ApiStatus.AvailableSince("2.4.0")
+    public void removeServerManagementNotificationSubscriber(@NotNull ManagementNotificationSubscriber subscriber) {
+        if (this.webSocket == null) {
+            return;
+        }
+
+        this.subscribe().removeStreamSubscriber(ServerManagementStream.class, subscriber);
+    }
+
+    /**
+     * Send a server management request. This requires the management server to be online. It also automatically
+     * subscribes to the management stream if not already done. This means you have to manually unsubscribe using
+     * {@link WebSocketConnection#unsubscribe(StreamType)}} if you want to close the connection.
+     * @param method name of the method to call
+     * @param params arguments for the method (can be null)
+     * @return future that completes with the result of the request
+     */
+    @ApiStatus.AvailableSince("2.4.0")
+    public CompletableFuture<JsonElement> sendServerManagementRequest(@NotNull String method, @Nullable JsonElement params) {
+        return this.subscribe().getOrCreateStream(ServerManagementStream.class).sendRequest(method, params);
     }
 
     /**

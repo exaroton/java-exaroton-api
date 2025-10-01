@@ -31,6 +31,10 @@ dependencies {
 }
 
 test {
+    def trustStorePath = System.getenv('JAVA_TRUSTSTORE')
+    if (trustStorePath) {
+        jvmArgs "-Djavax.net.ssl.trustStore=${trustStorePath}"
+    }
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"

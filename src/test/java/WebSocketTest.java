@@ -3,7 +3,12 @@ import com.exaroton.api.server.ServerStatus;
 import com.exaroton.api.ws.data.HeapUsage;
 import com.exaroton.api.ws.data.StatsData;
 import com.exaroton.api.ws.data.TickData;
+import com.exaroton.api.ws.stream.StreamType;
 import com.exaroton.api.ws.subscriber.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -52,6 +57,7 @@ public class WebSocketTest extends APIClientTest {
         testStatsSubscriber();
         testTickSubscriber();
         testExecuteCommand();
+        testManagementStream();
         restartServer();
         stopServer();
 
@@ -119,6 +125,55 @@ public class WebSocketTest extends APIClientTest {
 
         server.removeConsoleSubscriber(flagA);
         server.removeConsoleSubscriber(flagB);
+    }
+
+    void testManagementStream() throws ExecutionException, InterruptedException, TimeoutException {
+        var playerName = "Aternos";
+        var response = server.sendServerManagementRequest(
+                        "minecraft:operators/remove",
+                        JsonParser.parseString("[[{\"name\":\"" + playerName + "\"}]]")
+                )
+                .get(10, TimeUnit.SECONDS);
+        assertNotNull(response);
+        assertFalse(containsPlayer(response, playerName), "Expected response to not contain the removed player");
+
+        var notificationFuture = new CompletableFuture<Boolean>();
+        var managementSubscriber = new ManagementNotificationSubscriber() {
+            @Override
+            public void handleNotification(@NotNull String name, @Nullable JsonElement data) {
+                if ("minecraft:notification/operators/added".equals(name) && data != null && playerNameMatches(data.getAsJsonArray().get(0), playerName)) {
+                    notificationFuture.complete(true);
+                }
+            }
+        };
+        server.addServerManagementNotificationSubscriber(managementSubscriber);
+        response = server.sendServerManagementRequest(
+                        "minecraft:operators/add",
+                        JsonParser.parseString("[[{\"player\":{\"name\":\"" + playerName + "\"},\"level\":4,\"bypassesPlayerLimit\":false}]]")
+                )
+                .get(10, TimeUnit.SECONDS);
+        assertTrue(containsPlayer(response, playerName), "Expected response to contain the added player");
+        assertTrue(notificationFuture.get(10, TimeUnit.SECONDS), "Expected to receive notification about added operator");
+        server.removeServerManagementNotificationSubscriber(managementSubscriber);
+        server.getWebSocket().ifPresent(x -> x.unsubscribe(StreamType.MANAGEMENT));
+    }
+
+    boolean containsPlayer(JsonElement element, String name) {
+        return element
+                .getAsJsonArray()
+                .asList()
+                .stream()
+                .anyMatch(x -> playerNameMatches(x, name));
+    }
+
+    boolean playerNameMatches(JsonElement element, String name) {
+        return element
+                .getAsJsonObject()
+                .get("player")
+                .getAsJsonObject()
+                .get("name")
+                .getAsString()
+                .equals(name);
     }
 
     void startServer() throws IOException, ExecutionException, InterruptedException, TimeoutException {

@@ -8,6 +8,8 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerTest extends APIClientTest {
+    private static final String TEST_SERVER_NAME = System.getenv("EXAROTON_TEST_SERVER_NAME");
+
     @Test
     void testGetServers() throws IOException {
         List<Server> servers = client.getServers().join();
@@ -29,8 +31,8 @@ public class ServerTest extends APIClientTest {
     }
 
     private void checkTestServer() {
-        assertEquals("tests4ET.exaroton.me", server.getAddress());
-        assertEquals("tests4ET", server.getName());
+        assertEquals(TEST_SERVER_NAME + ".exaroton.me", server.getAddress());
+        assertEquals(TEST_SERVER_NAME, server.getName());
         assertNotNull(server.getMotd());
         assertEquals(ServerStatus.OFFLINE, server.getStatus());
         assertTrue(server.hasStatus(ServerStatus.OFFLINE), "Expected server to be offline");

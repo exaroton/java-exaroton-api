@@ -40,7 +40,7 @@ public class ExarotonClient {
     /**
      * API host
      */
-    private final String host = "api.exaroton.com";
+    private String host = "api.exaroton.com";
 
     /**
      * API base path
@@ -97,6 +97,15 @@ public class ExarotonClient {
 
         this.userAgent = userAgent;
         return this;
+    }
+
+    @ApiStatus.Internal
+    public void setHost(String host) {
+        if (host == null || host.isBlank()) {
+            throw new IllegalArgumentException("No host specified");
+        }
+
+        this.host = host;
     }
 
     /**

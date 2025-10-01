@@ -206,7 +206,8 @@ public final class WebSocketConnection implements WebSocket.Listener {
         return readyFuture;
     }
 
-    private <T extends Stream<?>> @NotNull T getOrCreateStream(Class<T> clazz) {
+    @ApiStatus.Internal
+    public <T extends Stream<?>> @NotNull T getOrCreateStream(Class<T> clazz) {
         synchronized (streams) {
             @SuppressWarnings("unchecked") T stream = (T) this.streams.computeIfAbsent(clazz, this::createAndStartStream);
             return stream;
