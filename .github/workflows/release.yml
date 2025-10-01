@@ -35,10 +35,14 @@ jobs:
           EXAROTON_TEST_SERVER: "WgvSsfR8ZizUO1RQ"
           EXAROTON_TEST_POOL: "N2t9gWOMpzRL37FI"
         run: ./gradlew clean publish jreleaserDeploy -Prelease=${{ github.ref_name }}
+
+      - name: Extract release body from CHANGELOG.md
+        run: awk 'f{if($0 ~ /^---/) exit; print} /^# /{f=1}' CHANGELOG.md | sed '/^[[:space:]]*$/d' > release-body.md
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             ./build/libs/java-exaroton-api-*.jar
-          body_path: ${{ github.workspace }}/CHANGELOG.md
+          body_path: ${{ github.workspace }}/release-body.md
           name: ${{ github.ref_name }}
