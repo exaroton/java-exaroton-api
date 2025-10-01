@@ -351,6 +351,31 @@ server.addHeapSubscriber(new HeapSubscriber() {
 });
 ```
 
+#### Management Protocol
+The Minecraft server management protocol introduced in 1.21.9 allows controlling various server settings without
+restarting the server and receiving events from the server. This API client supports proxying this protocol through the
+exaroton websocket connection. All parameters/responses are JSON elements. There are no predefined classes for the data.
+
+```jshelllanguage
+ExarotonClient client = new ExarotonClient("example-api-token");
+
+Server server = client.getServer("tgkm731xO7GiHt76");
+
+// Perform a request
+server.sendServerManagementRequest(
+        "minecraft:operators/remove",
+        JsonParser.parseString("[[{\"name\":\"" + playerName + "\"}]]")
+)
+
+// Subscribe to notifications
+server.addServerManagementNotificationSubscriber(new ManagementNotificationSubscriber() {
+    @Override
+    public void handleNotification(@NotNull String name, @Nullable JsonElement data) {
+        System.out.println("Received event: " + event);
+    }
+});
+```
+
 #### Unsubscribe
 When all subscribers for a stream are removed, this library automatically unsubscribes from events for that stream. Once
 all streams are closed the websocket connection is closed as well.
