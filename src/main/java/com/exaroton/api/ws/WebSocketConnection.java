@@ -234,6 +234,11 @@ public final class WebSocketConnection implements WebSocket.Listener {
                 .thenAccept(ws -> {
                     this.logger.debug("Connected to {}", uri);
                     this.client = ws;
+                })
+                .exceptionally(t -> {
+                    logger.error("Websocket connection failed", t);
+                    scheduleReconnect();
+                    return null;
                 });
     }
 
@@ -372,6 +377,15 @@ public final class WebSocketConnection implements WebSocket.Listener {
             }
         }
 
+        this.scheduleReconnect();
+        return null;
+    }
+
+    /**
+     * This method is called when the connection is closed. It automatically starts a reconnect timer
+     * if autoReconnect is enabled.
+     */
+    private void scheduleReconnect() {
         if (this.shouldAutoReconnect()) {
             reconnectTimer = new Timer();
             logger.debug("Reconnecting in 5s");
@@ -382,7 +396,6 @@ public final class WebSocketConnection implements WebSocket.Listener {
                 }
             }, 5000, 5000);
         }
-        return null;
     }
 
     @Override

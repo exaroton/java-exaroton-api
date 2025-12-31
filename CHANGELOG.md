@@ -1,3 +1,9 @@
+# 2.4.1
+## Fixes
+- Log and retry exceptions during the initial websocket connection instead of silently discarding them
+
+---
+
 # 2.4.0
 ## New Features
 - Allow proxying the new server management protocol added in 1.21.9 through the Exaroton API
