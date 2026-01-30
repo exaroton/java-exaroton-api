@@ -47,3 +47,4 @@ jobs:
             ./build/libs/java-exaroton-api-*.jar
           body_path: ${{ github.workspace }}/release-body.md
           name: ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref, '-SNAPSHOT') }}
