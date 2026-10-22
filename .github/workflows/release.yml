@@ -9,6 +9,9 @@ on:
 concurrency:
   group: java-exaroton-api
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -48,3 +51,20 @@ jobs:
           body_path: ${{ github.workspace }}/release-body.md
           name: ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref, '-SNAPSHOT') }}
+
+      - name: Checkout master
+        if: ${{ !contains(github.ref, '-SNAPSHOT') }}
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Update versions in README
+        if: ${{ !contains(github.ref, '-SNAPSHOT') }}
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          sed -i -E "s/(com\.exaroton:api:|<version>)[^'<]+/\1$VERSION/" README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Update versions in README to $VERSION" || exit 0
+          git push
