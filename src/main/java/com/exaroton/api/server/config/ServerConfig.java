@@ -66,6 +66,7 @@ public final class ServerConfig {
      * Set the options of the server config
      * @param options collection of options
      */
+    @ApiStatus.AvailableSince("2.1.0")
     public void setOptions(Collection<ConfigOption<?>> options) {
         this.options = new HashMap<>();
         for (ConfigOption<?> option : options) {
@@ -77,6 +78,7 @@ public final class ServerConfig {
      * Set the options of the server config
      * @param options map of options
      */
+    @ApiStatus.AvailableSince("2.1.0")
     public void setOptions(Map<String, ConfigOption<?>> options) {
         this.options = new HashMap<>(options);
     }

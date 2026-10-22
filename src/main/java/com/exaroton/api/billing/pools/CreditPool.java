@@ -177,6 +177,7 @@ public final class CreditPool implements Initializable {
      *
      * @return exaroton client used to create this server
      */
+    @ApiStatus.AvailableSince("2.2.1")
     public ExarotonClient getClient() {
         return client;
     }

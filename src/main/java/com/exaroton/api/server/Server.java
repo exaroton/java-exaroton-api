@@ -257,6 +257,7 @@ public final class Server implements Initializable {
      *
      * @return InetSocketAddress with the host and port of the server
      */
+    @ApiStatus.AvailableSince("2.2.0")
     public Optional<InetSocketAddress> getSocketAddress() {
         if (host == null || port == null) {
             return Optional.empty();
@@ -554,6 +555,7 @@ public final class Server implements Initializable {
      * @return completable future that completes once the request has been sent
      * @throws IOException connection errors
      */
+    @ApiStatus.AvailableSince("2.3.0")
     public CompletableFuture<Void> extendStopTime(int time) throws IOException {
         return client.request(new ExtendServerStopTimeRequest(this.client, this.gson, this.id, time));
     }
