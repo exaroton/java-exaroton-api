@@ -3,6 +3,7 @@ package com.exaroton.api;
 import com.exaroton.api.util.Initializable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.http.HttpResponse;
@@ -14,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow;
 
+@ApiStatus.NonExtendable
 public class APIResponse<Datatype> {
 
     /**

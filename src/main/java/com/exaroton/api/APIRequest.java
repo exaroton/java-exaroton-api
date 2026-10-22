@@ -2,6 +2,7 @@ package com.exaroton.api;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -9,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.util.HashMap;
 import java.util.Map;
 
+@ApiStatus.NonExtendable
 public abstract class APIRequest<Response> {
     /**
      * Build the HttpRequest

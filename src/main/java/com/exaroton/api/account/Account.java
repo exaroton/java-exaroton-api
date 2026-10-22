@@ -3,6 +3,7 @@ package com.exaroton.api.account;
 import org.jetbrains.annotations.ApiStatus;
 
 @SuppressWarnings("unused")
+@ApiStatus.NonExtendable
 public class Account {
 
     /**

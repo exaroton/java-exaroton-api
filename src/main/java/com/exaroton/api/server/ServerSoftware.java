@@ -11,6 +11,7 @@ import java.util.Objects;
  * Software installed on a specific server
  */
 @SuppressWarnings("unused")
+@ApiStatus.NonExtendable
 public class ServerSoftware extends Software {
     /**
      * Addon types (e.g. mod, plugin) supported by this software on this server

@@ -1,6 +1,9 @@
 package com.exaroton.api.billing.pools;
 
+import org.jetbrains.annotations.ApiStatus;
+
 @SuppressWarnings("unused")
+@ApiStatus.NonExtendable
 public class CreditPoolMember {
     /**
      * Unique ID of the account

@@ -11,6 +11,10 @@
   `ServerSoftware#supportsAddon(String)`
 - Add `getMin()`, `getMax()` and `getStep()` to integer and float config options
 
+## Other
+- All non-final public classes are now annotated with `@ApiStatus.NonExtendable`. Extending them is not supported.
+- All subpackages of `com.exaroton.api.request` are now marked as `@ApiStatus.Internal`.
+
 ---
 
 # 2.4.1

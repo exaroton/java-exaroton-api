@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+@ApiStatus.NonExtendable
 public class ExarotonClient {
     /**
      * HTTP client

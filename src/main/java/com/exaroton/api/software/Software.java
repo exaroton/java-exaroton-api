@@ -10,6 +10,7 @@ import java.util.Optional;
  */
 @SuppressWarnings("unused")
 @ApiStatus.AvailableSince("2.5.0")
+@ApiStatus.NonExtendable
 public class Software {
     /**
      * Unique ID of the software version
