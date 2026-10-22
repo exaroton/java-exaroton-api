@@ -1,3 +1,18 @@
+# 2.5.0
+## New Features
+- Create servers using `ExarotonClient#createServer(CreateServerOptions)`
+- Delete servers using `Server#delete()`
+- List available software using `ExarotonClient#getSoftwareList()`
+- Get details about installing a software on a server using `Server#getSoftwareDetails(String)`
+- Install a software on a server using `Server#installSoftware(String, boolean)`
+- Add `Account#getId()` and `Account#getMaxServers()`
+- Add `Server#getPermissions()` and `Server#hasPermission(String)` for servers accessed via Share Access
+- Add `ServerSoftware#getType()`, `ServerSoftware#getLauncher()`, `ServerSoftware#getAddons()` and
+  `ServerSoftware#supportsAddon(String)`
+- Add `getMin()`, `getMax()` and `getStep()` to integer and float config options
+
+---
+
 # 2.4.1
 ## Fixes
 - Log and retry exceptions during the initial websocket connection instead of silently discarding them

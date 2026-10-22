@@ -76,6 +76,35 @@ public class ConfigOptionTypeAdapterTest {
     }
 
     @Test
+    public void testDeserializeIntegerOptionWithBounds() {
+        String json = "{\"key\":\"max-players\",\"label\":\"Max Players\",\"type\":\"integer\",\"value\":10,\"options\": null,\"min\":1,\"max\":100,\"step\":1}";
+        ConfigOption<?> option = gson.fromJson(json, ConfigOption.class);
+        Assertions.assertInstanceOf(IntegerConfigOption.class, option);
+        IntegerConfigOption integerOption = (IntegerConfigOption) option;
+        Assertions.assertEquals(10L, integerOption.getValue());
+        Assertions.assertEquals(1.0, integerOption.getMin().orElse(null));
+        Assertions.assertEquals(100.0, integerOption.getMax().orElse(null));
+        Assertions.assertEquals(1.0, integerOption.getStep().orElse(null));
+    }
+
+    @Test
+    public void testDeserializeFloatOptionWithoutBounds() {
+        String json = "{\"key\":\"view-distance\",\"label\":\"View Distance\",\"type\":\"float\",\"value\":10.0,\"min\":null,\"max\":null,\"step\":null}";
+        FloatConfigOption option = (FloatConfigOption) gson.fromJson(json, ConfigOption.class);
+        Assertions.assertTrue(option.getMin().isEmpty());
+        Assertions.assertTrue(option.getMax().isEmpty());
+        Assertions.assertTrue(option.getStep().isEmpty());
+    }
+
+    @Test
+    public void testSerializeIntegerOptionWithBounds() {
+        ConfigOption<?> option = new IntegerConfigOption("max-players", 10L, "Max Players", 1.0, 100.0, 1.0);
+        JsonElement json = gson.toJsonTree(option);
+        String expectedJson = "{\"value\":10,\"key\":\"max-players\",\"label\":\"Max Players\",\"type\":\"integer\",\"min\":1.0,\"max\":100.0,\"step\":1.0}";
+        Assertions.assertEquals(gson.fromJson(expectedJson, JsonElement.class), json);
+    }
+
+    @Test
     public void testDeserializeStringOption() {
         String json = "{\"key\":\"level-name\",\"label\":\"Level Name\",\"type\":\"string\",\"value\":\"world\",\"options\": null}";
         ConfigOption<?> option = gson.fromJson(json, ConfigOption.class);

@@ -3,6 +3,7 @@ package com.exaroton.api.server;
 import com.exaroton.api.ExarotonClient;
 import com.exaroton.api.util.Initializable;
 import com.exaroton.api.request.server.*;
+import com.exaroton.api.software.Software;
 import com.exaroton.api.ws.WebSocketConnection;
 import com.exaroton.api.ws.stream.*;
 import com.exaroton.api.ws.subscriber.*;
@@ -81,6 +82,12 @@ public final class Server implements Initializable {
      * Whether the server is accessed via the Share Access feature
      */
     private boolean shared;
+
+    /**
+     * The permissions your account has on this server via the Share Access feature. Null if you are the owner.
+     */
+    @Nullable
+    private List<String> permissions;
 
     /**
      * the client used to create this server
@@ -277,6 +284,29 @@ public final class Server implements Initializable {
     }
 
     /**
+     * Get the permissions your account has on this server via the Share Access feature
+     *
+     * @return permissions (e.g. console, players) or empty if you are the owner of the server
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public Optional<List<String>> getPermissions() {
+        return Optional.ofNullable(permissions);
+    }
+
+    /**
+     * Check if your account has a permission on this server. The owner of a server has all permissions. This
+     * requires the server to be fetched, otherwise the server is assumed to be owned by your account.
+     *
+     * @param permission permission (e.g. console, players)
+     * @return true if your account owns the server or has the permission via the Share Access feature
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public boolean hasPermission(@NotNull String permission) {
+        Objects.requireNonNull(permission);
+        return !shared || (permissions != null && permissions.contains(permission));
+    }
+
+    /**
      * get the exaroton client used to create this server
      *
      * @return exaroton client used to create this server
@@ -303,6 +333,96 @@ public final class Server implements Initializable {
 
     public CompletableFuture<Server> fetch() throws IOException {
         return fetch(true);
+    }
+
+    /**
+     * Permanently delete the server including all of its files. This is only possible for the owner of the server
+     * (not via Share Access) and only while the server is offline or crashed.
+     *
+     * @return completable future that completes once the server has been deleted
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<Void> delete() throws IOException {
+        return client.request(new DeleteServerRequest(this.client, this.gson, this.id));
+    }
+
+    /**
+     * Get information about installing a specific software on this server, e.g. whether it requires a reinstall
+     *
+     * @param softwareId software id (see {@link ExarotonClient#getSoftwareList()})
+     * @return software details
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<ServerSoftwareDetails> getSoftwareDetails(@NotNull String softwareId) throws IOException {
+        return client.request(new GetServerSoftwareRequest(this.client, this.gson, this.id, softwareId));
+    }
+
+    /**
+     * Get information about installing a specific software on this server, e.g. whether it requires a reinstall
+     *
+     * @param software software (see {@link ExarotonClient#getSoftwareList()})
+     * @return software details
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<ServerSoftwareDetails> getSoftwareDetails(@NotNull Software software) throws IOException {
+        return getSoftwareDetails(Objects.requireNonNull(software).getId());
+    }
+
+    /**
+     * Install a software on this server. Equivalent to {@link #installSoftware(String, boolean)} with
+     * reinstall = false. This fails if the software requires a reinstall.
+     *
+     * @param softwareId software id (see {@link ExarotonClient#getSoftwareList()})
+     * @return completable future that completes once the request has been sent
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<Void> installSoftware(@NotNull String softwareId) throws IOException {
+        return installSoftware(softwareId, false);
+    }
+
+    /**
+     * Install a software on this server
+     *
+     * @param softwareId software id (see {@link ExarotonClient#getSoftwareList()})
+     * @param reinstall  confirm the reinstall if the software requires one (see
+     *                   {@link ServerSoftwareDetails#requiresReinstall()}). A reinstall deletes all server files!
+     * @return completable future that completes once the request has been sent
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<Void> installSoftware(@NotNull String softwareId, boolean reinstall) throws IOException {
+        return client.request(new InstallServerSoftwareRequest(this.client, this.gson, this.id, softwareId, reinstall));
+    }
+
+    /**
+     * Install a software on this server. Equivalent to {@link #installSoftware(Software, boolean)} with
+     * reinstall = false. This fails if the software requires a reinstall.
+     *
+     * @param software software (see {@link ExarotonClient#getSoftwareList()})
+     * @return completable future that completes once the request has been sent
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<Void> installSoftware(@NotNull Software software) throws IOException {
+        return installSoftware(software, false);
+    }
+
+    /**
+     * Install a software on this server
+     *
+     * @param software  software (see {@link ExarotonClient#getSoftwareList()})
+     * @param reinstall confirm the reinstall if the software requires one (see
+     *                  {@link ServerSoftwareDetails#requiresReinstall()}). A reinstall deletes all server files!
+     * @return completable future that completes once the request has been sent
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<Void> installSoftware(@NotNull Software software, boolean reinstall) throws IOException {
+        return installSoftware(Objects.requireNonNull(software).getId(), reinstall);
     }
 
     /**
@@ -655,6 +775,7 @@ public final class Server implements Initializable {
         this.port = server.getPort().orElse(null);
         this.software = server.getSoftware();
         this.shared = server.isShared();
+        this.permissions = server.getPermissions().orElse(null);
         return this;
     }
 

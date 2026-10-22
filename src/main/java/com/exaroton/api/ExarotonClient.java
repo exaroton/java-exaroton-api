@@ -4,8 +4,12 @@ import com.exaroton.api.account.Account;
 import com.exaroton.api.billing.pools.CreditPool;
 import com.exaroton.api.request.account.GetAccountRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolsRequest;
+import com.exaroton.api.request.server.CreateServerRequest;
 import com.exaroton.api.request.server.GetServersRequest;
+import com.exaroton.api.request.software.GetSoftwareListRequest;
+import com.exaroton.api.server.CreateServerOptions;
 import com.exaroton.api.server.Server;
+import com.exaroton.api.software.Software;
 import com.exaroton.api.util.ConfigOptionTypeAdapterFactory;
 import com.exaroton.api.util.VoidTypeAdapter;
 import com.exaroton.api.ws.WebSocketConnection;
@@ -13,6 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -204,6 +209,56 @@ public class ExarotonClient {
      */
     public Server getServer(String id) {
         return new Server(this, gson, id);
+    }
+
+    /**
+     * Create a new server owned by your account. Fails if your account has reached its server limit
+     * (see {@link Account#getMaxServers()}).
+     *
+     * @param options server options
+     * @return the created server
+     * @throws IOException Connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<Server> createServer(@NotNull CreateServerOptions options) throws IOException {
+        return request(new CreateServerRequest(options));
+    }
+
+    /**
+     * list all available software options
+     *
+     * @return available software
+     * @throws IOException Connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<List<Software>> getSoftwareList() throws IOException {
+        return getSoftwareList(null, null);
+    }
+
+    /**
+     * list available software options of a type
+     *
+     * @param type only list software of this type (e.g. vanilla)
+     * @return available software
+     * @throws IOException Connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<List<Software>> getSoftwareList(@NotNull String type) throws IOException {
+        return getSoftwareList(Objects.requireNonNull(type), null);
+    }
+
+    /**
+     * list available software options
+     *
+     * @param type     only list software of this type (e.g. vanilla)
+     * @param launcher only list modpacks of this launcher (e.g. CurseForge)
+     * @return available software
+     * @throws IOException Connection errors
+     */
+    @ApiStatus.AvailableSince("2.5.0")
+    public CompletableFuture<List<Software>> getSoftwareList(@Nullable String type, @Nullable String launcher)
+            throws IOException {
+        return request(new GetSoftwareListRequest(type, launcher));
     }
 
     /**

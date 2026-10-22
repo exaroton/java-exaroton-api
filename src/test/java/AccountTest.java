@@ -14,5 +14,8 @@ public class AccountTest extends APIClientTest {
         assertNotNull(a.getEmail());
         assertTrue(a.getVerified());
         assertTrue(a.getCredits() > 0);
+        assertNotNull(a.getId());
+        assertEquals(16, a.getId().length());
+        assertTrue(a.getMaxServers() > 0);
     }
 }

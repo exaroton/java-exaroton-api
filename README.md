@@ -76,7 +76,46 @@ server.start().join();
 server.restart().join();
 server.stop().join();
 server.executeCommand("say hello world").join();
+
+// Servers accessed via Share Access might only allow some actions
+if (server.hasPermission("console")) {
+    server.executeCommand("say I have console access").join();
+}
 ```
+
+#### Create/Delete a server
+```jshelllanguage
+ExarotonClient client = new ExarotonClient("example-api-token");
+
+// Install the latest version of a software type, or use CreateServerOptions.withSoftware(name, softwareId)
+Server server = client.createServer(CreateServerOptions.withSoftwareType("example", "vanilla")
+        .setMotd("My cool server!")
+        .setTimezone(ZoneId.of("Europe/Berlin"))
+        .setRegion(ServerRegion.EU)).join();
+System.out.println("Created server " + server.getAddress());
+
+// Permanently deletes the server and all of its files. The server has to be offline.
+server.delete().join();
+```
+If the preferred name is taken, a random name based on it will be generated. Creating a server fails if your account
+has reached its server limit (see `Account#getMaxServers()`).
+
+#### Software
+```jshelllanguage
+ExarotonClient client = new ExarotonClient("example-api-token");
+
+// List all available software or filter by type and launcher
+List<Software> software = client.getSoftwareList().join();
+List<Software> vanilla = client.getSoftwareList("vanilla").join();
+
+Server server = client.getServer("tgkm731xO7GiHt76");
+ServerSoftwareDetails details = server.getSoftwareDetails(vanilla.get(0)).join();
+if (!details.requiresReinstall()) {
+    server.installSoftware(details).join();
+}
+```
+If installing a software requires a reinstall, you have to confirm it with `server.installSoftware(id, true)`.
+**This deletes all server files!**
 
 #### Check the server status
 ```jshelllanguage

@@ -29,6 +29,12 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
             }
             out.endArray();
         }
+        if (value instanceof BaseNumberOption<?>) {
+            BaseNumberOption<?> number = (BaseNumberOption<?>) value;
+            writeOptionalNumber(out, "min", number.getMin().orElse(null));
+            writeOptionalNumber(out, "max", number.getMax().orElse(null));
+            writeOptionalNumber(out, "step", number.getStep().orElse(null));
+        }
         out.name("value");
         if (value instanceof StringConfigOption) {
             StringConfigOption option = (StringConfigOption) value;
@@ -71,6 +77,9 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
         OptionType type = null;
         Object value = null;
         Set<String> options = new HashSet<>();
+        Double min = null;
+        Double max = null;
+        Double step = null;
         while (in.hasNext()) {
             switch (in.nextName()) {
                 case "key":
@@ -121,6 +130,15 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
                     }
                     in.endArray();
                     break;
+                case "min":
+                    min = readOptionalNumber(in);
+                    break;
+                case "max":
+                    max = readOptionalNumber(in);
+                    break;
+                case "step":
+                    step = readOptionalNumber(in);
+                    break;
                 default:
                     in.skipValue();
             }
@@ -143,13 +161,13 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
                 if (value == null || value instanceof Double) {
                     Double doubleValue = (Double) value;
                     Long longValue = doubleValue == null ? null : doubleValue.longValue();
-                    return new IntegerConfigOption(key, longValue, label);
+                    return new IntegerConfigOption(key, longValue, label, min, max, step);
                 }
                 throw new MalformedJsonException("Expected integer getValue at " + in.getPath());
 
             case FLOAT:
                 if (value == null || value instanceof Double) {
-                    return new FloatConfigOption(key, (Double) value, label);
+                    return new FloatConfigOption(key, (Double) value, label, min, max, step);
                 }
                 throw new MalformedJsonException("Expected float getValue at " + in.getPath());
 
@@ -175,5 +193,19 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
             default:
                 throw new MalformedJsonException("Unexpected getType " + type + " at " + in.getPath());
         }
+    }
+
+    private void writeOptionalNumber(JsonWriter out, String name, Double value) throws IOException {
+        if (value != null) {
+            out.name(name).value(value);
+        }
+    }
+
+    private Double readOptionalNumber(JsonReader in) throws IOException {
+        if (in.peek() == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+        }
+        return in.nextDouble();
     }
 }

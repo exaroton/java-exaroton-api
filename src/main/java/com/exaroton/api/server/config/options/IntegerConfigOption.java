@@ -1,15 +1,27 @@
 package com.exaroton.api.server.config.options;
 
-import com.exaroton.api.server.config.ConfigOption;
 import com.exaroton.api.server.config.OptionType;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An integer option
  */
-public final class IntegerConfigOption extends ConfigOption<Long> {
+public final class IntegerConfigOption extends BaseNumberOption<Long> {
     @ApiStatus.Internal
     public IntegerConfigOption(String key, Long value, String label) {
-        super(key, value, label, OptionType.INTEGER);
+        this(key, value, label, null, null, null);
+    }
+
+    @ApiStatus.Internal
+    public IntegerConfigOption(
+            String key,
+            Long value,
+            String label,
+            @Nullable Double min,
+            @Nullable Double max,
+            @Nullable Double step
+    ) {
+        super(key, value, label, OptionType.INTEGER, min, max, step);
     }
 }

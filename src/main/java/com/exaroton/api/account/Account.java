@@ -1,7 +1,14 @@
 package com.exaroton.api.account;
 
+import org.jetbrains.annotations.ApiStatus;
+
 @SuppressWarnings("unused")
 public class Account {
+
+    /**
+     * Unique account ID
+     */
+    private String id;
 
     /**
      * Username
@@ -23,6 +30,16 @@ public class Account {
      */
     private double credits;
 
+    /**
+     * Maximum number of servers this account can own
+     */
+    private int maxServers;
+
+    @ApiStatus.AvailableSince("2.5.0")
+    public String getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -37,5 +54,10 @@ public class Account {
 
     public double getCredits() {
         return credits;
+    }
+
+    @ApiStatus.AvailableSince("2.5.0")
+    public int getMaxServers() {
+        return maxServers;
     }
 }

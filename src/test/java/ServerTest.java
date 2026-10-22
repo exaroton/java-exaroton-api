@@ -57,6 +57,8 @@ public class ServerTest extends APIClientTest {
         assertTrue(software.getVersion().contains("1."));
 
         assertFalse(server.isShared());
+        assertTrue(server.getPermissions().isEmpty());
+        assertTrue(server.hasPermission("console"));
         assertSame(client, server.getClient());
     }
 

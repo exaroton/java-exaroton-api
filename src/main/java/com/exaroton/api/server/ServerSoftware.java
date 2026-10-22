@@ -1,40 +1,38 @@
 package com.exaroton.api.server;
 
+import com.exaroton.api.software.Software;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Software installed on a specific server
+ */
 @SuppressWarnings("unused")
-public final class ServerSoftware {
+public class ServerSoftware extends Software {
     /**
-     * Unique ID of the software version
+     * Addon types (e.g. mod, plugin) supported by this software on this server
      */
-    private String id;
+    private List<String> addons;
 
     /**
-     * Software name
+     * @return addon types (e.g. mod, plugin) supported by this software on this server
      */
-    private String name;
-
-    /**
-     * Software version
-     */
-    private String version;
-
-    /**
-     * @return unique ID of the software version
-     */
-    public String getId() {
-        return id;
+    @ApiStatus.AvailableSince("2.5.0")
+    public List<String> getAddons() {
+        return addons == null ? List.of() : addons;
     }
 
     /**
-     * @return name of the software
+     * Check if this software supports a type of addon on this server
+     *
+     * @param addonType addon type (e.g. mod, plugin)
+     * @return true if the addon type is supported
      */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @return version of the software
-     */
-    public String getVersion() {
-        return version;
+    @ApiStatus.AvailableSince("2.5.0")
+    public boolean supportsAddon(@NotNull String addonType) {
+        return getAddons().contains(Objects.requireNonNull(addonType));
     }
 }
