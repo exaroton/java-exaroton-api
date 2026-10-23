@@ -338,14 +338,16 @@ public final class Server implements Initializable {
 
     /**
      * Permanently delete the server including all of its files. This is only possible for the owner of the server
-     * (not via Share Access) and only while the server is offline or crashed.
+     * (not via Share Access) and only while the server is offline or crashed. If a websocket connection is open,
+     * it will be closed once the server has been deleted.
      *
      * @return completable future that completes once the server has been deleted
      * @throws IOException connection errors
      */
     @ApiStatus.AvailableSince("2.5.0")
     public CompletableFuture<Void> delete() throws IOException {
-        return client.request(new DeleteServerRequest(this.client, this.gson, this.id));
+        return client.request(new DeleteServerRequest(this.client, this.gson, this.id))
+                .thenRun(this::unsubscribe);
     }
 
     /**

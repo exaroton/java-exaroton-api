@@ -1,3 +1,8 @@
+# 2.6.0
+- Close websocket connection when deleting a server
+
+---
+
 # 2.5.0
 ## New Features
 - Create servers using `ExarotonClient#createServer(CreateServerOptions)`
