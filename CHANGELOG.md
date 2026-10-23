@@ -25,6 +25,9 @@
 - List transactions using for accounts, pools or servers.
 - Close websocket connection when deleting a server
 
+## Fixes
+- Close the websocket connection when deleting a server
+
 ---
 
 # 2.5.0
