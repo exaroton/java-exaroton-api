@@ -18,9 +18,9 @@ public final class IntegerConfigOption extends BaseNumberOption<Long> {
             String key,
             Long value,
             String label,
-            @Nullable Double min,
-            @Nullable Double max,
-            @Nullable Double step
+            @Nullable Long min,
+            @Nullable Long max,
+            @Nullable Long step
     ) {
         super(key, value, label, OptionType.INTEGER, min, max, step);
     }

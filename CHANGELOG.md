@@ -27,6 +27,8 @@
 
 ## Fixes
 - Close the websocket connection when deleting a server
+- `IntegerConfigOption#getMin()`, `getMax()` and `getStep()` now return `Optional<Long>` instead of `Optional<Double>`
+- `Software#getId()`, `getName()` and `getVersion()` are no longer marked as available since 2.5.0
 
 ---
 

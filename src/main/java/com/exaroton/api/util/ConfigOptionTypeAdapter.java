@@ -161,7 +161,7 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
                 if (value == null || value instanceof Double) {
                     Double doubleValue = (Double) value;
                     Long longValue = doubleValue == null ? null : doubleValue.longValue();
-                    return new IntegerConfigOption(key, longValue, label, min, max, step);
+                    return new IntegerConfigOption(key, longValue, label, toLong(min), toLong(max), toLong(step));
                 }
                 throw new MalformedJsonException("Expected integer getValue at " + in.getPath());
 
@@ -195,7 +195,7 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
         }
     }
 
-    private void writeOptionalNumber(JsonWriter out, String name, Double value) throws IOException {
+    private void writeOptionalNumber(JsonWriter out, String name, Number value) throws IOException {
         if (value != null) {
             out.name(name).value(value);
         }
@@ -207,5 +207,9 @@ public class ConfigOptionTypeAdapter extends TypeAdapter<ConfigOption<?>> {
             return null;
         }
         return in.nextDouble();
+    }
+
+    private Long toLong(Double value) {
+        return value == null ? null : value.longValue();
     }
 }

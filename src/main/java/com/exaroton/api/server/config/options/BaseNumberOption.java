@@ -17,17 +17,17 @@ public class BaseNumberOption<T extends Number> extends ConfigOption<T> {
     /**
      * Minimum allowed value
      */
-    protected final @Nullable Double min;
+    protected final @Nullable T min;
 
     /**
      * Maximum allowed value
      */
-    protected final @Nullable Double max;
+    protected final @Nullable T max;
 
     /**
      * Suggested increment
      */
-    protected final @Nullable Double step;
+    protected final @Nullable T step;
 
     /**
      * Create a new number config option
@@ -44,9 +44,9 @@ public class BaseNumberOption<T extends Number> extends ConfigOption<T> {
             T value,
             String label,
             OptionType type,
-            @Nullable Double min,
-            @Nullable Double max,
-            @Nullable Double step
+            @Nullable T min,
+            @Nullable T max,
+            @Nullable T step
     ) {
         super(key, value, label, type);
         this.min = min;
@@ -58,7 +58,7 @@ public class BaseNumberOption<T extends Number> extends ConfigOption<T> {
      * Get the minimum allowed value
      * @return minimum value or empty if there is no minimum
      */
-    public Optional<Double> getMin() {
+    public Optional<T> getMin() {
         return Optional.ofNullable(min);
     }
 
@@ -66,7 +66,7 @@ public class BaseNumberOption<T extends Number> extends ConfigOption<T> {
      * Get the maximum allowed value
      * @return maximum value or empty if there is no maximum
      */
-    public Optional<Double> getMax() {
+    public Optional<T> getMax() {
         return Optional.ofNullable(max);
     }
 
@@ -74,7 +74,7 @@ public class BaseNumberOption<T extends Number> extends ConfigOption<T> {
      * Get the suggested increment for UI controls. This is not enforced by the API.
      * @return step or empty if there is no suggested step
      */
-    public Optional<Double> getStep() {
+    public Optional<T> getStep() {
         return Optional.ofNullable(step);
     }
 }

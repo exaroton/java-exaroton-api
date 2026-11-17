@@ -6,10 +6,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 /**
- * A server software that can be installed on a server (e.g. a specific version of Vanilla or Paper)
+ * A server software that can be installed on a server (e.g. a specific version of Vanilla or Paper). This class was
+ * added in 2.5.0 as the parent of {@link com.exaroton.api.server.ServerSoftware}, which already provided
+ * {@link #getId()}, {@link #getName()} and {@link #getVersion()} before that.
  */
 @SuppressWarnings("unused")
-@ApiStatus.AvailableSince("2.5.0")
 @ApiStatus.NonExtendable
 public class Software {
     /**

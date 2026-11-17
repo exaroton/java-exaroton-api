@@ -82,9 +82,9 @@ public class ConfigOptionTypeAdapterTest {
         Assertions.assertInstanceOf(IntegerConfigOption.class, option);
         IntegerConfigOption integerOption = (IntegerConfigOption) option;
         Assertions.assertEquals(10L, integerOption.getValue());
-        Assertions.assertEquals(1.0, integerOption.getMin().orElse(null));
-        Assertions.assertEquals(100.0, integerOption.getMax().orElse(null));
-        Assertions.assertEquals(1.0, integerOption.getStep().orElse(null));
+        Assertions.assertEquals(1L, integerOption.getMin().orElse(null));
+        Assertions.assertEquals(100L, integerOption.getMax().orElse(null));
+        Assertions.assertEquals(1L, integerOption.getStep().orElse(null));
     }
 
     @Test
@@ -98,9 +98,9 @@ public class ConfigOptionTypeAdapterTest {
 
     @Test
     public void testSerializeIntegerOptionWithBounds() {
-        ConfigOption<?> option = new IntegerConfigOption("max-players", 10L, "Max Players", 1.0, 100.0, 1.0);
+        ConfigOption<?> option = new IntegerConfigOption("max-players", 10L, "Max Players", 1L, 100L, 1L);
         JsonElement json = gson.toJsonTree(option);
-        String expectedJson = "{\"value\":10,\"key\":\"max-players\",\"label\":\"Max Players\",\"type\":\"integer\",\"min\":1.0,\"max\":100.0,\"step\":1.0}";
+        String expectedJson = "{\"value\":10,\"key\":\"max-players\",\"label\":\"Max Players\",\"type\":\"integer\",\"min\":1,\"max\":100,\"step\":1}";
         Assertions.assertEquals(gson.fromJson(expectedJson, JsonElement.class), json);
     }
 
