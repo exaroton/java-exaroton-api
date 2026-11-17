@@ -1,4 +1,28 @@
 # 2.6.0
+## New Features
+- Region endpoints
+  - List using `ExarotonClient#getRegions()`
+  - Get the region of a server using `Server#getRegion()`
+  - Transfer servers to another region using `Server#transfer(...)`
+- Get and change server properties (e.g. auto stop) using `Server#getProperties()` and `Server#setProperties(...)`
+- Backups
+  - `Server#getBackups(...)`
+  - `Server#createBackup(...)`
+  - `Server#getBackup(String)`
+  - `Backup#rename(String)`
+  - `Backup#restore()`
+  - `Backup#delete()`
+  - Get the backup accounts of a server
+  - Get and change automatic backup settings
+- Manage custom domains
+  - `Server#getDomains()`
+  - `Server#addDomain(String)`
+  - `Server#getDomain(String)`
+  - `Domain#update(...)`
+  - `Domain#check()`
+  - `Domain#delete()`
+- Manage Share Access
+- List transactions using for accounts, pools or servers.
 - Close websocket connection when deleting a server
 
 ---

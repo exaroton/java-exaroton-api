@@ -166,6 +166,113 @@ System.out.println("New RAM: " + ram.getRam() + "GiB");
 ```
 RAM values are in full GiB and have to be between 2 and 16. Proxy servers can have as little as 1 GiB of RAM.
 
+#### Get/Set server properties
+Server properties are options like auto stop or auto start. Only properties that are available for the server are
+returned, properties you don't set are not changed.
+```jshelllanguage
+Server server = client.getServer("tgkm731xO7GiHt76");
+ServerProperties properties = server.getProperties().join();
+System.out.println("Auto stop: " + properties.getAutostop().orElse(false));
+
+server.setProperties(new ServerProperties()
+        .setAutostop(true)
+        .setAutostopTime(10)
+        .setAutostartType(AutostartType.WHITELISTED)).join();
+```
+
+#### Regions and transfers
+```jshelllanguage
+List<Region> regions = client.getRegions().join();
+for (Region region: regions) {
+    System.out.println(region.getId() + ": " + region.getName());
+}
+
+Server server = client.getServer("tgkm731xO7GiHt76");
+server.fetch().join();
+System.out.println("Current region: " + server.getRegion());
+
+// the server has to be offline, the transfer runs in the background
+server.transfer(ServerRegion.NA).join();
+server.waitForStatus(ServerStatus.GROUP_OFFLINE).get(10, TimeUnit.MINUTES);
+```
+
+#### Backups
+Backups are stored in backup accounts (e.g. Google Drive) that have to be linked to the server in the exaroton panel.
+Backups are created and restored in the background, so you have to poll their status.
+```jshelllanguage
+Server server = client.getServer("tgkm731xO7GiHt76");
+
+// list backups (20 per page)
+BackupPage page = server.getBackups().join();
+for (Backup backup: page) {
+    System.out.println(backup.getId() + ": " + backup.getName().orElse("(default name)") + " " + backup.getStatus());
+}
+
+// create a backup and wait until it's done
+Backup backup = server.createBackup("Before the update").join();
+while (backup.getStatus() == BackupStatus.CREATING) {
+    Thread.sleep(5000);
+    backup.fetch().join();
+}
+
+// rename, restore or delete a backup
+backup = server.getBackup("Xy7zAb3dEf6hIj9k");
+backup.rename("Old world").join();
+backup.restore().join(); // the server has to be offline, wait until server.getBackups().join().isRunning() is false
+backup.delete().join();
+
+// automatic backups
+BackupSettings settings = server.getBackupSettings().join();
+server.setBackupSettings(new BackupSettingsOptions()
+        .setEnabled(true)
+        .setLimit(10)
+        .setInterval(Duration.ofDays(1))).join();
+```
+
+#### Custom domains
+```jshelllanguage
+Server server = client.getServer("tgkm731xO7GiHt76");
+Domain domain = server.addDomain("play.example.com").join();
+System.out.println("Set the NS records to: " + String.join(", ", domain.getNameservers()));
+
+// check again once the NS records are set
+domain.check().join();
+System.out.println(domain.getStatus());
+
+for (Domain d: server.getDomains().join()) {
+    System.out.println(d.getDomain() + ": " + d.getStatus());
+}
+domain.delete().join();
+```
+
+#### Share Access
+```jshelllanguage
+Server server = client.getServer("tgkm731xO7GiHt76");
+ServerAccess access = server.addAccess("example", List.of("server", "stop", "console")).join();
+
+for (ServerAccess a: server.getAccessList().join()) {
+    System.out.println(a.getAccount().getName() + ": " + a.getPermissions());
+}
+
+access.setPermissions("server", "stop").join();
+access.delete().join();
+```
+
+#### Transactions
+Transactions of your account, a credit pool or a server are paginated (20 per page, newest first).
+```jshelllanguage
+Page<Transaction> page = client.getAccountTransactions().join();
+for (Transaction transaction: page) {
+    System.out.println(transaction.getType() + ": " + transaction.getCredits());
+}
+if (page.hasNextPage()) {
+    page = client.getAccountTransactions(page.getPage() + 1).join();
+}
+
+client.getCreditPool("N2t9gWOMpzRL37FI").getTransactions().join();
+client.getServer("tgkm731xO7GiHt76").getTransactions().join();
+```
+
 #### Player lists
 A player list is a list of players such as the whitelist, ops or bans. 
 Player list entries are usually usernames, but might be something else, e.g. IPs in the banned-ips list. 

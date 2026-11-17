@@ -1,3 +1,5 @@
+import com.exaroton.api.Page;
+import com.exaroton.api.billing.transactions.Transaction;
 import com.exaroton.api.billing.pools.CreditPool;
 import com.exaroton.api.billing.pools.CreditPoolMember;
 import com.exaroton.api.server.Server;
@@ -91,5 +93,16 @@ public class CreditPoolsTest extends APIClientTest {
         assertNotNull(servers);
         Assertions.assertEquals(1, servers.size());
         Assertions.assertEquals(TEST_SERVER_ID, servers.get(0).getId());
+    }
+
+    @Test
+    public void testGetPoolTransactions() throws IOException {
+        CreditPool pool = client.getCreditPool(TEST_POOL_ID);
+        Page<Transaction> page = pool.getTransactions().join();
+        assertNotNull(page);
+        Assertions.assertEquals(1, page.getPage());
+        for (Transaction transaction : page) {
+            assertNotNull(transaction.getId());
+        }
     }
 }

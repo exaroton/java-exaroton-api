@@ -60,6 +60,7 @@ public class ServerTest extends APIClientTest {
         assertTrue(server.getPermissions().isEmpty());
         assertTrue(server.hasPermission("console"));
         assertSame(client, server.getClient());
+        assertTrue(ServerRegion.fromId(server.getRegion()).isPresent(), "Unexpected region " + server.getRegion());
     }
 
     @Test
@@ -120,5 +121,46 @@ public class ServerTest extends APIClientTest {
         server.setRAM(16).join();
         assertEquals(16, server.getRAM().join().getRam());
         server.setRAM(ram.getRam()).join();
+    }
+
+    @Test
+    void testGetProperties() throws IOException {
+        ServerProperties properties = server.getProperties().join();
+        assertNotNull(properties);
+        assertTrue(properties.getAutostop().isPresent());
+    }
+
+    @Test
+    void testGetTransactions() throws IOException {
+        var page = server.getTransactions().join();
+        assertEquals(1, page.getPage());
+        for (var transaction : page) {
+            assertEquals(TEST_SERVER_ID, transaction.getServer().orElse(null));
+        }
+    }
+
+    @Test
+    void testGetBackups() throws IOException {
+        var page = server.getBackups().join();
+        assertEquals(1, page.getPage());
+        for (var backup : page) {
+            assertEquals(TEST_SERVER_ID, backup.getServerId());
+            assertTrue(backup.isFetched());
+            assertSame(client, backup.getClient());
+        }
+        assertNotNull(server.getBackupAccounts().join());
+        assertNotNull(server.getBackupSettings().join().getInterval());
+    }
+
+    @Test
+    void testGetDomainsAndAccess() throws IOException {
+        for (var domain : server.getDomains().join()) {
+            assertEquals(TEST_SERVER_ID, domain.getServerId());
+            assertFalse(domain.getNameservers().isEmpty());
+        }
+        for (var access : server.getAccessList().join()) {
+            assertEquals(TEST_SERVER_ID, access.getServerId());
+            assertNotNull(access.getAccount());
+        }
     }
 }

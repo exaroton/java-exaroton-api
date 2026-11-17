@@ -2,12 +2,16 @@ package com.exaroton.api;
 
 import com.exaroton.api.account.Account;
 import com.exaroton.api.billing.pools.CreditPool;
+import com.exaroton.api.billing.transactions.Transaction;
 import com.exaroton.api.request.account.GetAccountRequest;
+import com.exaroton.api.request.account.GetAccountTransactionsRequest;
+import com.exaroton.api.request.regions.GetRegionsRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolsRequest;
 import com.exaroton.api.request.server.CreateServerRequest;
 import com.exaroton.api.request.server.GetServersRequest;
 import com.exaroton.api.request.software.GetSoftwareListRequest;
 import com.exaroton.api.server.CreateServerOptions;
+import com.exaroton.api.server.Region;
 import com.exaroton.api.server.Server;
 import com.exaroton.api.software.Software;
 import com.exaroton.api.util.ConfigOptionTypeAdapterFactory;
@@ -190,6 +194,44 @@ public class ExarotonClient {
      */
     public CompletableFuture<Account> getAccount() throws IOException {
         return request(new GetAccountRequest());
+    }
+
+    /**
+     * Get the first page of the transactions of your account
+     *
+     * @return first page of transactions
+     * @throws IOException Connection errors
+     * @see #getAccountTransactions(int)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Page<Transaction>> getAccountTransactions() throws IOException {
+        return getAccountTransactions(1);
+    }
+
+    /**
+     * Get a page of the transactions of your account (20 per page), newest first with active transactions before all
+     * others. Credits are seen from the perspective of your account.
+     *
+     * @param page page number starting at 1. Pages after the last page are empty.
+     * @return page of transactions
+     * @throws IOException Connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Page<Transaction>> getAccountTransactions(int page) throws IOException {
+        return request(new GetAccountTransactionsRequest(page));
+    }
+
+    /**
+     * list the regions servers can be located in
+     *
+     * @return available regions
+     * @throws IOException Connection errors
+     * @see Server#transfer(Region)
+     * @see CreateServerOptions#setRegion(com.exaroton.api.server.ServerRegion)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<List<Region>> getRegions() throws IOException {
+        return request(new GetRegionsRequest());
     }
 
     /**

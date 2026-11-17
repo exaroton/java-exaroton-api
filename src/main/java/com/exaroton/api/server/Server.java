@@ -1,7 +1,22 @@
 package com.exaroton.api.server;
 
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.Page;
+import com.exaroton.api.billing.transactions.Transaction;
+import com.exaroton.api.request.server.access.AddAccessRequest;
+import com.exaroton.api.request.server.access.GetAccessListRequest;
+import com.exaroton.api.request.server.backups.CreateBackupRequest;
+import com.exaroton.api.request.server.backups.GetBackupAccountsRequest;
+import com.exaroton.api.request.server.backups.GetBackupSettingsRequest;
+import com.exaroton.api.request.server.backups.GetBackupsRequest;
+import com.exaroton.api.request.server.backups.UpdateBackupSettingsRequest;
+import com.exaroton.api.request.server.domains.AddDomainRequest;
+import com.exaroton.api.request.server.domains.GetDomainsRequest;
+import com.exaroton.api.server.access.ServerAccess;
+import com.exaroton.api.server.backups.*;
+import com.exaroton.api.server.domains.Domain;
 import com.exaroton.api.util.Initializable;
+import com.exaroton.api.util.ParameterValidator;
 import com.exaroton.api.request.server.*;
 import com.exaroton.api.software.Software;
 import com.exaroton.api.ws.WebSocketConnection;
@@ -15,7 +30,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -88,6 +105,12 @@ public final class Server implements Initializable {
      */
     @Nullable
     private List<String> permissions;
+
+    /**
+     * ID of the region the server is located in
+     */
+    @Nullable
+    private String region;
 
     /**
      * the client used to create this server
@@ -308,6 +331,18 @@ public final class Server implements Initializable {
     }
 
     /**
+     * Get the ID of the region the server is located in
+     *
+     * @return region ID (e.g. eu) or null if the server hasn't been fetched yet
+     * @see ExarotonClient#getRegions()
+     * @see ServerRegion#fromId(String)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public @Nullable String getRegion() {
+        return region;
+    }
+
+    /**
      * get the exaroton client used to create this server
      *
      * @return exaroton client used to create this server
@@ -426,6 +461,348 @@ public final class Server implements Initializable {
     @ApiStatus.AvailableSince("2.5.0")
     public CompletableFuture<Void> installSoftware(@NotNull Software software, boolean reinstall) throws IOException {
         return installSoftware(Objects.requireNonNull(software).getId(), reinstall);
+    }
+
+    /**
+     * Get the server properties (e.g. auto stop). Only properties that are available for this server and that your
+     * account is allowed to change are included.
+     *
+     * @return server properties
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<ServerProperties> getProperties() throws IOException {
+        return client.request(new GetServerPropertiesRequest(this.client, this.gson, this.id));
+    }
+
+    /**
+     * Change server properties. Properties that are not set are not changed. Either all properties are changed or
+     * none: the request fails if any property is not available for this server, has an invalid value or your
+     * account is missing the permission for it.
+     *
+     * @param properties properties to change
+     * @return all server properties after the change
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<ServerProperties> setProperties(@NotNull ServerProperties properties) throws IOException {
+        return client.request(new SetServerPropertiesRequest(this.client, this.gson, this.id, properties));
+    }
+
+    /**
+     * Change server properties by name. Use this for properties that are not supported by {@link ServerProperties}
+     * yet. Properties that are not included are not changed.
+     *
+     * @param properties map of property name (e.g. autostop-time) to the new value
+     * @return all server properties after the change
+     * @throws IOException connection errors
+     * @see #setProperties(ServerProperties)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<ServerProperties> setProperties(@NotNull Map<String, Object> properties)
+            throws IOException {
+        return client.request(new SetServerPropertiesRequest(this.client, this.gson, this.id,
+                ParameterValidator.requireNonEmpty(properties, "properties")));
+    }
+
+    /**
+     * Transfer the server to another region. The server has to be offline. The transfer runs asynchronously: the
+     * server has the status {@link ServerStatus#TRANSFERRING} while its files are copied, afterwards it returns to
+     * its previous status with the new region. Use {@link #waitForStatus(ServerStatus...)} or {@link #fetch()} to
+     * find out when the transfer is done. Transferring to the current region does nothing.
+     *
+     * @param region region ID (see {@link ExarotonClient#getRegions()})
+     * @return this server with updated properties. The future completes once the transfer has started.
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Server> transfer(@NotNull String region) throws IOException {
+        return client.request(new TransferServerRequest(this.client, this.gson, this.id, region))
+                .thenApply(this::setFromObject);
+    }
+
+    /**
+     * Transfer the server to another region
+     *
+     * @param region region
+     * @return this server with updated properties. The future completes once the transfer has started.
+     * @throws IOException connection errors
+     * @see #transfer(String)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Server> transfer(@NotNull ServerRegion region) throws IOException {
+        return transfer(Objects.requireNonNull(region).getId());
+    }
+
+    /**
+     * Transfer the server to another region
+     *
+     * @param region region (see {@link ExarotonClient#getRegions()})
+     * @return this server with updated properties. The future completes once the transfer has started.
+     * @throws IOException connection errors
+     * @see #transfer(String)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Server> transfer(@NotNull Region region) throws IOException {
+        return transfer(Objects.requireNonNull(region).getId());
+    }
+
+    /**
+     * Get the first page of the backups of this server, newest first
+     *
+     * @return first page of backups
+     * @throws IOException connection errors
+     * @see #getBackups(int)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<BackupPage> getBackups() throws IOException {
+        return getBackups(1);
+    }
+
+    /**
+     * Get a page of the backups of this server in all of its backup accounts (20 per page), newest first. Requires
+     * the backups permission.
+     *
+     * @param page page number starting at 1. Pages after the last page are empty.
+     * @return page of backups
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<BackupPage> getBackups(int page) throws IOException {
+        return client.request(new GetBackupsRequest(this.client, this.gson, this.id, page));
+    }
+
+    /**
+     * Get a backup. This method does not fetch the backup from the API.
+     *
+     * @param id backup id
+     * @return empty backup object
+     * @see Backup#fetch()
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public Backup getBackup(@NotNull String id) {
+        return new Backup(this.client, this.gson, this.id, id);
+    }
+
+    /**
+     * Start creating a backup with the default name in the first backup account linked to the server
+     *
+     * @return the new backup
+     * @throws IOException connection errors
+     * @see #createBackup(String, String)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Backup> createBackup() throws IOException {
+        return createBackup(null, (String) null);
+    }
+
+    /**
+     * Start creating a backup in the first backup account linked to the server
+     *
+     * @param name name of the backup (at most 512 bytes) or null for the default name
+     * @return the new backup
+     * @throws IOException connection errors
+     * @see #createBackup(String, String)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Backup> createBackup(@Nullable String name) throws IOException {
+        return createBackup(name, (String) null);
+    }
+
+    /**
+     * Start creating a manual backup of the server. Backup accounts can only be linked in the exaroton panel. The
+     * backup is created asynchronously: the returned backup has the status {@link BackupStatus#CREATING}. Use
+     * {@link Backup#fetch()} to find out when it is done. If creating the backup fails, the backup is deleted.
+     * Requires the backups permission.
+     *
+     * @param name            name of the backup (at most 512 bytes) or null for the default name
+     * @param backupAccountId ID of the backup account to store the backup in (see {@link #getBackupAccounts()}) or
+     *                        null for the first backup account linked to the server
+     * @return the new backup
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Backup> createBackup(@Nullable String name, @Nullable String backupAccountId)
+            throws IOException {
+        return client.request(new CreateBackupRequest(this.client, this.gson, this.id, name, backupAccountId));
+    }
+
+    /**
+     * Start creating a manual backup of the server
+     *
+     * @param name          name of the backup (at most 512 bytes) or null for the default name
+     * @param backupAccount backup account to store the backup in (see {@link #getBackupAccounts()})
+     * @return the new backup
+     * @throws IOException connection errors
+     * @see #createBackup(String, String)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Backup> createBackup(@Nullable String name, @NotNull BackupAccount backupAccount)
+            throws IOException {
+        return createBackup(name, Objects.requireNonNull(backupAccount).getId());
+    }
+
+    /**
+     * Get the backup accounts (cloud storage like Google Drive, Dropbox or OneDrive) linked to the server. Backups
+     * are created in the first one by default. Backup accounts can't be linked via the API. Requires the backups
+     * permission.
+     *
+     * @return linked backup accounts
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<List<BackupAccount>> getBackupAccounts() throws IOException {
+        return client.request(new GetBackupAccountsRequest(this.client, this.gson, this.id));
+    }
+
+    /**
+     * Get the automatic backup settings. Requires the backups permission.
+     *
+     * @return automatic backup settings
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<BackupSettings> getBackupSettings() throws IOException {
+        return client.request(new GetBackupSettingsRequest(this.client, this.gson, this.id));
+    }
+
+    /**
+     * Change the automatic backup settings. Settings that are not set are not changed. Requires the backups
+     * permission.
+     *
+     * @param options settings to change
+     * @return automatic backup settings after the change
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<BackupSettings> setBackupSettings(@NotNull BackupSettingsOptions options)
+            throws IOException {
+        return client.request(new UpdateBackupSettingsRequest(this.client, this.gson, this.id, options));
+    }
+
+    /**
+     * Get the custom domains of this server. Requires the domains permission.
+     *
+     * @return custom domains
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<List<Domain>> getDomains() throws IOException {
+        return client.request(new GetDomainsRequest(this.client, this.gson, this.id))
+                .thenApply(domains -> {
+                    domains.forEach(domain -> domain.setServerId(this.id));
+                    return domains;
+                });
+    }
+
+    /**
+     * Get a custom domain. This method does not fetch the domain from the API.
+     *
+     * @param id domain id
+     * @return empty domain object
+     * @see Domain#fetch()
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public Domain getDomain(@NotNull String id) {
+        return new Domain(this.client, this.gson, this.id, id);
+    }
+
+    /**
+     * Add a custom domain to this server (up to 10 per server). To link the domain, set its NS records at your DNS
+     * provider to the {@link Domain#getNameservers() nameservers}. If they already point there, the domain is
+     * linked immediately, otherwise use {@link Domain#check()} once they do. Requires the domains permission.
+     *
+     * @param domain the domain (e.g. play.example.com)
+     * @return the new domain
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Domain> addDomain(@NotNull String domain) throws IOException {
+        return client.request(new AddDomainRequest(this.client, this.gson, this.id, domain))
+                .thenApply(result -> result.setServerId(this.id));
+    }
+
+    /**
+     * Get the accounts this server is shared with via the Share Access feature, without the owner. Requires the
+     * access permission.
+     *
+     * @return accounts with access to this server
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<List<ServerAccess>> getAccessList() throws IOException {
+        return client.request(new GetAccessListRequest(this.client, this.gson, this.id))
+                .thenApply(list -> {
+                    list.forEach(access -> access.setServerId(this.id));
+                    return list;
+                });
+    }
+
+    /**
+     * Get the access of an account to this server. This method does not fetch the access from the API.
+     *
+     * @param id access id (see {@link ServerAccess#getId()})
+     * @return empty access object
+     * @see ServerAccess#fetch()
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public ServerAccess getAccess(@NotNull String id) {
+        return new ServerAccess(this.client, this.gson, this.id, id);
+    }
+
+    /**
+     * Share this server with another exaroton account with the default permissions (server)
+     *
+     * @param username name of the exaroton account
+     * @return the new access
+     * @throws IOException connection errors
+     * @see #addAccess(String, Collection)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<ServerAccess> addAccess(@NotNull String username) throws IOException {
+        return addAccess(username, null);
+    }
+
+    /**
+     * Share this server with another exaroton account. Fails if the server is already shared with this account
+     * (change its permissions with {@link ServerAccess#setPermissions(Collection)} instead). Requires the access
+     * permission.
+     *
+     * @param username    name of the exaroton account
+     * @param permissions permissions of the account (see {@link ServerAccess}) or null for the default permissions
+     * @return the new access
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<ServerAccess> addAccess(@NotNull String username, @Nullable Collection<String> permissions)
+            throws IOException {
+        return client.request(new AddAccessRequest(this.client, this.gson, this.id, username, permissions))
+                .thenApply(access -> access.setServerId(this.id));
+    }
+
+    /**
+     * Get the first page of the transactions of this server
+     *
+     * @return first page of transactions
+     * @throws IOException connection errors
+     * @see #getTransactions(int)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Page<Transaction>> getTransactions() throws IOException {
+        return getTransactions(1);
+    }
+
+    /**
+     * Get a page of the transactions of this server (20 per page), newest first with active transactions before all
+     * others. Credits are seen from the perspective of the server. Requires the transactions permission.
+     *
+     * @param page page number starting at 1. Pages after the last page are empty.
+     * @return page of transactions
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Page<Transaction>> getTransactions(int page) throws IOException {
+        return client.request(new GetServerTransactionsRequest(this.client, this.gson, this.id, page));
     }
 
     /**
@@ -780,6 +1157,7 @@ public final class Server implements Initializable {
         this.software = server.getSoftware();
         this.shared = server.isShared();
         this.permissions = server.getPermissions().orElse(null);
+        this.region = server.getRegion();
         return this;
     }
 

@@ -1,6 +1,9 @@
 package com.exaroton.api.billing.pools;
 
 import com.exaroton.api.ExarotonClient;
+import com.exaroton.api.Page;
+import com.exaroton.api.billing.transactions.Transaction;
+import com.exaroton.api.request.billing.pools.GetCreditPoolTransactionsRequest;
 import com.exaroton.api.util.Initializable;
 import com.exaroton.api.request.billing.pools.GetCreditPoolMembersRequest;
 import com.exaroton.api.request.billing.pools.GetCreditPoolRequest;
@@ -239,6 +242,31 @@ public final class CreditPool implements Initializable {
      */
     public CompletableFuture<List<Server>> getServerList() throws IOException {
         return client.request(new GetCreditPoolServersRequest(this.id));
+    }
+
+    /**
+     * Get the first page of the transactions of this pool
+     *
+     * @return first page of transactions
+     * @throws IOException connection errors
+     * @see #getTransactions(int)
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Page<Transaction>> getTransactions() throws IOException {
+        return getTransactions(1);
+    }
+
+    /**
+     * Get a page of the transactions of this pool (20 per page), newest first with active transactions before all
+     * others. Credits are seen from the perspective of the pool. Only available for members of the pool.
+     *
+     * @param page page number starting at 1. Pages after the last page are empty.
+     * @return page of transactions
+     * @throws IOException connection errors
+     */
+    @ApiStatus.AvailableSince("2.6.0")
+    public CompletableFuture<Page<Transaction>> getTransactions(int page) throws IOException {
+        return client.request(new GetCreditPoolTransactionsRequest(this.id, page));
     }
 
     /**
